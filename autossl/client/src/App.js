@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from 'react';
+// Simple application template for getting web applications installed in a given server
+// Pending implementation
 
-function App() {
-  const [data, setData] = useState(null);
-
-  useEffect(() => {
-    fetch('http://autossl.mikelinesta.com/node') 
-      .then(response => response.json())
-      .then(data => setData(data));
-  }, []);
-
+function ObtenerServidoresWeb(){
   return (
-    <div>
-      <p>{data ? JSON.stringify(data) : 'loading'}</p>
-    </div>
+    <button>Mostrar</button>
   );
 }
 
-export default App;
+export default function MyApp() {
+  return (
+    <div>
+      <h1>AutoSSL</h1>
+      <h2>Obtener servidores web instalados</h2>
+      <ObtenerServidoresWeb />
+    </div>
+  );
+}
