@@ -1,35 +1,30 @@
-// Node backend to communicate with the agent and serve the client
-const express = require('express');
-const cors = require('cors');
+// Node backend to serve the client with data obtained through the agent
+const express = require("express");
 const app = express();
-
-app.use(cors());
+const port = 8080;
 app.use(express.json());
 
-// ServerData stored in memory
-let serverData = null;
 
-// Test get route to verify reverse proxy
-app.get('/test', (req, res) => {
-  res.json({ message: 'hello world' });
+app.post('/update', function(request, response){
+
+  // A json containing the server ip and web servers found in obtained
+
+  // New data is saved to the database
+
+  // Success message is returned to the agent
+
 });
 
-// Post route to receive server data from the python client
-app.post('/sendStatus', express.json(), (req, res) => {
-  serverData = req.body;
-  console.log('received:', req.body);
-  res.status(200).send('Data received successfully');
+app.post('/status', function(request, response){
+
+  // User data is received and authenticated
+
+  // Server/Domain requested is looked up in the database
+
+  // Requested data is returned to the frontend
+
 });
 
-// Get route to serve the react client
-app.get('/', (req, res) => {
-  if (serverData) {
-    res.json(serverData);
-  } else {
-    res.status(404).send('No data available');
-  }
-});
-
-app.listen(8080, () => {
-  console.log('Server is running on port 8080');
+app.listen(port, () => {
+  console.log(`Listening at localhost:${port}`);
 });
