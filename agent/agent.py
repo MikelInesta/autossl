@@ -46,7 +46,7 @@ try:
   if response.status_code == 200:
     print("Data sent")
   else:
-      print("Error sending data")
+      print("Error updating data:", response)
 except Exception:
   print(f'Error establishing a connection with {url}')
 
