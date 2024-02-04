@@ -47,7 +47,7 @@ app.post('/backend/update', function (request, response) {
 
 	}catch(err){
 		console.log('Error: ',err);
-		response.sendStatus(500); // Unprocessable Content
+		response.sendStatus(500); //internal server error
 	}
 
 	async function update(ip, servers){
@@ -113,8 +113,67 @@ app.post('/backend/update', function (request, response) {
 			}
 
 		}
+
+		await c.end(); //End the connection
+
 	}
 });
+
+app.get('/backend/web-servers/:serverName', (request, response) => {
+
+	try{
+		const serverName = request.params.serverName;
+
+		//main function call
+		getWebServers(serverName)
+		.then((web_servers) => {
+			// Send the found web servers to the client.
+			response.status(200).send(web_servers);
+		})
+		.catch((err)=>{
+			console.log(err);
+			throw err;
+		});
+
+	}catch(err){
+		console.log('Error: ',err);
+		response.sendStatus(500); // Internal Server Error
+	}
+
+	// Retrieve the web servers for the server with the given name from the database
+	async function getWebServers(serverName){
+		try{
+			const c = await mysql.createConnection(config.db);
+
+			// See if the server is already logged in the database
+			var sql = 'SELECT * FROM `server` WHERE `ip` = ?';
+			var values = [ip];
+
+			var [rows, fields] = await c.execute(sql, values);
+
+			if (rows.length == 0){
+				throw "Server not found";
+			}
+
+			sql = 'SELECT * FROM `web_server` WHERE `server_id` = ?';
+			values = [rows[0].server_id];
+
+			[rows, fields] = await c.execute(sql, values);
+
+			const web_servers = rows;
+			console.log('Found: ', web_servers);
+
+			await c.end(); // End the connection
+			return web_servers;
+
+		}catch(err){
+			console.log('Error: ',err);
+			throw err;
+		}
+
+	}
+  
+})
 
 app.listen(port, () => {
 	console.log(`Listening at localhost:${port}\nPress Ctrl+C to quit`);
