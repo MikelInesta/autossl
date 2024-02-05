@@ -159,7 +159,7 @@ app.get("/backend/web-servers/:serverName", (request, response) => {
       var [rows, fields] = await c.execute(sql, values);
 
       if (rows.length == 0) {
-        throw `The Server \'${serverName}\' was not found`;
+        throw `The server \'${serverName}\' was not found`;
       } else {
         console.log(
           "Found server: %s with id: %d",
