@@ -8,8 +8,6 @@ import connection from "./config/database.js";
 import agentRouter from "./routes/agents.js";
 import frontendRouter from "./routes/frontend.js";
 
-import { createUser } from "./controllers/frontend.js";
-
 const app = express();
 
 // Middleware for every endpoint
