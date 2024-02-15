@@ -1,5 +1,5 @@
 import express from "express";
-import { updateWebServers } from "../controllers/agent";
+import { updateWebServers } from "../controllers/web_server";
 
 const agentRouter = express.Router();
 
@@ -22,14 +22,5 @@ agentRouter.post("/update/web-servers", async (req, res) => {
     res.status(500).send("Internal server error");
   }
 });
-
-agentRouter.get("/update/servers", (req, res) => {});
-
-// Endpoint for agents to update web servers
-agentRouter.get("/update/web-servers", async (req, res) => {});
-
-agentRouter.get("/update/virtual-hosts", async (req, res) => {});
-
-agentRouter.get("update/certificates", async (req, res) => {});
 
 export default agentRouter;

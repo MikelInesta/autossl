@@ -1,6 +1,24 @@
-import { IWebServer, WebServer } from "../models/web_servers";
-import { Server, IServer } from "../models/servers";
-import { create } from "domain";
+import { WebServer } from "../models/web_servers";
+import { Server } from "../models/servers";
+import { createNewServer } from "./server";
+
+export const getWebServersByName = async (name: string) => {
+  // Find the server with the given ip
+  const server = await Server.findOne({ server_name: name });
+  if (!server) throw new Error("Server with the given name was not found");
+
+  if (!server.web_servers) return [];
+
+  const webServers = server.web_servers.map((webServer) => {
+    return {
+      id: webServer._id,
+      name: webServer.web_server_name,
+      path: webServer.configuration_path,
+    };
+  });
+  console.log(webServers);
+  return webServers;
+};
 
 export const updateWebServers = async (ip: string, webServers: String[]) => {
   // Create the new web servers objects to be added to the server
@@ -22,21 +40,4 @@ export const updateWebServers = async (ip: string, webServers: String[]) => {
     //Linux is hard coded right now, but it should be obtained from the agent
     await createNewServer(ip, "Linux", newWebServers);
   }
-};
-
-const createNewServer = async (
-  ip: string,
-  os: string,
-  newWebServers: IWebServer[]
-) => {
-  const newServer = new Server({
-    //Generate a random name for the server
-    server_name: `Server-${Math.floor(Math.random() * 100)}`,
-    server_ip: ip,
-    operating_system: os,
-    web_servers: newWebServers,
-  });
-
-  newServer.save();
-  return newServer;
 };
