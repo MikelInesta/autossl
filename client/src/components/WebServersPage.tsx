@@ -11,7 +11,8 @@ export default function WebServersPage() {
   const fetchData = async () => {
     try {
       const response = await fetch(
-        "https://autossl.mikelinesta.com/backend/web-servers/" + serverName,
+        "https://autossl.mikelinesta.com/api/front-end/web-servers/" +
+          serverName,
         {
           method: "GET",
           headers: new Headers({ "Content-type": "application/json" }), // Not really sending json but it gives me cors error if i dont
@@ -23,6 +24,7 @@ export default function WebServersPage() {
         setError(errorData.error);
       } else {
         const data = await response.json();
+        console.log(data);
         setWebServers(data);
         setError("");
       }
@@ -60,9 +62,9 @@ export default function WebServersPage() {
 
       <ul className="list-group mt-3">
         {webServers.map((server: any) => (
-          <li key={server.web_server_id} className="list-group-item">
-            <h5>{server.web_server_name}</h5>
-            <p>{server.configuration_path}</p>
+          <li key={server.id} className="list-group-item">
+            <h5>{server.name}</h5>
+            <p>{server.path}</p>
           </li>
         ))}
       </ul>
