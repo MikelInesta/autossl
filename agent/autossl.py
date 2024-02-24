@@ -1,49 +1,50 @@
-import subprocess # To run shell commands.
-import os # For file search
+import subprocess, os, requests, json 
+
+agentUrl = "https://autossl.mikelinesta.com/api/agents/"
 
 class Agent:
     def __init__(self):
-        self.servers = []
+        self.ip = requests.get('https://api.ipify.org').content.decode('utf8')
+        self.webServers = []
+        self.hosts = []
+        self.certificates = []
 
-    # Method that uses netstat to find active internet services by name (apache or nginx) or common ports (80, 8080, 443, 8443)
-    def findActiveServicesThroughNetstat(self):
-        # Shell command to find all servers listening on ports 80, 8080, 443, 8443 or 
-        # containing the names apache (or httpd) or nginx.
-        command = "sudo netstat -tnlp  | grep 'apache\|nginx\|httpd\|:80\|:8080\|:443\|:8443' | awk '{print $4,$7}'"
-        result = subprocess.run(command, shell=True, capture_output=True, text=True)
-        output = result.stdout.strip()
+    # Method that given a directory, reads every file and searches for the listening and server_name directives.
+    def findNginxHosts(self, nginxRoot):
+        for root, dirs, files in os.walk(nginxRoot):
+            for file in files:
+                with open(os.path.join(root, file), 'r') as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        if 'listen' in line:
+                            ipDir = line.split(' ')[1].strip(';')
+                        if 'server_name' in line:
+                            serverName = line.split(' ')[1].strip(';')
+                            if ipDir and serverName:
+                                self.servers.append({"ip":ipDir, "serverName":serverName})
+                                ipDir = None
+                                serverName = None
 
-        lines = output.split('\n')
-        for line in lines:
-            parts = line.split(' ') #S plits the line into port and pid/name.
-            port = parts[0].split(':')[1] #S plits the port from the ip.
-            pid = parts[1].split('/')[0] #S plits the pid from the name.
-            name = parts[1].split('/')[1].rstrip(':') #S plits the name from the pid and removes the final colon.
-            print(f'Port:{port}, PID: {pid}, Name: {name}')
-            # Check to find wether a server with the same name and pid is already considered.
-            for server in self.servers:
-                if server['name'] == name and server['pid'] == pid:
-                    if port != '' and port not in server['ports']:
-                        server['ports'].append(port)
-                    break
-            else:
-                self.servers.append({'name': name, 'pid': pid, 'ports': [port]})
-
-    # Method that uses the file system to find if apache or nginx configuration directories exist.
-    # Uses walk to search entire depth
-    def findDirWalk(self, dirName, searchPath):
-        result = []
-        for root, dirs, files in os.walk(searchPath):
-            if dirName in dirs:
-                result.append(os.path.join(root, dirName))
-        if result:
-            result.insert(0, dirName) # We add the server name as the first element
-            self.servers.append(result)
-        return result
-    
-    # Method that just searches a given directory for a specific directory in it
-    def findDir(self, dirName, searchDir):
+    # Method that just searches a given directory for a specific directory in it and adds it to the webServers list
+    def addDirName(dirName, searchDir, list):
         for item in os.listdir(searchDir):
             if os.path.isdir(os.path.join(searchDir, item)) and item == dirName:
-                self.servers.append(os.path.join(searchDir, item))
+                list.append(os.path.join(searchDir, item))
+
+    # Method that updates the web servers list and sends it to the backend
+    def updateWebServers(self, names, root):
+        for name in names:
+            self.addDirName(name, root, self.webServers)
+        self.sendJsonData(self.webServers, "update/web-servers")
     
+    # Method that takes 
+    def sendJsonData(self, data, endpoint):
+        # Convert the data to JSON
+        dataJson = json.dumps(data)
+        # Send the data to the backend
+        jsonDict = {"ip":self.ip, "data": dataJson}
+        headers = {"Content-Type": "application/json"}
+        try:
+            response = requests.post(agentUrl+endpoint, data=json.dumps(jsonDict), headers=headers)
+        except:
+            print('Error sending data')
