@@ -42,65 +42,87 @@ class Agent:
         for root, dirs, files in os.walk(f"{webServer['configuration_path']}/sites-available"):
             #Loop through every file in the directory to find virtual hosts
             for file in files:
-                print(f'file: {file}')
                 with open(os.path.join(root, file), 'r') as f:
                     virtual_hosts.append(self.processVirtualHosts(f, webServer, file))
         return virtual_hosts
     
     def processVirtualHosts(self, file, webServer, fileName):
         virtual_hosts = []
-        listening = [] # In case there are multiple ips for a single virtual host
-        serverNames = [] # ""      ""
+        server = False
+        certificatePath = None
         lines = file.readlines()
+        
         for i in range(len(lines)):
+            
+            # If the line is commented out skip it
+            if '#' in lines[i].split(' ')[0] or lines[i].split(' ')[0] == '#':
+                continue
+            
             # When finding the server block directive, process the entire server block
-            if 'server' in lines[i] and '{' in lines[i] or '{' in lines[i+1]:
+            if 'server' in lines[i].split(' ')[0] and '{' in lines[i]:
+                listening = [] # In case there are multiple ips for a single virtual host
+                serverNames = [] # ""      ""
+                server = True
                 level = 1; # Mark the opening bracket of a server block
+                continue
+            
+            if server:
+                # If an opening bracket is found but no server directive nor on the same line or the one before increase the level
+                if '{' in lines[i]:
+                    level+=1
                 
-            if lines[i].split(' ')[0] != '#' and lines[i][0] != '#':
+                # If a closing bracket is found decrease the level
+                if '}' in lines[i]:
+                    level-=1
+                
+                # If the level is zero and a server block was found we add the host to de virtual_hosts list
+                if level == 0 and server:
+                    virtual_hosts.append(self.processServerBlock(listening, serverNames, webServer, fileName, certificatePath))
+                    certificatePath = None
+                    server = False
+                
                 if 'listen' in lines[i]:
                     lineSplit = lines[i].split(' ')
                     for j in range(len(lineSplit)):
-                        if lineSplit[j] == 'listen':
-                            listening.append(lineSplit[j+1].strip('\n').strip(';'))
-                            
+                        if 'listen' in lineSplit[j]:
+                            # Save the entire line after the listen directive until the end of the line or the # character
+                            notCommented = lineSplit[j+1:].split('#')
+                            listening.append(' '.join(lineSplit[j+1:]).strip('\n').strip(';'))
+                
                 # Find the server_name directive and save the following word (the server name)
                 if 'server_name' in lines[i]:
                     lineSplit = lines[i].split(' ')
                     for j in range(len(lineSplit)):
-                        if lineSplit[j] == 'server_name':
+                        if 'server_name' in lineSplit[j]:
                             serverNames.append(lineSplit[j+1].strip('\n').strip(';'))
-
+                
                 # Find the ssl_certificate directive and save the following word (the certificate full chain path)
                 if 'ssl_certificate' in lines[i]:
                     lineSplit = lines[i].split(' ')
                     for j in range(len(lineSplit)):
-                        if lineSplit[j] == 'ssl_certificate':
+                        if 'ssl_certificate' in lineSplit[j]:
                             certificatePath = lineSplit[j+1].strip('\n').strip(';')
-
-                # Build the host and certificate objects and append them to the hosts and certificates lists
-                if level == 0: # Reached the end of the server block
-                    # Check if the current file is in the sites-enabled directory
-                    if file in os.listdir(f'{webServer["configuration_path"]}/sites-enabled'):
-                        isEnabled = True
-                    else:
-                        isEnabled = False 
-                    if certificatePath:
-                        with open(certificatePath, 'r') as file:
-                            caChain = file.read()
-                        certificate = {
-                            "ca_chain": certificatePath #Temporary, building certificates pending!!!
-                        }
-                    virtual_host = {
-                        "vh_ips": listening,
-                        "domain_names": serverNames,
-                        "enabled": isEnabled,
-                        "certificate": certificate or None
-                    }
-                    virtual_hosts.append(virtual_host)
-                    listening = []
-                    serverNames = []
-                    certificatePath = certificate = None
+                
+        return virtual_hosts
+    
+    def processServerBlock(self, listening, serverNames, webServer, fileName, certificatePath):
+        virtual_host = {}
+        certificate = None
+        if certificatePath:
+            # I could add a function here to build the certificate object and append it to the vh/domain
+            with open(certificatePath, 'r') as file:
+                caChain = file.read()
+            certificate = {
+                "ca_chain": certificatePath #Temporary, building certificates pending!!!
+            }
+        virtual_host = {
+            "vh_ips": listening,
+            "domain_names": serverNames,
+            "enabled": (fileName in os.listdir(f'{webServer["configuration_path"]}/sites-enabled')),
+            "certificate": certificate
+        }
+        return virtual_host
+        
     
     # Builds the necesary data structure to update everything in the backend
     # Maybe I should fragment the updates, but im currently building and sending the entire object in every change
