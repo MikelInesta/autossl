@@ -1,0 +1,127 @@
+import os, requests, json 
+
+# The purpose of this class is obtaining and building the necessary data to send updates to the backend
+class Agent:
+    def __init__(self, agentUrl="https://autossl.mikelinesta.com/api/agents/"):
+        self.ip = requests.get('https://api.ipify.org').content.decode('utf8')
+        # Web servers will be a list of {name: "name", path: "path"}
+        self.webServers = []
+        # List of names for possible web servers
+        self.names = ["nginx", "apache2", "apache", "httpd"]
+        # Root url for the api endpoint
+        self.agentUrl = agentUrl
+        # Operating system
+        self.os = f'OS {os.uname().sysname}, Release {os.uname().release}'
+    
+    # Searches for every name in the names list in the /etc directory and appends the path to the webServers list
+    def findWebServers(self):
+        rootDirectory = "/etc"
+        for name in self.names:
+            for item in os.listdir(rootDirectory):
+                if os.path.isdir(os.path.join(rootDirectory, item)) and item == name:
+                    configRoot = os.path.join(rootDirectory, item)
+                    webServer = {
+                        "configuration_path": configRoot,
+                        "web_server_name": name
+                    }
+                    # Build the found Web Server with its virtual hosts and certificates
+                    if name == "nginx":
+                        virtual_hosts = self.findNginxHosts(webServer)
+                        if virtual_hosts:
+                            webServer["virtual_hosts"] = virtual_hosts
+                    #elif name == "apache2":
+                        #virtual_hosts = self.findApacheHosts(webServer)
+                        #if virtual_hosts:
+                        #    webServer["virtual_hosts"] = virtual_hosts
+                    self.webServers.append(webServer)
+    
+    # Method that given the root of a directory, reads every file and searches for virtual hosts and certificates
+    def findNginxHosts(self, webServer):
+        virtual_hosts = []
+        ipDir = serverName = certificatePath = certificate = None
+        for root, dirs, files in os.walk(f"{webServer['configuration_path']}/sites-available"):
+            #Loop through every file in the directory to find virtual hosts
+            for file in files:
+                print(f'file: {file}')
+                with open(os.path.join(root, file), 'r') as f:
+                    virtual_hosts.append(self.processVirtualHosts(f, webServer, file))
+        return virtual_hosts
+    
+    def processVirtualHosts(self, file, webServer, fileName):
+        virtual_hosts = []
+        listening = [] # In case there are multiple ips for a single virtual host
+        serverNames = [] # ""      ""
+        lines = file.readlines()
+        for i in range(len(lines)):
+            # When finding the server block directive, process the entire server block
+            if 'server' in lines[i] and '{' in lines[i] or '{' in lines[i+1]:
+                level = 1; # Mark the opening bracket of a server block
+                
+            if lines[i].split(' ')[0] != '#' and lines[i][0] != '#':
+                if 'listen' in lines[i]:
+                    lineSplit = lines[i].split(' ')
+                    for j in range(len(lineSplit)):
+                        if lineSplit[j] == 'listen':
+                            listening.append(lineSplit[j+1].strip('\n').strip(';'))
+                            
+                # Find the server_name directive and save the following word (the server name)
+                if 'server_name' in lines[i]:
+                    lineSplit = lines[i].split(' ')
+                    for j in range(len(lineSplit)):
+                        if lineSplit[j] == 'server_name':
+                            serverNames.append(lineSplit[j+1].strip('\n').strip(';'))
+
+                # Find the ssl_certificate directive and save the following word (the certificate full chain path)
+                if 'ssl_certificate' in lines[i]:
+                    lineSplit = lines[i].split(' ')
+                    for j in range(len(lineSplit)):
+                        if lineSplit[j] == 'ssl_certificate':
+                            certificatePath = lineSplit[j+1].strip('\n').strip(';')
+
+                # Build the host and certificate objects and append them to the hosts and certificates lists
+                if level == 0: # Reached the end of the server block
+                    # Check if the current file is in the sites-enabled directory
+                    if file in os.listdir(f'{webServer["configuration_path"]}/sites-enabled'):
+                        isEnabled = True
+                    else:
+                        isEnabled = False 
+                    if certificatePath:
+                        with open(certificatePath, 'r') as file:
+                            caChain = file.read()
+                        certificate = {
+                            "ca_chain": certificatePath #Temporary, building certificates pending!!!
+                        }
+                    virtual_host = {
+                        "vh_ips": listening,
+                        "domain_names": serverNames,
+                        "enabled": isEnabled,
+                        "certificate": certificate or None
+                    }
+                    virtual_hosts.append(virtual_host)
+                    listening = []
+                    serverNames = []
+                    certificatePath = certificate = None
+    
+    # Builds the necesary data structure to update everything in the backend
+    # Maybe I should fragment the updates, but im currently building and sending the entire object in every change
+    def update(self):
+        self.findWebServers()
+        data = {
+            "server":{
+                "server_name": f'Server-{self.ip}',
+                "server_ip": self.ip,
+                "operating_system": self.os,
+                "web_servers": self.webServers, # Virtual Hosts and Certificates are currently contained in webServers
+            },
+        }
+        jsonData = json.dumps(data)
+        print(jsonData)
+        """
+        try:
+            requests.post(f'{self.agentUrl}/update', data=jsonData)
+            return True
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return False
+        """
+
