@@ -20,6 +20,9 @@ observer.start()
 a = Agent()
 
 # Find every change and send the update to the backend
-a.update()
+if a.update():
+  print("Succesfully sent the updated data to the backend")
+else:
+  print("Something went wrong sending the data to the backend")
 
 

@@ -1,11 +1,11 @@
-import os, requests, json 
+import os, requests, json, subprocess
 
 # The purpose of this class is obtaining and building the necessary data to send updates to the backend
 class Agent:
     def __init__(self, agentUrl="https://autossl.mikelinesta.com/api/agents/"):
         self.ip = requests.get('https://api.ipify.org').content.decode('utf8')
         # Web servers will be a list of {name: "name", path: "path"}
-        self.webServers = []
+        self.webServers = {}
         # List of names for possible web servers
         self.names = ["nginx", "apache2", "apache", "httpd"]
         # Root url for the api endpoint
@@ -22,10 +22,13 @@ class Agent:
                     configRoot = os.path.join(rootDirectory, item)
                     webServer = {
                         "configuration_path": configRoot,
-                        "web_server_name": name
                     }
                     # Build the found Web Server with its virtual hosts and certificates
                     if name == "nginx":
+                        result = subprocess.run("nginx -v", shell=True, capture_output=True, text=True)
+                        #version = result.stdout.strip()
+                        #print(f'version = {version}')
+                        #webServer["version"]=version
                         virtual_hosts = self.findNginxHosts(webServer)
                         if virtual_hosts:
                             webServer["virtual_hosts"] = virtual_hosts
@@ -33,17 +36,17 @@ class Agent:
                         #virtual_hosts = self.findApacheHosts(webServer)
                         #if virtual_hosts:
                         #    webServer["virtual_hosts"] = virtual_hosts
-                    self.webServers.append(webServer)
+                    self.webServers[name] = webServer
     
     # Method that given the root of a directory, reads every file and searches for virtual hosts and certificates
     def findNginxHosts(self, webServer):
-        virtual_hosts = []
+        virtual_hosts = {}
         ipDir = serverName = certificatePath = certificate = None
         for root, dirs, files in os.walk(f"{webServer['configuration_path']}/sites-available"):
             #Loop through every file in the directory to find virtual hosts
             for file in files:
                 with open(os.path.join(root, file), 'r') as f:
-                    virtual_hosts.append(self.processVirtualHosts(f, webServer, file))
+                    virtual_hosts[file]=self.processVirtualHosts(f, webServer, file)
         return virtual_hosts
     
     def processVirtualHosts(self, file, webServer, fileName):
@@ -86,8 +89,7 @@ class Agent:
                     for j in range(len(lineSplit)):
                         if 'listen' in lineSplit[j]:
                             # Save the entire line after the listen directive until the end of the line or the # character
-                            notCommented = lineSplit[j+1:].split('#')
-                            listening.append(' '.join(lineSplit[j+1:]).strip('\n').strip(';'))
+                            listening.append((' '.join(lineSplit[j+1:]).split('#')[0]).strip(' ').strip('\n').strip(';'))
                 
                 # Find the server_name directive and save the following word (the server name)
                 if 'server_name' in lines[i]:
@@ -137,13 +139,13 @@ class Agent:
             },
         }
         jsonData = json.dumps(data)
-        print(jsonData)
-        """
+        
         try:
-            requests.post(f'{self.agentUrl}/update', data=jsonData)
+            requests.post(f'{self.agentUrl}/update', data=jsonData, headers={'Content-Type': 'application/json'})
+            print(f'sent: {jsonData}')
             return True
         except requests.exceptions.RequestException as e:
             print(e)
             return False
-        """
+        
 
