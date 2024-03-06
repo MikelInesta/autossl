@@ -7,7 +7,7 @@ interface IVirtualHost {
   domain_names: Array<String>;
   enabled: boolean;
   web_server_id: Types.ObjectId;
-  certificate: Types.ObjectId;
+  certificate_id: Types.ObjectId;
 }
 
 const schema = new Schema<IVirtualHost>({
@@ -23,7 +23,7 @@ const schema = new Schema<IVirtualHost>({
     ref: "web_servers",
     unique: true,
   },
-  certificate: {
+  certificate_id: {
     type: Schema.Types.ObjectId,
     required: true,
     ref: Certificate,
