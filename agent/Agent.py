@@ -1,4 +1,5 @@
 import os, requests, json, subprocess
+from utilities.x509Parser import x509Parser
 
 # The purpose of this class is obtaining and building the necessary data to send updates to the backend
 class Agent:
@@ -98,14 +99,60 @@ class Agent:
                         if 'server_name' in lineSplit[j]:
                             serverNames.append(lineSplit[j+1].strip('\n').strip(';'))
                 
-                # Find the ssl_certificate directive and save the following word (the certificate full chain path)
+                # Find the ssl_certificate directive, get the directory for the certificate and process it
                 if 'ssl_certificate' in lines[i]:
                     lineSplit = lines[i].split(' ')
                     for j in range(len(lineSplit)):
                         if 'ssl_certificate' in lineSplit[j]:
-                            certificatePath = lineSplit[j+1].strip('\n').strip(';')
-                
+                            fullChainPath = lineSplit[j+1].strip('\n').strip(';')
+                            certificatePathArray = fullChainPath.split("/").pop()
+                            certificatePath = ''.join(certificatePathArray)
+                            print(f'certificatePath = {certificatePath}')
+                            certificate = processCertificate(certificatePath)
         return virtual_hosts
+    
+    def processCertificate(self, certificatePath):
+        certificate = {
+            "directory_path": certificatePath
+        }
+        # ---- Subject Information ----
+        result = subprocess.run(f"openssl x509 -in {certificatePath} -noout -subject", shell=True, capture_output=True, text=True)
+        subjectResult = result.stdout.strip().split(' ')
+        subject = {}
+        for line in subjectResult:
+            if 'CN' in line:
+                subject["common_name"] = line.split('=')[1].strip()
+            if 'O' in line:
+                subject["organization"] = line.split('=')[1].strip()
+            if 'OU' in line:
+                subject["organizational_unit"] = line.split('=')[1].strip()
+        certificate["subject"] = subject
+        
+        # ---- Issuer Information ----
+        result = subprocess.run(f"openssl x509 -in {certificatePath} -noout -issuer", shell=True, capture_output=True, text=True)
+        issuerResult = result.stdout.strip().split(' ')
+        issuer = {}
+        for line in issuerResult:
+            if 'CN' in line:
+                issuer["common_name"] = line.split('=')[1].strip()
+            if 'O' in line:
+                issuer["organization"] = line.split('=')[1].strip()
+            if 'OU' in line:
+                issuer["organizational_unit"] = line.split('=')[1].strip()
+        
+        # ---- Validity Information ----
+        result = subprocess.run(f"openssl x509 -in {certificatePath} -noout -dates", shell=True, capture_output=True, text=True)
+        validityResult = result.stdout.strip().split(' ')
+        validity = {}
+        for line in validityResult:
+            if 'notBefore' in line:
+                validity["not_before"] = line.split('=')[1].strip()
+            if 'notAfter' in line:
+                validity["not_after"] = line.split('=')[1].strip()
+        return certificate
+    
+        # ---- Public Key Information ----
+        result = subprocess.run(f"openssl x509 -in {certificatePath} -noout -pubkey", shell=True, capture_output=True, text=True)
     
     def processServerBlock(self, listening, serverNames, webServer, fileName, certificatePath):
         virtual_host = {}
