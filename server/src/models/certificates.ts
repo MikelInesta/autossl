@@ -20,6 +20,7 @@ interface ICertificate extends Document {
   public_key: {
     algorithm: string;
     size: number;
+    key: string;
   };
   signature_algorithm: string;
   serial_number: string;
@@ -33,67 +34,59 @@ const schema = new Schema<ICertificate>({
   subject: {
     common_name: {
       type: "string",
-      required: true,
       max: 50,
     },
     organization: {
       type: "string",
-      required: true,
       max: 50,
     },
     organizational_unit: {
       type: "string",
-      required: true,
       max: 50,
     },
   },
   issuer: {
     common_name: {
       type: "string",
-      required: true,
       max: 50,
     },
     organization: {
       type: "string",
-      required: true,
       max: 50,
     },
     organizational_unit: {
       type: "string",
-      required: true,
       max: 50,
     },
   },
   validity: {
     not_before: {
       type: "date",
-      required: true,
     },
     not_after: {
       type: "date",
-      required: true,
     },
   },
   public_key: {
     algorithm: {
       type: "string",
-      required: true,
+
       max: 50,
     },
     size: {
       type: "number",
-      required: true,
+    },
+    key: {
+      type: "string",
     },
   },
   signature_algorithm: {
     type: "string",
-    required: true,
     max: 50,
   },
   serial_number: {
     type: "string",
-    required: true,
-    max: 50,
+    max: 100,
   },
 });
 
