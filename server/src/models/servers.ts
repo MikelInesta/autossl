@@ -3,6 +3,7 @@ import { WebServer, IWebServer } from "./web_servers";
 
 // Server DocType (for typescript)
 interface IServer {
+  _id: Types.ObjectId;
   server_name: string;
   server_ip: string;
   operating_system: string;
@@ -24,7 +25,7 @@ const schema = new Schema<IServer>({
   operating_system: {
     type: "string",
     required: true,
-    max: 50,
+    max: 80,
   },
   web_servers: {
     type: "array",

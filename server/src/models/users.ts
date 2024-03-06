@@ -2,6 +2,7 @@ import { Schema, model, Types } from "mongoose";
 import { IServer, Server } from "./servers";
 
 interface IUser {
+  _id: Types.ObjectId;
   user_name: string;
   email: string;
   password: string;

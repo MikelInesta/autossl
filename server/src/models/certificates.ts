@@ -1,5 +1,24 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 
+interface ICertificate extends Document {
+  _id: Types.ObjectId;
+  ca_chain_path: string;
+  is_old: boolean;
+}
+
+const schema = new Schema<ICertificate>({
+  ca_chain_path: {
+    type: "string",
+    required: true,
+  },
+  is_old: {
+    type: "boolean",
+    required: true,
+    default: false,
+  },
+});
+
+/*
 interface ICertificate extends Document {
   ca_name: string;
   ca_signature: string;
@@ -37,6 +56,8 @@ const schema = new Schema<ICertificate>({
     max: 10,
   },
 });
+
+*/
 
 const Certificate = model<ICertificate>("Certificate", schema);
 

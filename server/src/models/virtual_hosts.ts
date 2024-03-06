@@ -2,23 +2,17 @@ import { Schema, model, Types } from "mongoose";
 import { Certificate, ICertificate } from "./certificates";
 
 interface IVirtualHost {
-  vh_ip: string;
-  domain_name: string;
+  _id: Types.ObjectId;
+  vh_ips: Array<String>;
+  domain_names: Array<String>;
   enabled: boolean;
   web_server_id: Types.ObjectId;
   certificate: Types.ObjectId;
 }
 
 const schema = new Schema<IVirtualHost>({
-  vh_ip: {
-    type: "string",
-    required: true,
-  },
-  domain_name: {
-    type: "string",
-    required: true,
-    max: 253,
-  },
+  vh_ips: [],
+  domain_names: [],
   enabled: {
     type: "boolean",
     required: true,
