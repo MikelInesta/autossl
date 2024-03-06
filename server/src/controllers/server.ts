@@ -4,67 +4,95 @@ import { Mongoose, Types } from "mongoose";
 import { VirtualHost } from "../models/virtual_hosts";
 import { Certificate } from "../models/certificates";
 
-const ReplaceServer = async (
-  server_name: string,
-  server_ip: string,
-  operating_system: string
-): Promise<IServer> => {
+const update = async (updateData: any): Promise<Boolean> => {
   try {
-    // Attempt to find the server
-    const server = await Server.findOne({
-      server_ip: server_ip,
-    }).exec();
+    if (!updateData.server) return false;
 
-    if (server) {
-      console.log("Server found:", server);
-      return server;
-    } else {
-      // Server was not found, creating a new one
-      const newServer = new Server({
-        server_name,
-        server_ip,
-        operating_system,
-      });
-      await newServer.save();
-      console.log("New server created:", newServer);
-      return newServer;
-    }
-  } catch (e: any) {
-    throw new Error(`FindOrCreateServer failed: ${e.message}`);
-  }
-};
-
-const deleteServer = async (server: Partial<IServer>): Promise<boolean> => {
-  if (server.web_servers) {
-    try {
-      // Find the virtualhosts for each web_server and delete them
-      for (const web_server of server.web_servers) {
-        /* Find the certificate for every virtualhost and set its is_old field to true
-            I don´t delete certificates when updating for logging*/
-        const virtual_hosts = await VirtualHost.find({
-          web_server_id: web_server._id,
+    /*--------------------------Server------------------------------*/
+    // Update or create a server
+    var server = await Server.findOneAndUpdate(
+      { server_ip: updateData.server.server_ip },
+      {
+        server_name: updateData.server.server_name,
+        operating_system: updateData.server.operating_system,
+        // web_servers: newWebServers, * will be added later
+      },
+      { upsert: true }
+    );
+    /* newWebServers array is for adding the relation later to the server*/
+    const newWebServers = [];
+    const webServers = updateData.server.web_servers;
+    for (const webServerName in webServers) {
+      /*--------------------------Web Server------------------------------*/
+      // Update or create each web server
+      var ws = await WebServer.findOneAndUpdate(
+        { web_server_name: webServerName },
+        {
+          configuration_path: webServers[webServerName].configuration_path,
+        }
+      );
+      if (!ws) {
+        ws = new WebServer({
+          web_server_name: webServerName,
+          configuration_path: webServers[webServerName].configuration_path,
         });
-        for (const virtual_host of virtual_hosts) {
-          await Certificate.findByIdAndUpdate(virtual_host.certificate, {
-            is_old: true,
-          });
+        ws.save();
+        newWebServers.push(ws);
+      }
+
+      /*From this point on the update is aimed only towards nginx virtual hosts/server blocks (probably)*/
+
+      // Iterate through the sites files
+      for (const site in webServers[webServerName].virtual_hosts) {
+        // Iterate through the virtual hosts (server blocks)
+        for (const vh of webServers[webServerName].virtual_hosts[site]) {
+          /*--------------------------Virtual Host------------------------------*/
+
+          /*--------------------------Certificate------------------------------*/
+          var certificate = undefined;
+          if (vh.certificate) {
+            certificate = await Certificate.findOneAndUpdate(
+              { serial_number: vh.certificate.serial_number },
+              {
+                directory_path: vh.certificate.directory_path,
+                subject: vh.certificate.subject,
+                issuer: vh.certificate.issuer,
+                validity: vh.certificate.validity,
+                public_key: vh.certificate.public_key,
+                signature_algorithm: vh.certificate.signature_algorithm,
+                serial_number: vh.certificate.serial_number,
+              },
+              { upsert: true }
+            );
+          }
+
+          // Identify the virtual hosts by both the domain names and the ips
+          const virtualHost = await VirtualHost.findOneAndUpdate(
+            {
+              vh_ips: vh.vh_ips,
+              domain_names: vh.domain_names,
+            },
+            {
+              enabled: vh.enabled,
+              web_server_id: ws._id,
+              certificate_id: certificate ? certificate._id : null,
+            },
+            { upsert: true }
+          );
         }
       }
-      return true;
-    } catch (e: any) {
-      console.log(`deleteServer failed: ${e.message}`);
-      return false;
     }
-  } else {
-    // Delete the server
-    try {
-      await Server.findByIdAndDelete(server._id);
-      return true;
-    } catch (e: any) {
-      console.log(`deleteServer failed to delete the server: ${e.message}`);
-      return false;
+    // Add the web servers to the server
+    if (server) {
+      server = await Server.findOneAndUpdate(
+        { _id: server._id },
+        { web_servers: newWebServers }
+      );
     }
+
+    return true;
+  } catch (e: any) {
+    console.log(e.message);
+    return false;
   }
 };
-
-export { ReplaceServer };
