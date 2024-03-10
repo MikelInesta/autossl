@@ -21,7 +21,6 @@ const schema = new Schema<IVirtualHost>({
     type: Schema.Types.ObjectId,
     required: true,
     ref: "web_servers",
-    unique: true,
   },
   certificate_id: {
     type: Schema.Types.ObjectId,
