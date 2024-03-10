@@ -6,13 +6,21 @@ import api from "./config/server.js";
 import connection from "./config/database.js";
 
 import agentRouter from "./routes/agents.js";
-import frontendRouter from "./routes/frontend.js";
+import serverRouter from "./routes/servers.js";
+import webServerRouter from "./routes/webServers.js";
+import virtualHostRouter from "./routes/virtualHosts.js";
+import certificateRouter from "./routes/certificates.js";
 
 const app = express();
 
 // Middleware for every endpoint
 app.use(express.json());
-app.use(cors());
+
+const corsOptions = {
+  origin: ["http://localhost:5173", "https://autossl.mikelinesta.com"],
+  credentials: false,
+};
+app.use(cors(corsOptions));
 
 //Endpoint to test connectivity
 app.all("/api/test", function (request, response) {
@@ -22,8 +30,17 @@ app.all("/api/test", function (request, response) {
 // Api route for communication from the agents
 app.use("/api/agents", agentRouter);
 
-// Api route to serve the front-end
-app.use("/api/front-end", frontendRouter);
+// Api route for servers
+app.use("/api/servers", serverRouter);
+
+// Api route for web_servers
+app.use("/api/web-servers", webServerRouter);
+
+// Api route for virtual_hosts
+app.use("/api/virtual-hosts", virtualHostRouter);
+
+// Api route for certificates
+app.use("/api/certificates", certificateRouter);
 
 app.listen(api.port, async () => {
   try {
