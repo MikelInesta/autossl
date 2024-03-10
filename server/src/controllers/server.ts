@@ -1,8 +1,32 @@
 import { IWebServer, WebServer } from "../models/web_servers";
 import { IServer, Server } from "../models/servers";
-import { Mongoose, Types } from "mongoose";
 import { VirtualHost } from "../models/virtual_hosts";
 import { Certificate } from "../models/certificates";
+
+/* Given a server Id, returns the web server objects related to it */
+const getWebServers = async (serverId: string): Promise<IWebServer[]> => {
+  try {
+    const server = await Server.findById(serverId);
+    if (!server) return [];
+    const webServerIds = server.web_servers;
+    const webServers = await WebServer.find({ _id: { $in: webServerIds } });
+    return webServers;
+  } catch (e: any) {
+    console.log(e.message);
+    return [];
+  }
+};
+
+/* Returns all the servers */
+const getServers = async (): Promise<IServer[]> => {
+  try {
+    const servers = await Server.find();
+    return servers;
+  } catch (e: any) {
+    console.log(e.message);
+    return [];
+  }
+};
 
 const update = async (updateData: any): Promise<Boolean> => {
   try {
@@ -104,4 +128,4 @@ const update = async (updateData: any): Promise<Boolean> => {
   }
 };
 
-export { update };
+export { update, getServers, getWebServers };
