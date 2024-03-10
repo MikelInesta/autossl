@@ -10,14 +10,14 @@ const update = async (updateData: any): Promise<Boolean> => {
 
     /*--------------------------Server------------------------------*/
     // Update or create a server
-    var server = await Server.findOneAndUpdate(
+    const server = await Server.findOneAndUpdate(
       { server_ip: updateData.server.server_ip },
       {
         server_name: updateData.server.server_name,
         operating_system: updateData.server.operating_system,
         // web_servers: newWebServers, * will be added later
       },
-      { upsert: true }
+      { upsert: true, new: true }
     );
     /* newWebServers array is for adding the relation later to the server*/
     const newWebServers = [];
@@ -49,21 +49,25 @@ const update = async (updateData: any): Promise<Boolean> => {
           /*--------------------------Virtual Host------------------------------*/
 
           /*--------------------------Certificate------------------------------*/
-          var certificate = undefined;
+          var certificateId = undefined;
           if (vh.certificate) {
-            certificate = await Certificate.findOneAndUpdate(
+            const certificate = await Certificate.findOneAndUpdate(
               { serial_number: vh.certificate.serial_number },
               {
-                directory_path: vh.certificate.directory_path,
                 subject: vh.certificate.subject,
                 issuer: vh.certificate.issuer,
-                validity: vh.certificate.validity,
-                public_key: vh.certificate.public_key,
-                signature_algorithm: vh.certificate.signature_algorithm,
+                has_expired: vh.certificate.has_expired,
+                not_after: vh.certificate.not_after,
+                not_before: vh.certificate.not_before,
                 serial_number: vh.certificate.serial_number,
+                serial_number_hex: vh.certificate.serial_number_hex,
+                signature_algorithm: vh.certificate.signature_algorithm,
+                version: vh.certificate.version,
+                public_key_length: vh.certificate.public_key_length,
               },
-              { upsert: true }
+              { upsert: true, new: true }
             );
+            if (certificate) certificateId = certificate._id;
           }
 
           // Identify the virtual hosts by both the domain names and the ips
@@ -75,16 +79,19 @@ const update = async (updateData: any): Promise<Boolean> => {
             {
               enabled: vh.enabled,
               web_server_id: ws._id,
-              certificate_id: certificate ? certificate._id : null,
+              certificate_id: certificateId,
             },
-            { upsert: true }
+            { upsert: true, new: true }
           );
         }
       }
     }
     // Add the web servers to the server
     if (server) {
-      server = await Server.findOneAndUpdate(
+      console.log("Adding the following web servers to server");
+      console.log(newWebServers);
+      console.log("Server ID: " + server._id);
+      await Server.findOneAndUpdate(
         { _id: server._id },
         { web_servers: newWebServers }
       );
@@ -96,3 +103,5 @@ const update = async (updateData: any): Promise<Boolean> => {
     return false;
   }
 };
+
+export { update };
