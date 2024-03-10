@@ -1,20 +1,18 @@
-import { WebServer } from "../models/web_servers";
-import { Server } from "../models/servers";
+import { WebServer, IWebServer } from "../models/web_servers";
+import { IVirtualHost, VirtualHost } from "../models/virtual_hosts";
 
-export const getWebServersByName = async (name: string) => {
-  // Find the server with the given ip
-  const server = await Server.findOne({ server_name: name });
-  if (!server) throw new Error("Server with the given name was not found");
-
-  if (!server.web_servers) return [];
-
-  const webServers = server.web_servers.map((webServer) => {
-    return {
-      id: webServer._id,
-      name: webServer.web_server_name,
-      path: webServer.configuration_path,
-    };
-  });
-  console.log(webServers);
-  return webServers;
+const getVirtualHosts = async (
+  webServerId: string
+): Promise<IVirtualHost[]> => {
+  try {
+    const webServer = await WebServer.findById(webServerId);
+    if (!webServer) return [];
+    const virtualHosts = await VirtualHost.find({ web_server_id: webServerId });
+    return virtualHosts;
+  } catch (e: any) {
+    console.log(e.message);
+    return [];
+  }
 };
+
+export { getVirtualHosts };
