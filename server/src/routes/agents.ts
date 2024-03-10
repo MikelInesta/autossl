@@ -1,18 +1,23 @@
 import express from "express";
-import { Server, IServer } from "../models/servers";
-import { WebServer, IWebServer } from "../models/web_servers";
-import { VirtualHost, IVirtualHost } from "../models/virtual_hosts";
-import { Certificate, ICertificate } from "../models/certificates";
+import { update } from "../controllers/server";
 
 const agentRouter = express.Router();
 
 // Endpoint for agents to update web servers
 agentRouter.post("/update", async (req, res) => {
-  //Receive the json data from the agent
-  const data = req.body;
-  console.log(data);
-
-  res.sendStatus(200);
+  try {
+    //Receive the json data from the agent
+    const data = req.body;
+    console.log(data);
+    const updateResult = await update(data);
+    if (!updateResult) {
+      throw new Error("Failed to update");
+    }
+    res.sendStatus(200);
+  } catch (e: any) {
+    console.log(e.message);
+    res.sendStatus(500);
+  }
 });
 
 export default agentRouter;
