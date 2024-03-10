@@ -105,65 +105,42 @@ class Agent:
                     for j in range(len(lineSplit)):
                         if 'ssl_certificate' in lineSplit[j]:
                             fullChainPath = lineSplit[j+1].strip('\n').strip(';')
-                            certificatePathArray = fullChainPath.split("/").pop()
-                            certificatePath = ''.join(certificatePathArray)
-                            print(f'certificatePath = {certificatePath}')
-                            certificate = processCertificate(certificatePath)
+                            certificatePath = f'{os.path.dirname(fullChainPath)}/cert.pem'
         return virtual_hosts
-    
+
     def processCertificate(self, certificatePath):
+        # Open the certificate and load it into a buffer
+        with open(certificatePath, 'r') as file:
+            caBuff = file.read()
+        certificate = x509Parser.parse_x509(caBuff, ignore_extensions=True)
+        """
         certificate = {
-            "directory_path": certificatePath
+            "directory_path": certificatePath,
+            "subject": certParsed["subject"],
+            "issuer": certParsed["issuer"],
+            "validity": {
+                "not_before": certParsed["not-before"],
+                "not_after": certParsed["not-after"]
+            },
+            "public_key": {
+                "algorithm": certParsed["public-key-algorithm"],
+                "key": certParsed["public-key"],
+            },
+            "signature_algorithm": certParsed["signature-algorithm"],
+            "serial_number": certParsed["serial-number"],
         }
-        # ---- Subject Information ----
-        result = subprocess.run(f"openssl x509 -in {certificatePath} -noout -subject", shell=True, capture_output=True, text=True)
-        subjectResult = result.stdout.strip().split(' ')
-        subject = {}
-        for line in subjectResult:
-            if 'CN' in line:
-                subject["common_name"] = line.split('=')[1].strip()
-            if 'O' in line:
-                subject["organization"] = line.split('=')[1].strip()
-            if 'OU' in line:
-                subject["organizational_unit"] = line.split('=')[1].strip()
-        certificate["subject"] = subject
-        
-        # ---- Issuer Information ----
-        result = subprocess.run(f"openssl x509 -in {certificatePath} -noout -issuer", shell=True, capture_output=True, text=True)
-        issuerResult = result.stdout.strip().split(' ')
-        issuer = {}
-        for line in issuerResult:
-            if 'CN' in line:
-                issuer["common_name"] = line.split('=')[1].strip()
-            if 'O' in line:
-                issuer["organization"] = line.split('=')[1].strip()
-            if 'OU' in line:
-                issuer["organizational_unit"] = line.split('=')[1].strip()
-        
-        # ---- Validity Information ----
-        result = subprocess.run(f"openssl x509 -in {certificatePath} -noout -dates", shell=True, capture_output=True, text=True)
-        validityResult = result.stdout.strip().split(' ')
-        validity = {}
-        for line in validityResult:
-            if 'notBefore' in line:
-                validity["not_before"] = line.split('=')[1].strip()
-            if 'notAfter' in line:
-                validity["not_after"] = line.split('=')[1].strip()
+        """
         return certificate
-    
-        # ---- Public Key Information ----
-        result = subprocess.run(f"openssl x509 -in {certificatePath} -noout -pubkey", shell=True, capture_output=True, text=True)
     
     def processServerBlock(self, listening, serverNames, webServer, fileName, certificatePath):
         virtual_host = {}
         certificate = None
         if certificatePath:
+            print(f'certificate path: {certificatePath}')
             # I could add a function here to build the certificate object and append it to the vh/domain
             with open(certificatePath, 'r') as file:
                 caChain = file.read()
-            certificate = {
-                "ca_chain": certificatePath #Temporary, building certificates pending!!!
-            }
+            certificate = self.processCertificate(certificatePath)
         virtual_host = {
             "vh_ips": listening,
             "domain_names": serverNames,
@@ -172,7 +149,6 @@ class Agent:
         }
         return virtual_host
         
-    
     # Builds the necesary data structure to update everything in the backend
     # Maybe I should fragment the updates, but im currently building and sending the entire object in every change
     def update(self):
@@ -195,4 +171,3 @@ class Agent:
             print(e)
             return False
         
-
