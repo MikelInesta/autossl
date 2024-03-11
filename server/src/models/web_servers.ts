@@ -4,6 +4,7 @@ interface IWebServer {
   _id: Types.ObjectId;
   web_server_name: string;
   configuration_path: string;
+  server_id: Types.ObjectId;
 }
 
 const schema = new Schema<IWebServer>({
@@ -16,6 +17,10 @@ const schema = new Schema<IWebServer>({
     type: "string",
     required: true,
     max: 1024,
+  },
+  server_id: {
+    type: Schema.Types.ObjectId,
+    required: true,
   },
 });
 

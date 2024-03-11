@@ -6,10 +6,7 @@ import { Certificate } from "../models/certificates";
 /* Given a server Id, returns the web server objects related to it */
 const getWebServers = async (serverId: string): Promise<IWebServer[]> => {
   try {
-    const server = await Server.findById(serverId);
-    if (!server) return [];
-    const webServerIds = server.web_servers;
-    const webServers = await WebServer.find({ _id: { $in: webServerIds } });
+    const webServers = await WebServer.find({ server_id: serverId });
     return webServers;
   } catch (e: any) {
     console.log(e.message);
@@ -39,12 +36,10 @@ const update = async (updateData: any): Promise<Boolean> => {
       {
         server_name: updateData.server.server_name,
         operating_system: updateData.server.operating_system,
-        // web_servers: newWebServers, * will be added later
       },
       { upsert: true, new: true }
     );
-    /* newWebServers array is for adding the relation later to the server*/
-    const newWebServers = [];
+
     const webServers = updateData.server.web_servers;
     for (const webServerName in webServers) {
       /*--------------------------Web Server------------------------------*/
@@ -53,16 +48,10 @@ const update = async (updateData: any): Promise<Boolean> => {
         { web_server_name: webServerName },
         {
           configuration_path: webServers[webServerName].configuration_path,
-        }
+          server_id: server._id,
+        },
+        { upsert: true, new: true }
       );
-      if (!ws) {
-        ws = new WebServer({
-          web_server_name: webServerName,
-          configuration_path: webServers[webServerName].configuration_path,
-        });
-        ws.save();
-        newWebServers.push(ws);
-      }
 
       /*From this point on the update is aimed only towards nginx virtual hosts/server blocks (probably)*/
 
@@ -109,16 +98,6 @@ const update = async (updateData: any): Promise<Boolean> => {
           );
         }
       }
-    }
-    // Add the web servers to the server
-    if (server) {
-      console.log("Adding the following web servers to server");
-      console.log(newWebServers);
-      console.log("Server ID: " + server._id);
-      await Server.findOneAndUpdate(
-        { _id: server._id },
-        { web_servers: newWebServers }
-      );
     }
 
     return true;

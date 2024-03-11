@@ -7,7 +7,6 @@ interface IServer {
   server_name: string;
   server_ip: string;
   operating_system: string;
-  web_servers?: Types.ObjectId[];
 }
 
 const schema = new Schema<IServer>({
@@ -26,11 +25,6 @@ const schema = new Schema<IServer>({
     type: "string",
     required: true,
     max: 80,
-  },
-  web_servers: {
-    type: [Schema.Types.ObjectId],
-    ref: WebServer,
-    default: [],
   },
 });
 
