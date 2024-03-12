@@ -1,5 +1,6 @@
 import { WebServer, IWebServer } from "../models/web_servers";
 import { IVirtualHost, VirtualHost } from "../models/virtual_hosts";
+import { Types } from "mongoose";
 
 const getVirtualHosts = async (
   webServerId: string
@@ -15,4 +16,20 @@ const getVirtualHosts = async (
   }
 };
 
-export { getVirtualHosts };
+const updateWebServer = async (
+  webServerName: string,
+  webServerData: any,
+  serverId: Types.ObjectId
+): Promise<IWebServer> => {
+  const webServer = await WebServer.findOneAndUpdate(
+    { web_server_name: webServerName },
+    {
+      configuration_path: webServerData.configuration_path,
+      server_id: serverId,
+    },
+    { upsert: true, new: true }
+  );
+  return webServer;
+};
+
+export { getVirtualHosts, updateWebServer };
