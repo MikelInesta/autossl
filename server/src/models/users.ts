@@ -7,6 +7,7 @@ interface IUser {
   email: string;
   password: string;
   servers?: Types.DocumentArray<IServer>;
+  old: boolean;
 }
 
 const schema = new Schema<IUser>({
@@ -33,6 +34,7 @@ const schema = new Schema<IUser>({
       ref: Server,
     },
   },
+  old: { type: Boolean, default: false },
 });
 
 const User = model<IUser>("User", schema);
