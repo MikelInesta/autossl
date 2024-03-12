@@ -1,6 +1,25 @@
 import { Types } from "mongoose";
 import { IVirtualHost, VirtualHost } from "../models/virtual_hosts";
 
+const setOldVirtualHosts = async (
+  updatedVirtualHostsIds: Types.ObjectId[]
+): Promise<Boolean> => {
+  try {
+    const oldVirtualHosts = await VirtualHost.find({
+      _id: { $nin: updatedVirtualHostsIds },
+    });
+    if (oldVirtualHosts.length === 0) console.log("No old virtual hosts");
+    for (const oldVirtualHost of oldVirtualHosts) {
+      oldVirtualHost.old = true;
+      await oldVirtualHost.save();
+    }
+    return true;
+  } catch (e: any) {
+    console.log(e.message);
+    return false;
+  }
+};
+
 const updateVirtualHost = async (
   virtualHostData: IVirtualHost,
   webServerId: Types.ObjectId,
@@ -21,4 +40,4 @@ const updateVirtualHost = async (
   return virtualHost;
 };
 
-export { updateVirtualHost };
+export { updateVirtualHost, setOldVirtualHosts };

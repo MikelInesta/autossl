@@ -18,7 +18,7 @@ const getVirtualHosts = async (
 
 const updateWebServer = async (
   webServerName: string,
-  webServerData: any,
+  webServerData: IWebServer,
   serverId: Types.ObjectId
 ): Promise<IWebServer> => {
   const webServer = await WebServer.findOneAndUpdate(
@@ -32,4 +32,23 @@ const updateWebServer = async (
   return webServer;
 };
 
-export { getVirtualHosts, updateWebServer };
+const setOldWebServers = async (
+  updatedWebServersIds: Types.ObjectId[]
+): Promise<Boolean> => {
+  try {
+    const oldWebServers = await WebServer.find({
+      _id: { $nin: updatedWebServersIds },
+    });
+    if (oldWebServers.length === 0) console.log("No old web servers");
+    for (const oldWebServer of oldWebServers) {
+      oldWebServer.old = true;
+      await oldWebServer.save();
+    }
+    return true;
+  } catch (e: any) {
+    console.log(e.message);
+    return false;
+  }
+};
+
+export { getVirtualHosts, updateWebServer, setOldWebServers };
