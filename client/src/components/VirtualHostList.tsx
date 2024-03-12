@@ -4,7 +4,7 @@ import CertificateDetail from "./CertificateDetail";
 interface VirtualHost {
   _id: string;
   vh_ips: Array<String>;
-  domain_names: Array<String>;
+  domain_names: string;
   enabled: boolean;
   web_server_id: string;
   certificate_id: string;
@@ -51,7 +51,7 @@ const VirtualHostList: React.FC<VirtualHostListProps> = ({ webServerId }) => {
       <ul>
         {virtualHosts.map((virtualHost) => (
           <li key={virtualHost._id}>
-            Domain names: {virtualHost.domain_names.join(", ")}
+            Domain names: {virtualHost.domain_names}
             <ul>
               <li>IP Addresses: {virtualHost.vh_ips.join(", ")}</li>
               <li>Is Enabled: {virtualHost.enabled ? "Yes" : "No"}</li>
