@@ -7,7 +7,6 @@ class NginxUtils:
         self.file_path = file_path
 
     def findServerBlocks(self, webServer):
-        print(f"Scanning {webServer['configuration_path']}/sites-available")
         serverBlocks = {}
         for root, dirs, files in os.walk(
             f"{webServer['configuration_path']}/sites-available"
@@ -19,7 +18,6 @@ class NginxUtils:
         return serverBlocks
 
     def parseSite(self, file, webServer, fileName):
-        print(f"parsing {fileName}")
         serverBlocks = []
         inServerBlock = False
 
@@ -73,7 +71,6 @@ class NginxUtils:
     def parseServerBlock(
         self, listeningAddresses, serverNames, webServer, fileName, certificatePath
     ):
-        print(f"parsing server block {serverNames}")
         virtual_host = {}
         certificate = None
 

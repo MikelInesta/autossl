@@ -24,7 +24,7 @@ class Agent:
                 if virtual_hosts:
                     webServers[webServerName]["virtual_hosts"] = virtual_hosts
             elif webServerName in ["apache2", "apache", "httpd"]:
-                print("Apache")
+                pass
         serverIp = SystemUtils.getIpAddress()
         serverName = f"Server-{serverIp}"
         operatingSystem = SystemUtils.getOperatingSystem()
@@ -41,15 +41,16 @@ class Agent:
         try:
             data = self.buildUpdateData()
             jsonData = json.dumps(data)
-            print(f"Json Data: {jsonData}")
-            """
-            requests.post(
+            res = requests.post(
                 f"{self.agentUrl}/update",
                 data=jsonData,
                 headers={"Content-Type": "application/json"},
             )
-            return True
-            """
+            if res.status_code != 200:
+                raise Exception(f"Error: {res.status_code}")
+            else:
+                print("Update sent successfully")
+                return True
         except Exception as e:
             print(f"Error: {e}")
             return False
