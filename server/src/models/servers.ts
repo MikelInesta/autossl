@@ -7,6 +7,7 @@ interface IServer {
   server_name: string;
   server_ip: string;
   operating_system: string;
+  old: boolean;
 }
 
 const schema = new Schema<IServer>({
@@ -26,6 +27,7 @@ const schema = new Schema<IServer>({
     required: true,
     max: 80,
   },
+  old: { type: Boolean, default: false },
 });
 
 const Server = model<IServer>("Server", schema);

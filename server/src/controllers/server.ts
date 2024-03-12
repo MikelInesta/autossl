@@ -69,6 +69,9 @@ const update = async (updateData: any): Promise<Boolean> => {
         }
       }
     }
+
+    // Set the old property true for the data on the dbb that is not on the update data
+
     return true;
   } catch (e: any) {
     console.log(e.message);

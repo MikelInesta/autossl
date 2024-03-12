@@ -26,6 +26,7 @@ interface ICertificate extends Document {
   signature_algorithm: string;
   version: number;
   public_key_length: number;
+  old: boolean;
 }
 
 const schema = new Schema<ICertificate>({
@@ -53,6 +54,7 @@ const schema = new Schema<ICertificate>({
   signature_algorithm: { type: String, required: true },
   version: { type: Number, required: true },
   public_key_length: { type: Number, required: true },
+  old: { type: Boolean, default: false },
 });
 
 const Certificate = model<ICertificate>("Certificate", schema);

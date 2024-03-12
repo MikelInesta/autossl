@@ -8,6 +8,7 @@ interface IVirtualHost {
   enabled: boolean;
   web_server_id: Types.ObjectId;
   certificate_id: Types.ObjectId;
+  old: boolean;
 }
 
 const schema = new Schema<IVirtualHost>({
@@ -27,6 +28,7 @@ const schema = new Schema<IVirtualHost>({
     required: true,
     ref: Certificate,
   },
+  old: { type: Boolean, default: false },
 });
 
 const VirtualHost = model<IVirtualHost>("VirtualHost", schema);

@@ -5,6 +5,7 @@ interface IWebServer {
   web_server_name: string;
   configuration_path: string;
   server_id: Types.ObjectId;
+  old: boolean;
 }
 
 const schema = new Schema<IWebServer>({
@@ -22,6 +23,7 @@ const schema = new Schema<IWebServer>({
     type: Schema.Types.ObjectId,
     required: true,
   },
+  old: { type: Boolean, default: false },
 });
 
 const WebServer = model<IWebServer>("WebServer", schema);
