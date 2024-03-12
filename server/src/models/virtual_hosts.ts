@@ -4,7 +4,7 @@ import { Certificate, ICertificate } from "./certificates";
 interface IVirtualHost {
   _id: Types.ObjectId;
   vh_ips: Array<String>;
-  domain_names: Array<String>;
+  domain_names: String;
   enabled: boolean;
   web_server_id: Types.ObjectId;
   certificate_id: Types.ObjectId;
@@ -12,7 +12,7 @@ interface IVirtualHost {
 
 const schema = new Schema<IVirtualHost>({
   vh_ips: [],
-  domain_names: [],
+  domain_names: { type: String },
   enabled: {
     type: "boolean",
     required: true,
