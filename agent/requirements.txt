@@ -1,2 +1,3 @@
 pyopenssl 
 watchdog
+python-dotenv

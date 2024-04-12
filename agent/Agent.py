@@ -2,12 +2,14 @@ import requests, json
 from utils.SystemUtils import SystemUtils
 from utils.NginxUtils import NginxUtils
 from utils.CertifcateUtils import CertificateUtils
+import os
 
+serverAddress = os.getenv("SERVER_ADDRESS")
 
 class Agent:
     def __init__(
         self,
-        agentUrl="https://autossl.mikelinesta.com/api/agents/",
+        agentUrl=serverAddress+"/api/agents/",
         webServerNames=["nginx", "apache2", "apache", "httpd"],
     ):
         self.agentUrl = agentUrl
