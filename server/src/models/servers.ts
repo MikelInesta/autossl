@@ -11,6 +11,7 @@ interface IServer {
 }
 
 const schema = new Schema<IServer>({
+  _id: Types.ObjectId,
   server_name: {
     type: "string",
     required: true,
