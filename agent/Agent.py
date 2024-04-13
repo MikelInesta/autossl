@@ -9,7 +9,7 @@ serverAddress = os.getenv("SERVER_ADDRESS")
 class Agent:
     def __init__(
         self,
-        agentUrl=serverAddress+"/api/agents/",
+        agentUrl=serverAddress,
         webServerNames=["nginx", "apache2", "apache", "httpd"],
     ):
         self.agentUrl = agentUrl
