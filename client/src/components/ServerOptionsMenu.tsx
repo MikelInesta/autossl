@@ -12,6 +12,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { Link } from "react-router-dom";
 
 const StyledMenu = styled((props: MenuProps) => (
   <Menu
@@ -56,7 +57,11 @@ const StyledMenu = styled((props: MenuProps) => (
   },
 }));
 
-export default function ServerOptionsMenu() {
+const ServerOptionsMenu: React.FC<{ server_ip: string }> = ({
+  server_ip,
+}: {
+  server_ip: string;
+}) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -89,7 +94,12 @@ export default function ServerOptionsMenu() {
         open={open}
         onClose={handleClose}
       >
-        <MenuItem onClick={handleClose} disableRipple>
+        <MenuItem
+          onClick={handleClose}
+          disableRipple
+          component={Link}
+          to={`/servers/${server_ip}/web-servers`}
+        >
           Web Servers
         </MenuItem>
         <MenuItem onClick={handleClose} disableRipple>
@@ -106,4 +116,6 @@ export default function ServerOptionsMenu() {
       </StyledMenu>
     </div>
   );
-}
+};
+
+export default ServerOptionsMenu;

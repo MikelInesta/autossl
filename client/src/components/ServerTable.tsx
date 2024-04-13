@@ -65,7 +65,7 @@ const ServerTable: React.FC = () => {
               <TableCell>{server.operating_system}</TableCell>
               <TableCell>{server.old ? "Yes" : "No"}</TableCell>
               <TableCell>
-                <ServerOptionsMenu />
+                <ServerOptionsMenu serverId={server._id} />
               </TableCell>
             </TableRow>
           ))}

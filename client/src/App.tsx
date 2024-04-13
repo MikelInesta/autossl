@@ -3,17 +3,22 @@ import Layout from "./pages/Layout";
 import Home from "./pages/Home";
 import NoPage from "./pages/NoPage";
 import Servers from "./pages/Servers";
+import WebServers from "./pages/WebServers";
+import * as React from "react";
 
-export default function App() {
+const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Home />} />
           <Route path="servers" element={<Servers />} />
+          <Route path="/servers/:serverId/web-servers" Component={WebServers} />
           <Route path="*" element={<NoPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
   );
-}
+};
+
+export default App;
