@@ -3,7 +3,7 @@ import ServerTable from "../components/ServerTable";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 
-export default function Servers() {
+const Servers: React.FC = () => {
   const [showServerTable, setShowServerTable] = React.useState(false);
 
   return (
@@ -35,4 +35,6 @@ export default function Servers() {
       )}
     </>
   );
-}
+};
+
+export default Servers;
