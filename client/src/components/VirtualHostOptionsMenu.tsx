@@ -14,10 +14,19 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Link } from 'react-router-dom';
 import StyledMenu from './StyledMenu';
 
-const WebServerOptionsMenu: React.FC<{
+const VirtualHostOptionsMenu: React.FC<{
 	serverId: string;
 	webServerId: string;
-}> = ({ serverId, webServerId }: { serverId: string; webServerId: string }) => {
+	virtualHostId: string;
+}> = ({
+	serverId,
+	webServerId,
+	virtualHostId,
+}: {
+	serverId: string;
+	webServerId: string;
+	virtualHostId: string;
+}) => {
 	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
 	const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -54,13 +63,11 @@ const WebServerOptionsMenu: React.FC<{
 					onClick={handleClose}
 					disableRipple
 					component={Link}
-					to={`/servers/${serverId}/web-servers/${webServerId}/domains`}
+					to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHostId}/certificates`}
 				>
-					Domains
-				</MenuItem>
-				<MenuItem onClick={handleClose} disableRipple>
 					Certificates
 				</MenuItem>
+				<MenuItem>Generate CSR</MenuItem>
 				<Divider sx={{ my: 0.5 }} />
 				<MenuItem onClick={handleClose} disableRipple>
 					<MoreHorizIcon />
@@ -71,4 +78,4 @@ const WebServerOptionsMenu: React.FC<{
 	);
 };
 
-export default WebServerOptionsMenu;
+export default VirtualHostOptionsMenu;
