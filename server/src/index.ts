@@ -11,6 +11,8 @@ import webServerRouter from "./routes/webServers.js";
 import virtualHostRouter from "./routes/virtualHosts.js";
 import certificateRouter from "./routes/certificates.js";
 
+import {declareExchange} from "./config/rabbit.js";
+
 const app = express();
 
 // Middleware for every endpoint
@@ -42,6 +44,8 @@ app.use("/api/virtual-hosts", virtualHostRouter);
 // Api route for certificates
 app.use("/api/certificates", certificateRouter);
 
+
+
 app.listen(api.port, async () => {
   try {
     await connection;
@@ -51,4 +55,12 @@ app.listen(api.port, async () => {
   }
 
   console.log(`Listening at localhost:${api.port}\nPress Ctrl+C to quit`);
+
+  try{
+    await declareExchange();
+    console.log("Declared the CSR exchange"); 
+  }catch(e: any){
+    console.log(e.message);
+  }
+
 });
