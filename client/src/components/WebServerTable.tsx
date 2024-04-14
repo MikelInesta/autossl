@@ -9,14 +9,7 @@ import {
 	Paper,
 } from '@mui/material';
 import WebServerOptionsMenu from './WebServerOptionsMenu';
-
-interface IWebServer {
-	_id: string;
-	web_server_name: string;
-	configuration_path: string;
-	server_id: string;
-	old: boolean;
-}
+import { IWebServer } from '../types/models';
 
 const WebServerTable: React.FC<{ serverId: string }> = ({
 	serverId,
@@ -63,7 +56,10 @@ const WebServerTable: React.FC<{ serverId: string }> = ({
 							<TableCell>{webServer.server_id}</TableCell>
 							<TableCell>{webServer.old ? 'Yes' : 'No'}</TableCell>
 							<TableCell>
-								<WebServerOptionsMenu webServerId={webServer._id} />
+								<WebServerOptionsMenu
+									serverId={serverId}
+									webServerId={webServer._id}
+								/>
 							</TableCell>
 						</TableRow>
 					))}
