@@ -14,6 +14,8 @@ const VirtualHosts: React.FC = () => {
 			</Box>
 			<Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 0 }}>
 				<h2>Server ID: {serverId}</h2>
+			</Box>
+			<Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 0 }}>
 				<h3>Web Server ID: {webServerId}</h3>
 			</Box>
 			{serverId && webServerId && (
