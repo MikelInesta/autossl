@@ -2,3 +2,4 @@ pyopenssl
 watchdog
 python-dotenv
 pika
+requests
