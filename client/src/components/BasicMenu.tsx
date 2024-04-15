@@ -3,7 +3,6 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { Link } from 'react-router-dom';
-import { Margin } from '@mui/icons-material';
 
 export default function BasicMenu() {
 	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -40,6 +39,15 @@ export default function BasicMenu() {
 				</MenuItem>
 				<MenuItem onClick={handleClose}>
 					<Link to="/servers">Servers</Link>
+				</MenuItem>
+				<MenuItem onClick={handleClose}>
+					<Link to="/web-servers">Web Servers</Link>
+				</MenuItem>
+				<MenuItem onClick={handleClose}>
+					<Link to="/virtual-hosts">Domains</Link>
+				</MenuItem>
+				<MenuItem onClick={handleClose}>
+					<Link to="/certificates">Certificates</Link>
 				</MenuItem>
 			</Menu>
 		</div>

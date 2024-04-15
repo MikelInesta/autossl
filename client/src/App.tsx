@@ -19,6 +19,7 @@ const App: React.FC = () => {
 						path="/servers/:serverId/web-servers/:webServerId/domains"
 						Component={VirtualHosts}
 					/>
+					<Route path="/web-servers" Component={WebServers} />
 					<Route path="*" element={<NoPage />} />
 				</Route>
 			</Routes>
