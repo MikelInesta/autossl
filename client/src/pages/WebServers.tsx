@@ -32,9 +32,6 @@ const WebServers: React.FC = () => {
 			<Box sx={{ display: 'flex', justifyContent: 'center' }}>
 				<h1>Web Servers</h1>
 			</Box>
-			<Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 0 }}>
-				<h2>Server ID: {serverId}</h2>
-			</Box>
 			{serverId && <WebServerTable serverId={serverId} />}
 			{!serverId &&
 				webServers.map((webServer) => (
