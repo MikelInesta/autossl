@@ -1,18 +1,17 @@
 import requests, json
 from utils.SystemUtils import SystemUtils
 from utils.NginxUtils import NginxUtils
-from utils.CertifcateUtils import CertificateUtils
+from dotenv import load_dotenv
 import os
 
-serverAddress = os.getenv("SERVER_ADDRESS")
 
 class Agent:
     def __init__(
         self,
-        agentUrl=serverAddress,
         webServerNames=["nginx", "apache2", "apache", "httpd"],
     ):
-        self.agentUrl = agentUrl
+        load_dotenv()
+        self.agentUrl = os.environ.get("SERVER_ADDRESS")
         self.webServerNames = webServerNames
         self.nginx = None
 
