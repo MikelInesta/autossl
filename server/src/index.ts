@@ -57,7 +57,7 @@ app.listen(api.port, async () => {
   console.log(`Listening at localhost:${api.port}\nPress Ctrl+C to quit`);
 
   try{
-    await declareExchange();
+    await declareExchange("csrExchange", "direct");
     console.log("Declared the CSR exchange"); 
   }catch(e: any){
     console.log(e.message);
