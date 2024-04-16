@@ -2,6 +2,7 @@ import requests, json
 from utils.SystemUtils import SystemUtils
 from utils.NginxUtils import NginxUtils
 from dotenv import load_dotenv
+from utils.Identification import Identification
 import os
 
 
@@ -14,6 +15,7 @@ class Agent:
         self.agentUrl = os.environ.get("SERVER_ADDRESS")
         self.webServerNames = webServerNames
         self.nginx = None
+        self.identificator = Identification(self.agentUrl, self.ipAddress)
 
     def buildUpdateData(self):
         webServers = SystemUtils.getWebServersConfigPath("/etc", self.webServerNames)
