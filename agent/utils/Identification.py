@@ -6,10 +6,11 @@ import requests
 class Identification:
     def __init__(self, agentUrl, configPath=None):
         self.agentUrl = agentUrl
-        self.configPath = configPath or os.path.join(
-            os.path.dirname(__file__), "..", "config.json"
-        )
-        self.agentId = self.getAgentId() or None
+        if configPath is not None:
+            self.configPath = configPath
+        else:
+            os.path.join(os.path.dirname(__file__), "..", "agentId.json")
+        self.agentId = self.getAgentIdFromConfig()
 
     def authenticate(self):
         configData = self.readConfigFile()
@@ -42,8 +43,19 @@ class Identification:
             json.dump(configData, file)
 
     def isValid(self, id):
-        response = requests.get(self.agentUrl + "/id/" + id)
+        response = requests.get(self.agentUrl + "/validate/" + id)
         if response.status_code == 200:
             return True
         else:
             return False
+
+    def getAgentIdFromConfig(self):
+        configData = self.readConfigFile()
+        if configData:
+            agentId = configData.get("agentId")
+            if agentId:
+                return agentId
+        return None
+
+    def getAgentId(self):
+        return self.agentId
