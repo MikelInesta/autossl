@@ -4,35 +4,46 @@ import requests
 
 
 class Identification:
-    def __init__(self, agentUrl):
-        self.id = self.findId()
+    def __init__(self, agentUrl, configPath=None):
         self.agentUrl = agentUrl
+        self.configPath = configPath or os.path.join(
+            os.path.dirname(__file__), "..", "config.json"
+        )
+        self.agentId = self.getAgentId() or None
 
-    def findId(self):
-        # Search for the ../config.json file and its agentId field
-        configPath = os.path.join(os.path.dirname(__file__), "..", "config.json")
-        try:
-            with open(configPath) as config:
-                fields = json.load(config)
-                agentId = fields.get("agentId")
-                return agentId
-        except (FileNotFoundError, KeyError):
-            # Register the agent and create the config file
-            newAgentId = Identification.registerAgent()
-            return newAgentId
-
-    def registerAgent(self):
-        try:
-            res = requests.post(
-                f"{self.agentUrl}/update",
-                data=jsonData,
-                headers={"Content-Type": "application/json"},
-            )
-            if res.status_code != 200:
-                raise Exception(f"Error: {res.status_code}")
+    def authenticate(self):
+        configData = self.readConfigFile()
+        if not configData:
+            self.agentId = self.createNew()  # Inside createNew call writeConfigFile
+        else:
+            valid = self.isValid(configData["agentId"])
+            if valid:
+                self.agentId = configData["agentId"]
             else:
-                print("Update sent successfully")
-                return True
-        except Exception as e:
-            print(f"Error: {e}")
+                self.agentId = self.createNew()
+
+    def readConfigFile(self):
+        with open(self.configPath, "r") as file:
+            configData = json.load(file)
+        return configData
+
+    def createNew(self):
+        response = requests.get(self.agentUrl + "/new")
+        if response.status_code == 200:
+            agentId = response.json().get("agentId")
+            self.writeConfigFile(agentId)
+            return agentId
+        else:
+            raise Exception("Failed to create a new agent")
+
+    def writeConfigFile(self, agentId):
+        configData = {"agentId": agentId}
+        with open(self.configPath, "w") as file:
+            json.dump(configData, file)
+
+    def isValid(self, id):
+        response = requests.get(self.agentUrl + "/id/" + id)
+        if response.status_code == 200:
+            return True
+        else:
             return False
