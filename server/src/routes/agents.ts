@@ -1,18 +1,21 @@
 import express from 'express';
 import { update } from '../controllers/server';
-import { Server } from '../models/servers';
+import { Agent } from '../models/agent';
 import { createNewAgent } from '../controllers/agent';
 
 const agentRouter = express.Router();
 
 agentRouter.get('/validate/:id', async (req, res) => {
 	const id = req.params.id;
+	console.log('validating with id: ', id);
 	// I'm testing handling async without await here
-	Server.findOne({ id: id })
+	Agent.findOne({ _id: id })
 		.then((result) => {
 			if (result) {
+				console.log('Found an agent in the db with given id');
 				res.sendStatus(200);
 			} else {
+				console.log('Cant find an agent in the db with given id');
 				res.sendStatus(404);
 			}
 		})
