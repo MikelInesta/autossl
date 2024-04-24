@@ -1,5 +1,5 @@
 # agent ID config file
-/agent/config.json
+/agent/agentId.json
 
 # Python oneshot testing file
 /agent/oneShot.py
