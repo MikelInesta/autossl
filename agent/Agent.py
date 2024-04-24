@@ -15,10 +15,7 @@ class Agent:
         self.agentUrl = os.environ.get("SERVER_ADDRESS")
         self.webServerNames = webServerNames
         self.nginx = None
-        self.identificator = Identification(
-            self.agentUrl, os.path.join(os.path.dirname(__file__), "..", "agentId.json")
-        )
-        self.identificator.authenticate()  # Reads or assigns a unique Id for the agent
+        self.identificator = Identification(self.agentUrl)
 
     def buildUpdateData(self):
         webServers = SystemUtils.getWebServersConfigPath("/etc", self.webServerNames)
@@ -45,6 +42,7 @@ class Agent:
 
     def update(self):
         try:
+            self.identificator.authenticate()
             data = self.buildUpdateData()
             jsonData = json.dumps(data)
             res = requests.post(
