@@ -1,18 +1,18 @@
 import { Types } from "mongoose";
 import { Certificate, ICertificate } from "../models/certificates";
 
-/*
-const getCSR = async (key: string): Promise<string> => {
-  try{
-  }catch(e: any){
+const getCSR = async (domain: string): Promise<string> => {
+  try {
+    // Pending implementation !!
+    return "";
+  } catch (e: any) {
     console.log(e.message);
     return "";
   }
 };
-*/
 
 const setOldCertificates = async (
-  updatedCertificatesIds: Types.ObjectId[]
+  updatedCertificatesIds: Types.ObjectId[],
 ): Promise<Boolean> => {
   try {
     const oldCertificates = await Certificate.find({
@@ -31,7 +31,7 @@ const setOldCertificates = async (
 };
 
 const getCertificateById = async (
-  certificateId: string
+  certificateId: string,
 ): Promise<ICertificate | null> => {
   try {
     const certificate = await Certificate.findById(certificateId);
@@ -44,7 +44,7 @@ const getCertificateById = async (
 };
 
 const updateCertificate = async (
-  certificateData: ICertificate
+  certificateData: ICertificate,
 ): Promise<ICertificate> => {
   const certificate = await Certificate.findOneAndUpdate(
     { serial_number: certificateData.serial_number },
@@ -60,7 +60,7 @@ const updateCertificate = async (
       version: certificateData.version,
       public_key_length: certificateData.public_key_length,
     },
-    { upsert: true, new: true }
+    { upsert: true, new: true },
   );
   return certificate;
 };

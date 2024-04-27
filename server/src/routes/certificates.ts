@@ -3,16 +3,18 @@ import { getCertificateById } from "../controllers/certificate";
 
 const certificateRouter = express.Router();
 
+certificateRouter.get("/testCsr", (req, res) => {});
+
 // Endpoint for the client to request a CSR
-certificateRouter.get("/csr/:key", (req, res) => {
+certificateRouter.get("/csr/:domain", (req, res) => {
   try {
-    const key = req.params.key;
-    if (!key) {
-      res.status(400).send("Key is required");
+    const domain = req.params.domain;
+    if (!domain) {
+      res.status(400).send("A domain name is required to request a CSR");
       return;
     }
     // Get the CSR (function in the certificate controller)
-    // csr = await getCSR(key);
+    // csr = await getCSR(domain);
   } catch (e: any) {
     console.log(e.message);
     res.sendStatus(500);
