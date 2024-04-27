@@ -1,21 +1,29 @@
 import requests, json
+from utils.Rabbit import Rabbit
 from utils.SystemUtils import SystemUtils
 from utils.NginxUtils import NginxUtils
 from dotenv import load_dotenv
 from utils.Identification import Identification
 import os
-
+from config import RABBIT_ADDRESS
 
 class Agent:
     def __init__(
         self,
         webServerNames=["nginx", "apache2", "apache", "httpd"],
-    ):
+        ):
         load_dotenv()
         self.agentUrl = os.environ.get("SERVER_ADDRESS")
         self.webServerNames = webServerNames
         self.nginx = None
         self.identificator = Identification(self.agentUrl)
+        if RABBIT_ADDRESS:
+            self.rabbit = Rabbit(RABBIT_ADDRESS)
+        else:
+            self.rabbit = Rabbit('amqp://localhost')
+        agentId = self.identificator.getAgentId()
+        self.rabbit.declareAndBind(agentId)
+        print("Declared and binded?")
 
     def buildUpdateData(self):
         webServers = SystemUtils.getWebServersConfigPath("/etc", self.webServerNames)

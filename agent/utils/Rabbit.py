@@ -1,11 +1,13 @@
 import queue
-import pika, CertifcateUtils, base64, requests
-from Identification import Identification
+import pika,base64, requests
+from .Identification import Identification
 from config import AGENT_ENDPOINT_ADDRESS
 import os
+from .CertifcateUtils import CertificateUtils
 
 def queueCallback(ch, method, properties, body):
         try:
+            print("Inside callback function")
             # Get CSR and send it to the backend
             # csr = CertifcateUtils.getCsr()
             # with open(csr, "rb") as csr_file:
@@ -18,7 +20,7 @@ def queueCallback(ch, method, properties, body):
             testingJson = {"test": "testdata"}
 
             response = requests.post(
-                    f"{os.environ.get("SERVER_ADDRESS")}/csr",
+                    f"{os.environ.get('SERVER_ADDRESS')}/csr",
                     data=testingJson,
                     headers={"Content-Type": "application/json"},
                 )
@@ -30,26 +32,30 @@ def queueCallback(ch, method, properties, body):
             print(f"Error: {e}")
 
 class Rabbit:
-    def __init__(self, host="localhost"):
+    def __init__(self, host):
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host))
+        print("Created the connection")
         self.channel = self.connection.channel()
+        print("Created the channel")
 
-    def declareAndBind(self, queueName, exchangeName, routingKey):
-        if not queueName:
-            identif = Identification(AGENT_ENDPOINT_ADDRESS)
-            queueName = identif.getAgentId()
+    # Just use the agent id for the name of both the queue and route I guess
+    def declareAndBind(self, agentId):
+        try:
+            self.channel.queue_declare(queue=agentId)
+            self.channel.queue_bind(
+                exchange="csrExchange",
+                queue=agentId,
+                routing_key=agentId,
+            )
+            print("Declared and binded inside the Rabbit class")
 
-        self.channel.queue_declare(queue=queueName)
-        self.channel.queue_bind(
-            exchange=exchangeName,
-            queue=queueName,
-            routing_key=routingKey,
-        )
+            self.channel.basic_consume(
+                queue=agentId,
+                on_message_callback=queueCallback,
+                auto_ack=True
+            )
+            print("Executed consume function")
+        except Exception:
+            print("Something went wrong while declaring and binding")
 
-        self.channel.basic_consume(
-            queue=queueName,
-            on_message_callback=queueCallback,
-            auto_ack=True
-        )
-
-    
+ 
