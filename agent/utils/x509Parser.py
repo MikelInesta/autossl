@@ -29,11 +29,13 @@ def x509_extensions_to_json(x509_cert):
 
 class x509Parser:
 
+    @staticmethod
     def x509_to_str(x509_cert):
         cert_str = x509Parser.parse_x509(x509_cert)
 
         return json.dumps(cert_str, indent=4)
 
+    @staticmethod
     def parse_x509(cert, ignore_extensions=False):
         x509_cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
 
