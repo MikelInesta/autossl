@@ -3,9 +3,7 @@ from utils.Rabbit import Rabbit
 from utils.SystemUtils import SystemUtils
 from utils.NginxUtils import NginxUtils
 from dotenv import load_dotenv
-from utils.Identification import Identification
-import os
-from config import RABBIT_ADDRESS
+from config import AGENT_ENDPOINT_ADDRESS
 
 class Agent:
     def __init__(
@@ -13,17 +11,13 @@ class Agent:
         webServerNames=["nginx", "apache2", "apache", "httpd"],
         ):
         load_dotenv()
-        self.agentUrl = os.environ.get("SERVER_ADDRESS")
+        if AGENT_ENDPOINT_ADDRESS:
+            self.agentUrl = AGENT_ENDPOINT_ADDRESS
+        else:
+            print("Couldn't get the Agent Endpoint Address from .env file")
+            exit(1)
         self.webServerNames = webServerNames
         self.nginx = None
-        self.identificator = Identification(self.agentUrl)
-        if RABBIT_ADDRESS:
-            self.rabbit = Rabbit(RABBIT_ADDRESS)
-        else:
-            self.rabbit = Rabbit('amqp://localhost')
-        agentId = self.identificator.getAgentId()
-        self.rabbit.declareAndBind(agentId)
-        print("Declared and binded?")
 
     def buildUpdateData(self):
         webServers = SystemUtils.getWebServersConfigPath("/etc", self.webServerNames)
@@ -50,7 +44,6 @@ class Agent:
 
     def update(self):
         try:
-            self.identificator.authenticate()
             data = self.buildUpdateData()
             jsonData = json.dumps(data)
             res = requests.post(

@@ -6,7 +6,6 @@ const declareExchange = async (name: string, type: string) => {
     const channel = await connection.createChannel();
 
     await channel.assertExchange(name, type, { durable: true });
-    await channel.close();
     await connection.close();
   } catch (error) {
     console.error("Something went wrong:", error);
@@ -23,7 +22,6 @@ async function publishMessage(exchangeName: string, key: string, message: any) {
     // Routing key will be the agent id
     channel.publish(exchangeName, key, Buffer.from(message));
     console.log(`Message published to exchange ${exchangeName}`);
-    await channel.close();
     await connection.close();
   } catch (error) {
     console.error("Something went wrong:", error);

@@ -9,17 +9,19 @@ certificateRouter.get("/testCsr", async (req, res) => {
   try {
     const agent = await Agent.findOne();
     if (agent) {
+      console.log(`publishing message to 662928cadbf726c2e705bd3e`);
       await publishMessage(
         "csrExchange",
-        agent._id.toString(),
+        "662928cadbf726c2e705bd3e",
         "testing csr exchange :0",
       );
+      res.sendStatus(200);
     } else {
-      res.status(404);
+      res.sendStatus(404);
     }
   } catch (e: any) {
     console.log("something went wrong. :(");
-    res.status(500);
+    res.sendStatus(500);
   }
 });
 

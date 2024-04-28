@@ -1,22 +1,26 @@
+from dotenv import load_dotenv
 from Agent import Agent
-import os
+import os, schedule, time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils.SystemUtils import SystemUtils
-
+from config import RABBIT_ADDRESS, AGENT_ENDPOINT_ADDRESS
+from utils.Rabbit import Rabbit
+from utils.Identification import Identification
 
 class UpdateHandler(FileSystemEventHandler):
     def __init__(self):
         self.agent = Agent()
+        print("instantiating an agent")
 
     def on_modified(self, event):
         self.agent.update()
-
 
 if __name__ == "__main__":
     if os.geteuid() != 0:
         exit("Root permissions are needed, please run as root or use sudo.")
 
+    print("instantiating an agent")
     a = Agent()
     a.update()
 
@@ -31,3 +35,27 @@ if __name__ == "__main__":
         observer.schedule(event_handler, path, recursive=True)
     observer.start()
     observer.join()
+
+    # Identify the agent
+    if AGENT_ENDPOINT_ADDRESS:
+        agentUrl = AGENT_ENDPOINT_ADDRESS
+    else:
+        print("Could not get the Agent's endpoint address from .env")
+        exit(1)
+    identificator = Identification(agentUrl)
+    agentId = identificator.getAgentId()
+
+    # Create a queue, bind it to the csr exchange and start polling
+    if RABBIT_ADDRESS:
+        rabbit = Rabbit(RABBIT_ADDRESS)
+    else:
+        print("Could not get the rabbit server address from .env")
+        exit(1)
+    rabbit.declareAndBind(agentId)
+
+    # Polling every minute to see if there are new messages
+    schedule.every(1).minutes.do(rabbit.consumeMessages, agentId)
+    while True:
+        schedule.run_pending()
+        time.sleep(1) 
+
