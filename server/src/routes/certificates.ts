@@ -1,9 +1,27 @@
 import express from "express";
 import { getCertificateById } from "../controllers/certificate";
+import { publishMessage } from "../config/rabbit";
+import { Agent } from "../models/agent";
 
 const certificateRouter = express.Router();
 
-certificateRouter.get("/testCsr", (req, res) => {});
+certificateRouter.get("/testCsr", async (req, res) => {
+  try {
+    const agent = await Agent.findOne();
+    if (agent) {
+      await publishMessage(
+        "csrExchange",
+        agent._id.toString(),
+        "testing csr exchange :0",
+      );
+    } else {
+      res.status(404);
+    }
+  } catch (e: any) {
+    console.log("something went wrong. :(");
+    res.status(500);
+  }
+});
 
 // Endpoint for the client to request a CSR
 certificateRouter.get("/csr/:domain", (req, res) => {

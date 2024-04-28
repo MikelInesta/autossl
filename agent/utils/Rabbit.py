@@ -33,6 +33,7 @@ def queueCallback(ch, method, properties, body):
 
 class Rabbit:
     def __init__(self, host):
+        print(f"host: {host}")
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host))
         print("Created the connection")
         self.channel = self.connection.channel()
