@@ -1,17 +1,17 @@
 // Entry point for the application,
-import express from 'express';
-import cors from 'cors';
+import express from "express";
+import cors from "cors";
 
-import api from './config/server.js';
-import connection from './config/database.js';
+import api from "./config/server.js";
+import connection from "./config/database.js";
 
-import agentRouter from './routes/agents.js';
-import serverRouter from './routes/servers.js';
-import webServerRouter from './routes/webServers.js';
-import virtualHostRouter from './routes/virtualHosts.js';
-import certificateRouter from './routes/certificates.js';
+import agentRouter from "./routes/agents.js";
+import serverRouter from "./routes/servers.js";
+import webServerRouter from "./routes/webServers.js";
+import virtualHostRouter from "./routes/virtualHosts.js";
+import certificateRouter from "./routes/certificates.js";
 
-import { declareExchange } from './config/rabbit.js';
+import { declareExchange, publishMessage } from "./config/rabbit.js";
 
 const app = express();
 
@@ -19,51 +19,52 @@ const app = express();
 app.use(express.json());
 
 const corsOptions = {
-	origin: [
-		'http://localhost:5173',
-		'http://127.0.0.1:5173',
-		'http://localhost:5174',
-		'http://127.0.0.1:5174',
-		'https://autossl.mikelinesta.com',
-	],
-	credentials: false,
+  origin: [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5174",
+    "https://autossl.mikelinesta.com",
+  ],
+  credentials: false,
 };
 app.use(cors(corsOptions));
 
 //Endpoint to test connectivity
-app.all('/api/test', function (request, response) {
-	response.send('hello world!');
+app.all("/api/test", function (request, response) {
+  response.send("hello world!");
 });
 
 // Api route for communication from the agents
-app.use('/api/agents', agentRouter);
+app.use("/api/agents", agentRouter);
 
 // Api route for servers
-app.use('/api/servers', serverRouter);
+app.use("/api/servers", serverRouter);
 
 // Api route for web_servers
-app.use('/api/web-servers', webServerRouter);
+app.use("/api/web-servers", webServerRouter);
 
 // Api route for virtual_hosts
-app.use('/api/virtual-hosts', virtualHostRouter);
+app.use("/api/virtual-hosts", virtualHostRouter);
 
 // Api route for certificates
-app.use('/api/certificates', certificateRouter);
+app.use("/api/certificates", certificateRouter);
 
 app.listen(api.port, async () => {
-	try {
-		await connection;
-		console.log('Connected to the database');
-	} catch (err) {
-		console.log(err);
-	}
+  try {
+    console.log("Connected to the database");
+  } catch (err) {
+    console.log(err);
+  }
 
-	console.log(`Listening at localhost:${api.port}\nPress Ctrl+C to quit`);
+  console.log(`Listening at localhost:${api.port}\nPress Ctrl+C to quit`);
 
-	try {
-		await declareExchange('csrExchange', 'direct');
-		console.log('Declared the CSR exchange');
-	} catch (e: any) {
-		console.log(e.message);
-	}
+  try {
+    await connection;
+    // Create the rabbit connection, channel and exchange
+    await declareExchange("csrExchange", "direct");
+    console.log("Declared the CSR exchange");
+  } catch (e: any) {
+    console.log(e.message);
+  }
 });
