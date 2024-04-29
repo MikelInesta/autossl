@@ -3,8 +3,8 @@ import { Certificate, ICertificate } from "./certificates";
 
 interface IVirtualHost {
   _id: Types.ObjectId;
-  vh_ips: Array<String>;
-  domain_names: String;
+  vh_ips: Array<string>;
+  domain_names: string;
   enabled: boolean;
   web_server_id: Types.ObjectId;
   certificate_id: Types.ObjectId;
