@@ -18,29 +18,32 @@ class Rabbit:
             print("Could not establish a connection to the rabbitmq server:")
             exit(1)
 
-    def declareAndBind(self, agentId):
+    def declareAndBind(self, queueName, routingKey, exchangeName):
         try:
-            self.channel.queue_declare(queue="pipiritiflauticaQ")
+            queue = self.channel.queue_declare(queue=queueName)
             self.channel.queue_bind(
-                exchange="testExchange",
-                queue="pipiritiflauticaQ",
-                routing_key="pipiritiflauticaKey",
+                exchange=exchangeName,
+                queue=queueName,
+                routing_key=routingKey,
             )
-            print("Succesfully declared the agent's queue and binded it to the exchange")
+            print(f"Succesfully declared {queueName} queue and binded it to the {exchangeName} with key {routingKey}")
         except Exception:
-            print("Something went wrong while declaring and binding")
+            print(f"Something went wrong while declaring {queueName} and binding it to {exchangeName} with key {routingKey}")
 
-    def consumeMessages(self, agentId):
-        # self.channel.basic_consume(
-        #     queue=agentId, 
-        #     on_message_callback=requestCallback, 
-        #     auto_ack=True
-        # )
-        # self.channel.start_consuming()
-        print(f"Cheking wether {agentId} queue has messages")
-        method, properties, body = self.channel.basic_get(queue="pipiritiflauticaQ", auto_ack=True)
+    def consumeGet(self, queueName):
+        print(f"Cheking wether {queueName} queue has messages")
+        method, properties, body = self.channel.basic_get(queue=queueName, auto_ack=True)
         if body is not None:
-            print("Received the message: ", body)
+            print(f"Consumed the following message from queue '{queueName}': ", body)
         else:
-            print("Nothing in the queue to consume")
+            print(f"Nothing in queue '{queueName}' to consume")
 
+    def consumeBasic(self, agentId):
+        self.channel.basic_consume(
+            queue=agentId, 
+            on_message_callback=requestCallback, 
+            auto_ack=True
+        )
+        # Maybe I should execute this function in a separate thread
+        self.channel.start_consuming()
+        

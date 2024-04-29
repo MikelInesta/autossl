@@ -1,4 +1,5 @@
 import os, requests
+import threading
 
 
 class SystemUtils:
@@ -19,3 +20,12 @@ class SystemUtils:
     @staticmethod
     def getIpAddress():
         return requests.get("https://api.ipify.org").content.decode("utf8")
+
+    @staticmethod
+    def openThread(func, arguments):
+        # Start the queue polling in a separate thread so this thread can be used for the observer
+        rabbit_thread = threading.Thread(target=func, args=arguments)
+        rabbit_thread.daemon = True
+        rabbit_thread.start()
+
+

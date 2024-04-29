@@ -1,6 +1,5 @@
-from dotenv import load_dotenv
 from Agent import Agent
-import os, schedule, time, threading
+import os, schedule, time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils.SystemUtils import SystemUtils
@@ -9,13 +8,12 @@ from utils.Rabbit import Rabbit
 from utils.Identification import Identification
 
 
-def queuePolling():
+def queuePolling(rabbit):
     # Polling every minute to see if there are new messages
-    schedule.every(1).minutes.do(rabbit.consumeMessages, agentId)
+    schedule.every(1).minutes.do(rabbit.consumeGet, f"{agentId}Queue")
     while True:
         schedule.run_pending()
         time.sleep(1)
-
 
 class UpdateHandler(FileSystemEventHandler):
     def __init__(self):
@@ -24,7 +22,6 @@ class UpdateHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         self.agent.update()
-
 
 if __name__ == "__main__":
     if os.geteuid() != 0:
@@ -59,12 +56,9 @@ if __name__ == "__main__":
     else:
         print("Could not get the rabbit server address from .env")
         exit(1)
-    rabbit.declareAndBind(agentId)
-    # Start the queue polling in a separate thread so this thread can be used for the observer
-    rabbit_thread = threading.Thread(target=queuePolling)
-    rabbit_thread.daemon = True
-    rabbit_thread.start()
-
+    rabbit.declareAndBind(f"{agentId}Queue", agentId, "csrExchange")
+    SystemUtils.openThread(queuePolling, [rabbit])
+    
     observer = Observer()
     for webServerName in webServers:
         path = webServers[webServerName]["configuration_path"]
