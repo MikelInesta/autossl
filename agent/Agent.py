@@ -47,7 +47,7 @@ class Agent:
             data = self.buildUpdateData()
             jsonData = json.dumps(data)
             res = requests.post(
-                f"{self.agentUrl}/update",
+                f"{self.agentUrl}update",
                 data=jsonData,
                 headers={"Content-Type": "application/json"},
             )

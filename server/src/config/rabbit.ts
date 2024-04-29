@@ -8,25 +8,32 @@ const declareExchange = async (name: string, type: string) => {
     await channel.assertExchange(name, type, { durable: true });
     await connection.close();
   } catch (error) {
-    console.error("Something went wrong:", error);
+    console.log("Something went wrong:", error);
     throw error;
   }
 };
 
-async function publishMessage(exchangeName: string, key: string, message: any) {
+const publishMessage = async (
+  exchangeName: string,
+  key: string,
+  message: any,
+) => {
   try {
     const connection = await amqp.connect("amqp://localhost");
+    console.log("rabbit connection made");
     const channel = await connection.createChannel();
-
-    const message = "Message from the backend.";
-    // Routing key will be the agent id
-    channel.publish(exchangeName, key, Buffer.from(message));
-    console.log(`Message published to exchange ${exchangeName}`);
+    console.log("channel created");
+    channel.publish(
+      "testExchange",
+      "pipiritiflauticaKey",
+      Buffer.from("alo from backend"),
+    );
+    console.log(`Message published to testExchange rk: pipiritiflauticaKey`);
     await connection.close();
   } catch (error) {
-    console.error("Something went wrong:", error);
+    console.log("Something went wrong:", error);
     throw error;
   }
-}
+};
 
 export { declareExchange, publishMessage };

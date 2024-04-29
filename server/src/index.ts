@@ -12,6 +12,7 @@ import virtualHostRouter from "./routes/virtualHosts.js";
 import certificateRouter from "./routes/certificates.js";
 
 import { declareExchange, publishMessage } from "./config/rabbit.js";
+import * as amqp from "amqplib";
 
 const app = express();
 
@@ -52,6 +53,7 @@ app.use("/api/certificates", certificateRouter);
 
 app.listen(api.port, async () => {
   try {
+    await connection;
     console.log("Connected to the database");
   } catch (err) {
     console.log(err);
@@ -60,10 +62,8 @@ app.listen(api.port, async () => {
   console.log(`Listening at localhost:${api.port}\nPress Ctrl+C to quit`);
 
   try {
-    await connection;
-    // Create the rabbit connection, channel and exchange
-    await declareExchange("csrExchange", "direct");
-    console.log("Declared the CSR exchange");
+    await declareExchange("testExchange", "direct");
+    console.log("Declared the testExchange exchange");
   } catch (e: any) {
     console.log(e.message);
   }

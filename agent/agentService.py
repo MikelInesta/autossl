@@ -1,12 +1,21 @@
 from dotenv import load_dotenv
 from Agent import Agent
-import os, schedule, time
+import os, schedule, time, threading
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils.SystemUtils import SystemUtils
 from config import RABBIT_ADDRESS, AGENT_ENDPOINT_ADDRESS
 from utils.Rabbit import Rabbit
 from utils.Identification import Identification
+
+
+def queuePolling():
+    # Polling every minute to see if there are new messages
+    schedule.every(1).minutes.do(rabbit.consumeMessages, agentId)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
 
 class UpdateHandler(FileSystemEventHandler):
     def __init__(self):
@@ -15,6 +24,7 @@ class UpdateHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         self.agent.update()
+
 
 if __name__ == "__main__":
     if os.geteuid() != 0:
@@ -28,14 +38,6 @@ if __name__ == "__main__":
         "/etc", ["nginx", "apache2", "apache", "httpd"]
     )
 
-    observer = Observer()
-    for webServerName in webServers:
-        path = webServers[webServerName]["configuration_path"]
-        event_handler = UpdateHandler()
-        observer.schedule(event_handler, path, recursive=True)
-    observer.start()
-    observer.join()
-
     # Identify the agent
     if AGENT_ENDPOINT_ADDRESS:
         agentUrl = AGENT_ENDPOINT_ADDRESS
@@ -44,6 +46,12 @@ if __name__ == "__main__":
         exit(1)
     identificator = Identification(agentUrl)
     agentId = identificator.getAgentId()
+    if not agentId:
+        identificator.authenticate()
+        agentId = identificator.getAgentId()
+        if not agentId:
+            print("Can't get the agent id ")
+            exit(1)
 
     # Create a queue, bind it to the csr exchange and start polling
     if RABBIT_ADDRESS:
@@ -52,10 +60,15 @@ if __name__ == "__main__":
         print("Could not get the rabbit server address from .env")
         exit(1)
     rabbit.declareAndBind(agentId)
+    # Start the queue polling in a separate thread so this thread can be used for the observer
+    rabbit_thread = threading.Thread(target=queuePolling)
+    rabbit_thread.daemon = True
+    rabbit_thread.start()
 
-    # Polling every minute to see if there are new messages
-    schedule.every(1).minutes.do(rabbit.consumeMessages, agentId)
-    while True:
-        schedule.run_pending()
-        time.sleep(1) 
-
+    observer = Observer()
+    for webServerName in webServers:
+        path = webServers[webServerName]["configuration_path"]
+        event_handler = UpdateHandler()
+        observer.schedule(event_handler, path, recursive=True)
+    observer.start()
+    observer.join()

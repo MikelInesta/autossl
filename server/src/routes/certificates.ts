@@ -7,18 +7,20 @@ const certificateRouter = express.Router();
 
 certificateRouter.get("/testCsr", async (req, res) => {
   try {
-    const agent = await Agent.findOne();
-    if (agent) {
-      console.log(`publishing message to 662928cadbf726c2e705bd3e`);
-      await publishMessage(
-        "csrExchange",
-        "662928cadbf726c2e705bd3e",
-        "testing csr exchange :0",
-      );
-      res.sendStatus(200);
-    } else {
-      res.sendStatus(404);
-    }
+    publishMessage(
+      "csrExchange",
+      "662e78f44062aaffe27db22a",
+      "testing csr exchange :0",
+    )
+      .then(() => {
+        res.sendStatus(200);
+      })
+      .catch((e: any) => {
+        console.log(
+          "something went wrong publishing a message to exchange: ",
+          e,
+        );
+      });
   } catch (e: any) {
     console.log("something went wrong. :(");
     res.sendStatus(500);

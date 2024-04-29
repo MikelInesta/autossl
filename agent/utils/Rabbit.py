@@ -11,27 +11,36 @@ def requestCallback(ch, method, properties, body):
 
 class Rabbit:
     def __init__(self, host):
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host))
-        print("Created the connection")
-        self.channel = self.connection.channel()
-        print("Created the channel")
+        try:
+            self.connection = pika.BlockingConnection(pika.ConnectionParameters(host))
+            self.channel = self.connection.channel()
+        except Exception:
+            print("Could not establish a connection to the rabbitmq server:")
+            exit(1)
 
     def declareAndBind(self, agentId):
         try:
-            queue = self.channel.queue_declare(queue=agentId)
+            self.channel.queue_declare(queue="pipiritiflauticaQ")
             self.channel.queue_bind(
-                exchange="csrExchange",
-                queue=queue.method.queue,
-                routing_key=agentId,
+                exchange="testExchange",
+                queue="pipiritiflauticaQ",
+                routing_key="pipiritiflauticaKey",
             )
             print("Succesfully declared the agent's queue and binded it to the exchange")
         except Exception:
             print("Something went wrong while declaring and binding")
 
     def consumeMessages(self, agentId):
-        message = self.channel.basic_get(queue=agentId, auto_ack=True)
-        if message:
-            print("Consumed a mesage")
+        # self.channel.basic_consume(
+        #     queue=agentId, 
+        #     on_message_callback=requestCallback, 
+        #     auto_ack=True
+        # )
+        # self.channel.start_consuming()
+        print(f"Cheking wether {agentId} queue has messages")
+        method, properties, body = self.channel.basic_get(queue="pipiritiflauticaQ", auto_ack=True)
+        if body is not None:
+            print("Received the message: ", body)
         else:
             print("Nothing in the queue to consume")
 
