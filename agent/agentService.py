@@ -4,10 +4,10 @@ import schedule
 import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from utils.SystemUtils import SystemUtils
-from config import RABBIT_ADDRESS, AGENT_ENDPOINT_ADDRESS
+from config import config
 from utils.Rabbit import Rabbit
 from utils.Identification import Identification
+from utils.SystemUtils import SystemUtils
 
 
 def queuePolling(rabbit):
@@ -16,6 +16,10 @@ def queuePolling(rabbit):
     while True:
         schedule.run_pending()
         time.sleep(1)
+
+
+def consumeCallback(ch, method, props, body):
+    print(f"Consumed message with body: {body}")
 
 
 class UpdateHandler(FileSystemEventHandler):
@@ -40,8 +44,8 @@ if __name__ == "__main__":
     )
 
     # Identify the agent
-    if AGENT_ENDPOINT_ADDRESS:
-        agentUrl = AGENT_ENDPOINT_ADDRESS
+    if config["SERVER_ADDRESS"]:
+        agentUrl = config["SERVER_ADDRESS"]
     else:
         print("Could not get the Agent's endpoint address from .env")
         exit(1)
@@ -55,13 +59,13 @@ if __name__ == "__main__":
             exit(1)
 
     # Create a queue, bind it to the csr exchange and start polling
-    if RABBIT_ADDRESS:
-        rabbit = Rabbit(RABBIT_ADDRESS)
+    if config["RABBIT_ADDRESS"]:
+        rabbit = Rabbit(config["RABBIT_ADDRESS"])
     else:
         print("Could not get the rabbit server address from .env")
         exit(1)
     rabbit.declareAndBind(f"{agentId}Queue", agentId, "csrExchange")
-    SystemUtils.openThread(queuePolling, [rabbit])
+    SystemUtils.openThread(rabbit.consumeBasic, [f"{agentId}Queue", consumeCallback])
 
     observer = Observer()
     for webServerName in webServers:

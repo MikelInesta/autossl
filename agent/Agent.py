@@ -2,8 +2,7 @@ import requests
 import json
 from utils.SystemUtils import SystemUtils
 from utils.NginxUtils import NginxUtils
-from dotenv import load_dotenv
-from config import AGENT_ENDPOINT_ADDRESS
+from dotenv import dotenv_values
 
 
 class Agent:
@@ -11,9 +10,9 @@ class Agent:
         self,
         webServerNames=["nginx", "apache2", "apache", "httpd"],
     ):
-        load_dotenv()
-        if AGENT_ENDPOINT_ADDRESS:
-            self.agentUrl = AGENT_ENDPOINT_ADDRESS
+        config = dotenv_values(".env")
+        if config["SERVER_ADDRESS"]:
+            self.agentUrl = config["SERVER_ADDRESS"]
         else:
             print("Couldn't get the Agent Endpoint Address from .env file")
             exit(1)

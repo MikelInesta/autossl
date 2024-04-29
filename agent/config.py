@@ -1,7 +1,3 @@
-from dotenv import load_dotenv
-import os
+from dotenv import dotenv_values
 
-load_dotenv()
-
-AGENT_ENDPOINT_ADDRESS = os.environ.get("SERVER_ADDRESS")
-RABBIT_ADDRESS=os.environ.get("RABBIT_ADDRESS")
+config = dotenv_values(".env")

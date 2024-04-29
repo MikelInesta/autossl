@@ -1,4 +1,5 @@
-import os, requests
+import os
+import requests
 import threading
 
 
@@ -27,5 +28,3 @@ class SystemUtils:
         rabbit_thread = threading.Thread(target=func, args=arguments)
         rabbit_thread.daemon = True
         rabbit_thread.start()
-
-
