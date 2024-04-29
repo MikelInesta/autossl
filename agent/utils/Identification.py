@@ -1,7 +1,6 @@
-import os
 import json
 import requests
-from SystemUtils import SystemUtils
+from .SystemUtils import SystemUtils
 
 
 class Identification:
@@ -9,7 +8,7 @@ class Identification:
         self.agentUrl = agentUrl
         self.configPath = "agentId.json"
         self.agentId = self.getAgentIdFromConfig()
-        self.serverIp = SystemUtils.getIpAddress() 
+        self.serverIp = SystemUtils.getIpAddress()
 
     def authenticate(self):
         configData = self.readConfigFile()
@@ -29,7 +28,7 @@ class Identification:
                 configData = json.load(file)
             print("Read config data: ", configData)
             return configData
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             print("Configuration file was not found, returning False")
             return False
 
