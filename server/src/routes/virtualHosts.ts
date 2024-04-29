@@ -1,8 +1,32 @@
 import express from "express";
 import { getVirtualHosts } from "../controllers/web_server";
 import { requestCsr } from "../controllers/virtual_host";
+import { publishMessage } from "../config/rabbit";
 
 const virtualHostRouter = express.Router();
+
+virtualHostRouter.get("/testCsr/:agentId", async (req, res) => {
+  try {
+    const agentId = req.params.agentId;
+    if (!agentId) {
+      console.log("No agent ID was providad for /testCsr");
+      res.sendStatus(422);
+    }
+    publishMessage("csrExchange", agentId, "Message from backend")
+      .then(() => {
+        res.sendStatus(200);
+      })
+      .catch((e: any) => {
+        console.log(
+          "something went wrong publishing a message to exchange: ",
+          e,
+        );
+      });
+  } catch (e: any) {
+    console.log("Something went wrong.");
+    res.sendStatus(500);
+  }
+});
 
 virtualHostRouter.get("/getCsr/:virtualHostId", async (req, res) => {
   const virtualHostId = req.params.virtualHostId;

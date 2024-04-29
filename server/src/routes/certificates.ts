@@ -2,34 +2,16 @@ import express from "express";
 import { getCertificateById } from "../controllers/certificate";
 import { publishMessage } from "../config/rabbit";
 import { Agent } from "../models/agents";
+import { getAgentId } from "../controllers/virtual_host";
 
 const certificateRouter = express.Router();
 
-certificateRouter.get("/testCsr/:agentId", async (req, res) => {
-  try {
-    const agentId = req.params.agentId;
-    if (!agentId) {
-      console.log("No agent ID was providad for /testCsr");
-      res.sendStatus(422);
-    }
-    publishMessage("csrExchange", agentId, "Message from backend")
-      .then(() => {
-        res.sendStatus(200);
-      })
-      .catch((e: any) => {
-        console.log(
-          "something went wrong publishing a message to exchange: ",
-          e,
-        );
-      });
-  } catch (e: any) {
-    console.log("Something went wrong.");
-    res.sendStatus(500);
-  }
-});
+// certificateRouter.get("testGetAgentId", async (req, res) => {
+//   const agentId = await getAgentId(virtualHostI);
+// });
 
 // Endpoint for the client to request a CSR
-certificateRouter.get("/csr/:domain", (req, res) => {
+certificateRouter.get("/csr/:domain", async (req, res) => {
   try {
     const domain = req.params.domain;
     if (!domain) {

@@ -1,5 +1,5 @@
 import { Schema, model, Types } from "mongoose";
-import { Certificate, ICertificate } from "./certificates";
+import { Certificate } from "./certificates";
 
 interface IVirtualHost {
   _id: Types.ObjectId;
