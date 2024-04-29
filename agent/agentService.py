@@ -1,5 +1,7 @@
 from Agent import Agent
-import os, schedule, time
+import os
+import schedule
+import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from utils.SystemUtils import SystemUtils
@@ -15,6 +17,7 @@ def queuePolling(rabbit):
         schedule.run_pending()
         time.sleep(1)
 
+
 class UpdateHandler(FileSystemEventHandler):
     def __init__(self):
         self.agent = Agent()
@@ -22,6 +25,7 @@ class UpdateHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         self.agent.update()
+
 
 if __name__ == "__main__":
     if os.geteuid() != 0:
@@ -58,7 +62,7 @@ if __name__ == "__main__":
         exit(1)
     rabbit.declareAndBind(f"{agentId}Queue", agentId, "csrExchange")
     SystemUtils.openThread(queuePolling, [rabbit])
-    
+
     observer = Observer()
     for webServerName in webServers:
         path = webServers[webServerName]["configuration_path"]

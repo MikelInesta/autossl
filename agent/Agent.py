@@ -1,15 +1,16 @@
-import requests, json
-from utils.Rabbit import Rabbit
+import requests
+import json
 from utils.SystemUtils import SystemUtils
 from utils.NginxUtils import NginxUtils
 from dotenv import load_dotenv
 from config import AGENT_ENDPOINT_ADDRESS
 
+
 class Agent:
     def __init__(
         self,
         webServerNames=["nginx", "apache2", "apache", "httpd"],
-        ):
+    ):
         load_dotenv()
         if AGENT_ENDPOINT_ADDRESS:
             self.agentUrl = AGENT_ENDPOINT_ADDRESS

@@ -3,3 +3,5 @@ watchdog
 python-dotenv
 pika
 requests
+schedule
+
