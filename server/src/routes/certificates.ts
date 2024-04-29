@@ -1,17 +1,18 @@
 import express from "express";
 import { getCertificateById } from "../controllers/certificate";
 import { publishMessage } from "../config/rabbit";
-import { Agent } from "../models/agent";
+import { Agent } from "../models/agents";
 
 const certificateRouter = express.Router();
 
-certificateRouter.get("/testCsr", async (req, res) => {
+certificateRouter.get("/testCsr/:agentId", async (req, res) => {
   try {
-    publishMessage(
-      "csrExchange",
-      "662e78f44062aaffe27db22a",
-      "testing csr exchange :0",
-    )
+    const agentId = req.params.agentId;
+    if (!agentId) {
+      console.log("No agent ID was providad for /testCsr");
+      res.sendStatus(422);
+    }
+    publishMessage("csrExchange", agentId, "Message from backend")
       .then(() => {
         res.sendStatus(200);
       })
@@ -22,7 +23,7 @@ certificateRouter.get("/testCsr", async (req, res) => {
         );
       });
   } catch (e: any) {
-    console.log("something went wrong. :(");
+    console.log("Something went wrong.");
     res.sendStatus(500);
   }
 });

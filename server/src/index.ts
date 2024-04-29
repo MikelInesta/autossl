@@ -62,8 +62,8 @@ app.listen(api.port, async () => {
   console.log(`Listening at localhost:${api.port}\nPress Ctrl+C to quit`);
 
   try {
-    await declareExchange("testExchange", "direct");
-    console.log("Declared the testExchange exchange");
+    await declareExchange("csrExchange", "direct");
+    console.log("Declared csrExchange");
   } catch (e: any) {
     console.log(e.message);
   }

@@ -15,7 +15,7 @@ const declareExchange = async (name: string, type: string) => {
 
 const publishMessage = async (
   exchangeName: string,
-  key: string,
+  routingKey: string,
   message: any,
 ) => {
   try {
@@ -23,12 +23,15 @@ const publishMessage = async (
     console.log("rabbit connection made");
     const channel = await connection.createChannel();
     console.log("channel created");
-    channel.publish(
-      "testExchange",
-      "pipiritiflauticaKey",
-      Buffer.from("alo from backend"),
+    const publishRet = channel.publish(
+      exchangeName,
+      routingKey,
+      Buffer.from(message),
     );
-    console.log(`Message published to testExchange rk: pipiritiflauticaKey`);
+    if (publishRet) {
+      console.log(publishRet);
+    }
+    console.log(`Message published to ${exchangeName} key: ${routingKey}`);
     await connection.close();
   } catch (error) {
     console.log("Something went wrong:", error);
