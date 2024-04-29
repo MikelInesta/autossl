@@ -7,13 +7,9 @@ dotenv.config(); //load .env
 // Create the connection and export it for the server to use
 const dbUri =
   process.env.DB_URI ||
-  "mongodb+srv://" +
-    process.env.DB_USER +
-    ":" +
+  "mongodb+srv://autossl:" +
     process.env.DB_PASSWORD +
-    "@" +
-    process.env.DB_NAME +
-    ".5cwn4qk.mongodb.net/?retryWrites=true&w=majority";
-const connection = mongoose.connect(dbUri);
+    "%@autossl.5cwn4qk.mongodb.net/?retryWrites=true&w=majority&appName=autossl";
 
+const connection = mongoose.connect(dbUri);
 export default connection;
