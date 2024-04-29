@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+from SystemUtils import SystemUtils
 
 
 class Identification:
@@ -8,6 +9,7 @@ class Identification:
         self.agentUrl = agentUrl
         self.configPath = "agentId.json"
         self.agentId = self.getAgentIdFromConfig()
+        self.serverIp = SystemUtils.getIpAddress() 
 
     def authenticate(self):
         configData = self.readConfigFile()
@@ -32,7 +34,7 @@ class Identification:
             return False
 
     def createNew(self):
-        response = requests.get(self.agentUrl + "new")
+        response = requests.get(self.agentUrl + "new/" + self.serverIp)
         print("Getting agent id from backend: ", response)
         print("Data obtained: ", response.json())
         if response.status_code == 200:
