@@ -1,16 +1,6 @@
 import { Types } from "mongoose";
 import { Certificate, ICertificate } from "../models/certificates";
 
-const getCSR = async (domain: string): Promise<string> => {
-  try {
-    // Pending implementation !!
-    return "";
-  } catch (e: any) {
-    console.log(e.message);
-    return "";
-  }
-};
-
 const setOldCertificates = async (
   updatedCertificatesIds: Types.ObjectId[],
 ): Promise<Boolean> => {
