@@ -22,10 +22,9 @@ const updateWebServer = async (
   serverId: Types.ObjectId
 ): Promise<IWebServer> => {
   const webServer = await WebServer.findOneAndUpdate(
-    { web_server_name: webServerName },
+    { web_server_name: webServerName, server_id: serverId },
     {
       configuration_path: webServerData.configuration_path,
-      server_id: serverId,
     },
     { upsert: true, new: true }
   );
