@@ -40,7 +40,7 @@ const requestCsr = async (virtualHostId: string): Promise<boolean> => {
     if (!virtualHost)
       throw new Error("No virtual host was found with the given Id");
     const dataString = JSON.stringify(virtualHost);
-    publishMessage("csrExchange", agentId, dataString);
+    publishMessage("csrExchange", `${agentId}`, dataString);
     return true;
   } catch (e: any) {
     console.log("Error in request csr");

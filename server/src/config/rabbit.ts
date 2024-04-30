@@ -1,12 +1,31 @@
 import * as amqp from "amqplib";
 
+// This attempt at reusing connection and channel might be dangerous
+
+let connection: (amqp.Connection | null) = null;
+let channel: (amqp.Channel | null) = null;
+
+const rabbitConnect = async () => {
+  if (!connection) {
+    connection = await amqp.connect("amqp://localhost");
+  }
+  return connection;
+}
+
+const rabbitChannel = async () => {
+  if (!channel && connection) {
+    channel = await connection.createChannel();
+  }
+  return channel;
+}
+
 const declareExchange = async (name: string, type: string) => {
   try {
-    const connection = await amqp.connect("amqp://localhost");
-    const channel = await connection.createChannel();
-
+    const connection = await rabbitConnect();
+    const channel = await rabbitChannel();
+    if (!connection || !channel)
+      return;
     await channel.assertExchange(name, type, { durable: true });
-    await connection.close();
   } catch (error) {
     console.log("Something went wrong:", error);
     throw error;
@@ -19,10 +38,11 @@ const publishMessage = async (
   message: any,
 ) => {
   try {
-    const connection = await amqp.connect("amqp://localhost");
-    console.log("rabbit connection made");
-    const channel = await connection.createChannel();
-    console.log("channel created");
+    const connection = await rabbitConnect();
+    const channel = await rabbitChannel();
+    // If exchange is '' the message will be published to the queue named routingKey
+    if (!connection || !channel)
+      return;
     const publishRet = channel.publish(
       exchangeName,
       routingKey,
@@ -31,8 +51,7 @@ const publishMessage = async (
     if (publishRet) {
       console.log(publishRet);
     }
-    console.log(`Message published to ${exchangeName} key: ${routingKey}`);
-    await connection.close();
+    console.log(`Message published to exchange:${exchangeName} key:${routingKey}`);
   } catch (error) {
     console.log("Something went wrong:", error);
     throw error;
