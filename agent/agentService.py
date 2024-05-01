@@ -8,6 +8,7 @@ from config import config
 from utils.Rabbit import Rabbit
 from utils.Identification import Identification
 from utils.SystemUtils import SystemUtils
+import json
 
 
 def queuePolling(rabbit):
@@ -19,7 +20,11 @@ def queuePolling(rabbit):
 
 
 def consumeCallback(ch, method, props, body):
-    print(f"Consumed message with body: {body}")
+    # Time to actually generate the csr
+    # I receive the following data:
+    decodedBody = body.decode("utf-8")
+    parsedBody = json.loads(decodedBody)
+    print(f"Parsed data consumed: {parsedBody}")
 
 
 class UpdateHandler(FileSystemEventHandler):
