@@ -1,14 +1,20 @@
-from Agent import Agent
-import os
-import schedule
-import time
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
-from config import config
-from utils.Rabbit import Rabbit
-from utils.Identification import Identification
-from utils.SystemUtils import SystemUtils
 import json
+import os
+import time
+
+import schedule
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
+from Agent import Agent
+from config import config
+from utils.CertifcateUtils import CertificateUtils
+from utils.Identification import Identification
+from utils.Rabbit import Rabbit
+from utils.SystemUtils import SystemUtils
+from cryptography.hazmat.primitives import serialization
+
+import requests
 
 
 def queuePolling(rabbit):
@@ -22,9 +28,37 @@ def queuePolling(rabbit):
 def consumeCallback(ch, method, props, body):
     # Time to actually generate the csr
     # I receive the following data:
-    decodedBody = body.decode("utf-8")
-    parsedBody = json.loads(decodedBody)
-    print(f"Parsed data consumed: {parsedBody}")
+    try:
+        decodedBody = body.decode("utf-8")
+        parsedBody = json.loads(decodedBody)
+        print(f"Parsed data consumed: {parsedBody}")
+        pkPath = f"/etc/ssl/private/{parsedBody['_id']}"
+        password = parsedBody[
+            "_id"
+        ]  # I'm using the domain id as the decryption password for the pk
+        print(f"password: {password}")
+        CertificateUtils.writePrivateKey(pkPath, password)
+        pk = CertificateUtils.readPrivateKey(pkPath, password)
+        csr = CertificateUtils.buildCsr(pk, parsedBody)
+        csrPem = csr.public_bytes(serialization.Encoding.PEM)
+        csrJson = json.dumps(
+            {"virtual_host_id": parsedBody["_id"], "csr": csrPem.decode("utf-8")}
+        )
+        if config["SERVER_ADDRESS"]:
+            res = requests.post(
+                f"{config['SERVER_ADDRESS']}csr",
+                data=csrJson,
+                headers={"Content-Type": "application/json"},
+            )
+            if res.status_code != 200:
+                raise Exception(f"Error: {res.status_code}")
+            else:
+                print("CSR sent successfully")
+                return True
+        else:
+            raise Exception("Could not get the SERVER_ADDRESS constant from config")
+    except Exception as e:
+        print(f"Something went wrong creating the csr: {e}")
 
 
 class UpdateHandler(FileSystemEventHandler):
