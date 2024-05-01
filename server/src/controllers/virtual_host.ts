@@ -4,7 +4,22 @@ import { Agent } from "../models/agents";
 import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
-import { json } from "stream/consumers";
+
+const addCsr = async (virtualHostId: string, csr: string): Promise<boolean> => {
+  try {
+    const vh = await VirtualHost.findById(virtualHostId);
+    if (!vh) {
+      throw Error("controllers.virtual_hosts.addCsr: No virtual host was found with the given id.");
+    }
+    vh.csr = csr;
+    await vh.save();
+    console.log("Added the csr");
+    return true;
+  } catch (e: any) {
+    console.log("Something went wrong in addCsr: " + e);
+    return false;
+  }
+};
 
 const getAgentId = async (virtualHostId: string): Promise<string> => {
   try {
@@ -94,4 +109,4 @@ const updateVirtualHost = async (
   return virtualHost;
 };
 
-export { updateVirtualHost, setOldVirtualHosts, requestCsr, getAgentId };
+export { updateVirtualHost, setOldVirtualHosts, requestCsr, getAgentId, addCsr };
