@@ -2,13 +2,24 @@ import express from "express";
 import { update } from "../controllers/server";
 import { Agent } from "../models/agents";
 import { createNewAgent } from "../controllers/agent";
+import { addCsr } from "../controllers/virtual_host";
 
 const agentRouter = express.Router();
 
-agentRouter.post("/csr/:csrData", async (req, res) => {
-  const data = req.body;
-  console.log(data);
-  res.sendStatus(200);
+agentRouter.post("/csr", async (req, res) => {
+  try {
+    const data = req.body;
+    console.log(data);
+    const id = data["virtual_host_id"] || false;
+    const csr = data["csr"] || false;
+    if (await addCsr(id, csr)) {
+      res.sendStatus(200);
+    } else {
+      throw new Error("Something went wrong adding the csr");
+    }
+  } catch (e: any) {
+    res.sendStatus(500);
+  }
 });
 
 agentRouter.get("/validate/:id", async (req, res) => {
