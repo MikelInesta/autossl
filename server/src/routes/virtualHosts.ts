@@ -5,14 +5,14 @@ import { publishMessage } from "../config/rabbit";
 
 const virtualHostRouter = express.Router();
 
-virtualHostRouter.get("/testCsr/:agentId", async (req, res) => {
+virtualHostRouter.get("/testRabbit/:key", async (req, res) => {
   try {
-    const agentId = req.params.agentId;
-    if (!agentId) {
+    const key = req.params.key;
+    if (!key) {
       console.log("No agent ID was providad for /testCsr");
       res.sendStatus(422);
     }
-    publishMessage("csrExchange", agentId, "Message from backend")
+    publishMessage("csrExchange", key, "Message from backend")
       .then(() => {
         res.sendStatus(200);
       })
@@ -28,12 +28,13 @@ virtualHostRouter.get("/testCsr/:agentId", async (req, res) => {
   }
 });
 
-virtualHostRouter.get("/getCsr/:virtualHostId", async (req, res) => {
+virtualHostRouter.post("/getCsr/:virtualHostId", async (req, res) => {
+  const formData = req.body;
   const virtualHostId = req.params.virtualHostId;
   if (!virtualHostId) {
     res.sendStatus(422);
   }
-  const response = await requestCsr(virtualHostId);
+  const response = await requestCsr(virtualHostId, formData);
   if (!response) {
     res.sendStatus(500);
   } else {

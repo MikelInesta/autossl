@@ -4,6 +4,7 @@ import { Agent } from "../models/agents";
 import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
+import { json } from "stream/consumers";
 
 const getAgentId = async (virtualHostId: string): Promise<string> => {
   try {
@@ -27,8 +28,9 @@ const getAgentId = async (virtualHostId: string): Promise<string> => {
   }
 };
 
-const requestCsr = async (virtualHostId: string): Promise<boolean> => {
+const requestCsr = async (virtualHostId: string, formData: Object): Promise<boolean> => {
   try {
+
     // I need the agent Id for the server hosting this domain (virtual host)
     const agentId = await getAgentId(virtualHostId);
     if (!agentId)
@@ -39,8 +41,13 @@ const requestCsr = async (virtualHostId: string): Promise<boolean> => {
     const virtualHost = await VirtualHost.findById(virtualHostId);
     if (!virtualHost)
       throw new Error("No virtual host was found with the given Id");
-    const dataString = JSON.stringify(virtualHost);
-    publishMessage("csrExchange", `${agentId}`, dataString);
+
+    // Join the form data with the virtual host data from the db
+    const jsonData = JSON.stringify({
+      ...virtualHost.toObject(),
+      ...formData
+    })
+    publishMessage("csrExchange", agentId, jsonData);
     return true;
   } catch (e: any) {
     console.log("Error in request csr");
