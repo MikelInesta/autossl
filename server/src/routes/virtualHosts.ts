@@ -2,8 +2,31 @@ import express from "express";
 import { getVirtualHosts } from "../controllers/web_server";
 import { requestCsr } from "../controllers/virtual_host";
 import { publishMessage } from "../config/rabbit";
+import { getCsr } from "../controllers/virtual_host";
+import { json } from "stream/consumers";
 
 const virtualHostRouter = express.Router();
+
+virtualHostRouter.get("/viewCsr/:id", async (req, res) => {
+  console.log("trying to viewCsr");
+  try {
+    const virtualHostId = req.params.id;
+    if (!virtualHostId) {
+      res.sendStatus(422);
+    }
+    const csr = await getCsr(virtualHostId);
+    if (!csr) {
+      res.sendStatus(404);
+    }
+    const csrJson = JSON.stringify({
+      csr: csr,
+    });
+    console.log(`Sending ${csrJson}`);
+    res.status(200).send(csrJson);
+  } catch {
+    res.sendStatus(500);
+  }
+});
 
 virtualHostRouter.get("/testRabbit/:key", async (req, res) => {
   try {
@@ -19,7 +42,7 @@ virtualHostRouter.get("/testRabbit/:key", async (req, res) => {
       .catch((e: any) => {
         console.log(
           "something went wrong publishing a message to exchange: ",
-          e,
+          e
         );
       });
   } catch (e: any) {

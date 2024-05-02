@@ -5,11 +5,35 @@ import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
 
+const getCsr = async (id: string) => {
+  try {
+    console.log("getting csr");
+    const vh = await VirtualHost.findById(id);
+    if (vh) {
+      console.log(
+        "controllers.virtual_hosts.getCsr: Found virtual host, looking for csr..."
+      );
+      console.log(vh.toString());
+      const csr = vh?.csr;
+      if (csr) {
+        console.log(`csr: ${csr}`);
+      }
+      return csr;
+    }
+  } catch (e: any) {
+    throw new Error(
+      `controllers.virtual_hosts.getCsr: Couldn't find a virtual host with id:${id}`
+    );
+  }
+};
+
 const addCsr = async (virtualHostId: string, csr: string): Promise<boolean> => {
   try {
     const vh = await VirtualHost.findById(virtualHostId);
     if (!vh) {
-      throw Error("controllers.virtual_hosts.addCsr: No virtual host was found with the given id.");
+      throw Error(
+        "controllers.virtual_hosts.addCsr: No virtual host was found with the given id."
+      );
     }
     vh.csr = csr;
     await vh.save();
@@ -43,14 +67,16 @@ const getAgentId = async (virtualHostId: string): Promise<string> => {
   }
 };
 
-const requestCsr = async (virtualHostId: string, formData: Object): Promise<boolean> => {
+const requestCsr = async (
+  virtualHostId: string,
+  formData: Object
+): Promise<boolean> => {
   try {
-
     // I need the agent Id for the server hosting this domain (virtual host)
     const agentId = await getAgentId(virtualHostId);
     if (!agentId)
       throw new Error(
-        "Could not find the agent Id related to the given domain",
+        "Could not find the agent Id related to the given domain"
       );
     // I need the virtual host data to send to the agent for it to know what to generate
     const virtualHost = await VirtualHost.findById(virtualHostId);
@@ -60,8 +86,8 @@ const requestCsr = async (virtualHostId: string, formData: Object): Promise<bool
     // Join the form data with the virtual host data from the db
     const jsonData = JSON.stringify({
       ...virtualHost.toObject(),
-      ...formData
-    })
+      ...formData,
+    });
     publishMessage("csrExchange", agentId, jsonData);
     return true;
   } catch (e: any) {
@@ -71,7 +97,7 @@ const requestCsr = async (virtualHostId: string, formData: Object): Promise<bool
 };
 
 const setOldVirtualHosts = async (
-  updatedVirtualHostsIds: Types.ObjectId[],
+  updatedVirtualHostsIds: Types.ObjectId[]
 ): Promise<Boolean> => {
   try {
     const oldVirtualHosts = await VirtualHost.find({
@@ -92,7 +118,7 @@ const setOldVirtualHosts = async (
 const updateVirtualHost = async (
   virtualHostData: IVirtualHost,
   webServerId: Types.ObjectId,
-  certificateId: Types.ObjectId | undefined,
+  certificateId: Types.ObjectId | undefined
 ): Promise<IVirtualHost> => {
   const virtualHost = await VirtualHost.findOneAndUpdate(
     {
@@ -104,9 +130,16 @@ const updateVirtualHost = async (
       web_server_id: webServerId,
       certificate_id: certificateId,
     },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
   return virtualHost;
 };
 
-export { updateVirtualHost, setOldVirtualHosts, requestCsr, getAgentId, addCsr };
+export {
+  updateVirtualHost,
+  setOldVirtualHosts,
+  requestCsr,
+  getAgentId,
+  addCsr,
+  getCsr,
+};
