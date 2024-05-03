@@ -22,6 +22,7 @@ const App: React.FC = () => {
             Component={VirtualHosts}
           />
           <Route path="/web-servers" Component={WebServers} />
+          <Route path="/domains" Component={VirtualHosts} />
           <Route
             path="/servers/:serverId/web-servers/:webServerId/domains/:virtualHostId/csr"
             Component={CreateCsr}
