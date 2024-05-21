@@ -89,13 +89,11 @@ if __name__ == "__main__":
         print("Could not get the Agent's endpoint address from .env")
         exit(1)
     identificator = Identification(agentUrl)
+    identificator.authenticate()
     agentId = identificator.getAgentId()
     if not agentId:
-        identificator.authenticate()
-        agentId = identificator.getAgentId()
-        if not agentId:
-            print("Can't get the agent id ")
-            exit(1)
+        print("Can't get the agent id ")
+        exit(1)
 
     # Create a queue, bind it to the csr exchange and start polling
     if config["RABBIT_ADDRESS"]:
