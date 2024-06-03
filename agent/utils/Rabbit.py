@@ -2,9 +2,13 @@ import pika
 
 
 class Rabbit:
-    def __init__(self, host):
+    def __init__(self, host, user, password):
         try:
-            self.connection = pika.BlockingConnection(pika.ConnectionParameters(host))
+            self.connection = pika.BlockingConnection(
+                pika.ConnectionParameters(
+                    host, 5672, "/", pika.PlainCredentials(user, password)
+                )
+            )
             self.channel = self.connection.channel()
         except Exception:
             print("Could not establish a connection to the rabbitmq server:")

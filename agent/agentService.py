@@ -97,7 +97,9 @@ if __name__ == "__main__":
 
     # Create a queue, bind it to the csr exchange and start polling
     if config["RABBIT_ADDRESS"]:
-        rabbit = Rabbit(config["RABBIT_ADDRESS"])
+        rabbit = Rabbit(
+            config["RABBIT_ADDRESS"], config["RABBIT_USER"], config["RABBIT_PASSWORD"]
+        )
     else:
         print("Could not get the rabbit server address from .env")
         exit(1)
