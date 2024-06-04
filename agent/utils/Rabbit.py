@@ -22,16 +22,16 @@ class Rabbit:
                 queue=queueName,
                 routing_key=routingKey,
             )
-            print(
+            """print(
                 f"Succesfully declared {queueName} queue and binded it to the {exchangeName} with key {routingKey}"
-            )
+            )"""
         except Exception:
-            print(
+            """print(
                 f"Something went wrong while declaring {queueName} and binding it to {exchangeName} with key {routingKey}"
-            )
+            )"""
 
     def consumeGet(self, queueName):
-        print(f"Cheking wether {queueName} queue has messages")
+        # print(f"Cheking wether {queueName} queue has messages")
         method, properties, body = self.channel.basic_get(
             queue=queueName, auto_ack=True
         )

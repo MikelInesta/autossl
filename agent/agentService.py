@@ -64,7 +64,6 @@ def consumeCallback(ch, method, props, body):
 class UpdateHandler(FileSystemEventHandler):
     def __init__(self):
         self.agent = Agent()
-        print("instantiating an agent")
 
     def on_modified(self, event):
         self.agent.update()
@@ -74,7 +73,6 @@ if __name__ == "__main__":
     if os.geteuid() != 0:
         exit("Root permissions are needed, please run as root or use sudo.")
 
-    print("instantiating an agent")
     a = Agent()
     a.update()
 

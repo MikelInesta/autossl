@@ -21,7 +21,6 @@ class CertificateUtils:
                 public_exponent=65537,
                 key_size=2048,
             )
-            print(f"password in writePrivateKey: {passwd}")
             bytePasswd = passwd.encode("UTF-8")
             with open(path, "wb") as f:
                 pk = key.private_bytes(
