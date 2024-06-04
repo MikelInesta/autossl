@@ -4,8 +4,34 @@ import { requestCsr } from "../controllers/virtual_host";
 import { publishMessage } from "../config/rabbit";
 import { getCsr } from "../controllers/virtual_host";
 import { VirtualHost } from "../models/virtual_hosts";
+import { installCertificate } from "../controllers/virtual_host";
 
 const virtualHostRouter = express.Router();
+
+virtualHostRouter.post(
+  "/install-certificate/:virtualHostId",
+  async (req, res) => {
+    console.log("requesting a certificate installation...");
+    const virtualHostId = req.params.virtualHostId;
+    try {
+      const data = req.body;
+      console.log("data: ", data);
+      if (!virtualHostId || !data) {
+        res.status(400).send("Mandatory data was not received");
+        return;
+      }
+      const result = await installCertificate(virtualHostId, data);
+      if (!result) {
+        res.sendStatus(500);
+        return;
+      }
+    } catch (e: any) {
+      console.log(e.message);
+      res.sendStatus(500);
+      return;
+    }
+  }
+);
 
 virtualHostRouter.get("/:virtualHostId", async (req, res) => {
   const virtualHostId = req.params.virtualHostId;

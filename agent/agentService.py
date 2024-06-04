@@ -16,6 +16,13 @@ from cryptography.hazmat.primitives import serialization
 
 import requests
 
+import base64
+
+
+def installNewCertificate(data):
+    print(f"Recieved install request, Json data to install: {data}")
+    # Time to decode the file and write it to the filesystem on /etc/ssl/certs
+
 
 def queuePolling(rabbit):
     # Polling every minute to see if there are new messages
@@ -32,31 +39,35 @@ def consumeCallback(ch, method, props, body):
         decodedBody = body.decode("utf-8")
         parsedBody = json.loads(decodedBody)
         print(f"Parsed data consumed: {parsedBody}")
-        pkPath = f"/etc/ssl/private/{parsedBody['_id']}"
-        password = parsedBody[
-            "_id"
-        ]  # I'm using the domain id as the decryption password for the pk
-        print(f"password: {password}")
-        CertificateUtils.writePrivateKey(pkPath, password)
-        pk = CertificateUtils.readPrivateKey(pkPath, password)
-        csr = CertificateUtils.buildCsr(pk, parsedBody)
-        csrPem = csr.public_bytes(serialization.Encoding.PEM)
-        csrJson = json.dumps(
-            {"virtual_host_id": parsedBody["_id"], "csr": csrPem.decode("utf-8")}
-        )
-        if config["SERVER_ADDRESS"]:
-            res = requests.post(
-                f"{config['SERVER_ADDRESS']}csr",
-                data=csrJson,
-                headers={"Content-Type": "application/json"},
-            )
-            if res.status_code != 200:
-                raise Exception(f"Error: {res.status_code}")
-            else:
-                print("CSR sent successfully")
-                return True
+        typeOfRequest = parsedBody["request"]
+        if typeOfRequest == "install":
+            installNewCertificate(parsedBody)
         else:
-            raise Exception("Could not get the SERVER_ADDRESS constant from config")
+            pkPath = f"/etc/ssl/private/{parsedBody['_id']}"
+            password = parsedBody[
+                "_id"
+            ]  # I'm using the domain id as the decryption password for the pk
+            print(f"password: {password}")
+            CertificateUtils.writePrivateKey(pkPath, password)
+            pk = CertificateUtils.readPrivateKey(pkPath, password)
+            csr = CertificateUtils.buildCsr(pk, parsedBody)
+            csrPem = csr.public_bytes(serialization.Encoding.PEM)
+            csrJson = json.dumps(
+                {"virtual_host_id": parsedBody["_id"], "csr": csrPem.decode("utf-8")}
+            )
+            if config["SERVER_ADDRESS"]:
+                res = requests.post(
+                    f"{config['SERVER_ADDRESS']}csr",
+                    data=csrJson,
+                    headers={"Content-Type": "application/json"},
+                )
+                if res.status_code != 200:
+                    raise Exception(f"Error: {res.status_code}")
+                else:
+                    print("CSR sent successfully")
+                    return True
+            else:
+                raise Exception("Could not get the SERVER_ADDRESS constant from config")
     except Exception as e:
         print(f"Something went wrong creating the csr: {e}")
 

@@ -54,7 +54,6 @@ class CertificateUtils:
             .subject_name(
                 x509.Name(
                     [
-                        # Provide various details about who we are.
                         x509.NameAttribute(NameOID.COUNTRY_NAME, data["country"]),
                         x509.NameAttribute(
                             NameOID.STATE_OR_PROVINCE_NAME, data["state"]

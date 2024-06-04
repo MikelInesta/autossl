@@ -96,6 +96,13 @@ const VirtualHostOptionsMenu: React.FC<{
         >
           Show CSR
         </MenuItem>
+        <MenuItem
+          onClick={handleClose}
+          component={Link}
+          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHostId}/installCertificate`}
+        >
+          Install a certificate
+        </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={handleClose} disableRipple>
           <MoreHorizIcon />

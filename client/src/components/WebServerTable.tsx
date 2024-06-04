@@ -18,6 +18,7 @@ const WebServerTable = ({ serverId }: { serverId: string }) => {
   const [webServers, setWebServers] = useState<IWebServer[]>([]);
   const [showTable, setShowTable] = useState(false);
   const [server, setServer] = useState<IServer | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchWebServers = async () => {
@@ -49,7 +50,7 @@ const WebServerTable = ({ serverId }: { serverId: string }) => {
 
     fetchWebServers();
     fetchServerData();
-  });
+  }, [serverId]);
 
   return (
     <>

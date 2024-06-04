@@ -5,6 +5,33 @@ import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
 
+const installCertificate = async (id: string, file: object) => {
+  try {
+    // I need the agent Id for the server hosting this domain (virtual host)
+    const agentId = await getAgentId(id);
+    if (!agentId)
+      throw new Error(
+        "Could not find the agent Id related to the given domain"
+      );
+    // I need the virtual host data to send to the agent for it to know what to generate
+    const virtualHost = await VirtualHost.findById(id);
+    if (!virtualHost)
+      throw new Error("No virtual host was found with the given Id");
+
+    // Join the form data with the virtual host data from the db
+    const jsonData = JSON.stringify({
+      request: "install",
+      ...virtualHost.toObject(),
+      ...file,
+    });
+    publishMessage("csrExchange", agentId, jsonData);
+    return true;
+  } catch (e: any) {
+    console.log(e.message);
+    return false;
+  }
+};
+
 const getCsr = async (id: string) => {
   try {
     console.log("getting csr");
@@ -85,6 +112,7 @@ const requestCsr = async (
 
     // Join the form data with the virtual host data from the db
     const jsonData = JSON.stringify({
+      request: "csr",
       ...virtualHost.toObject(),
       ...formData,
     });
@@ -142,4 +170,5 @@ export {
   getAgentId,
   addCsr,
   getCsr,
+  installCertificate,
 };

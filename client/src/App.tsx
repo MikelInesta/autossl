@@ -8,6 +8,7 @@ import * as React from "react";
 import VirtualHosts from "./pages/VirtualHosts";
 import CreateCsr from "./pages/CreateCsr";
 import DownloadCsr from "./pages/DownloadCsr";
+import InstallCertificate from "./pages/InstallCertificate";
 
 const App: React.FC = () => {
   return (
@@ -30,6 +31,10 @@ const App: React.FC = () => {
           <Route
             path="/servers/:serverId/web-servers/:webServerId/domains/:virtualHostId/downloadCsr"
             Component={DownloadCsr}
+          />
+          <Route
+            path="/servers/:serverId/web-servers/:webServerId/domains/:virtualHostId/installCertificate"
+            Component={InstallCertificate}
           />
           <Route path="*" element={<NoPage />} />
         </Route>
