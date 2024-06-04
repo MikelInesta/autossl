@@ -10,14 +10,14 @@ const VirtualHosts: React.FC = () => {
   return (
     <>
       <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <h1>Web Servers</h1>
+        <h1>Domains</h1>
       </Box>
-      <Box sx={{ display: "flex", justifyContent: "center", marginTop: 0 }}>
+      {/*<Box sx={{ display: "flex", justifyContent: "center", marginTop: 0 }}>
         <h2>Server ID: {serverId}</h2>
       </Box>
       <Box sx={{ display: "flex", justifyContent: "center", marginTop: 0 }}>
         <h3>Web Server ID: {webServerId}</h3>
-      </Box>
+  </Box>*/}
       {serverId && webServerId && (
         <VirtualHostTable serverId={serverId} webServerId={webServerId} />
       )}

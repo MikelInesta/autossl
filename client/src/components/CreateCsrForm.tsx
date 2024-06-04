@@ -1,6 +1,7 @@
 import { Box, Button, TextField } from "@mui/material";
 import { useState } from "react";
-import { Link, redirect } from "react-router-dom";
+import { Link } from "react-router-dom";
+import Alert from "@mui/material/Alert";
 
 const CreateCsrForm = ({
   serverId,
@@ -111,11 +112,27 @@ const CreateCsrForm = ({
         </>
       )}
       {download && (
-        <Link
-          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHostId}/downloadCsr`}
-        >
-          Download CSR
-        </Link>
+        <>
+          <Alert severity="success">
+            CSR requested successfully! Click the button below to download it:
+          </Alert>
+          <Button
+            variant="contained"
+            sx={{
+              marginTop: "20px",
+              marginBottom: "20px",
+              //marginLeft: "auto",
+              backgroundColor: "#009933",
+              "&:hover": {
+                backgroundColor: "#006600",
+              },
+            }}
+            component={Link}
+            to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHostId}/downloadCsr`}
+          >
+            Show CSR
+          </Button>
+        </>
       )}
     </Box>
   );

@@ -13,6 +13,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Alert,
 } from "@mui/material";
 import ServerOptionsMenu from "./ServerOptionsMenu";
 
@@ -26,6 +27,7 @@ interface IServer {
 
 const ServerTable: React.FC = () => {
   const [servers, setServers] = useState<IServer[]>([]);
+  const [errorAlert, setErrorAlert] = useState<String>("");
 
   useEffect(() => {
     const fetchServers = async () => {
@@ -35,43 +37,47 @@ const ServerTable: React.FC = () => {
         setServers(data);
       } catch (error) {
         console.error("Error fetching servers:", error);
+        setErrorAlert("Something went wrong fetching the servers.");
       }
     };
 
     fetchServers(); // It's fetching twice, probably due to parent re-render, should fix...
   }, []);
-  /* If I wanted it to constantly refresh I could add servers to the dependency
-   and create an infinite loop (probably not a good idea) */
 
   return (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell>Name</TableCell>
-            <TableCell>IP Address</TableCell>
-            <TableCell>Operating System</TableCell>
-            <TableCell>Archived (Old)</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {servers.map((server) => (
-            <TableRow key={server._id}>
-              <TableCell>{server._id}</TableCell>
-              <TableCell>{server.server_name}</TableCell>
-              <TableCell>{server.server_ip}</TableCell>
-              <TableCell>{server.operating_system}</TableCell>
-              <TableCell>{server.old ? "Yes" : "No"}</TableCell>
-              <TableCell>
-                <ServerOptionsMenu serverId={server._id} />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <>
+      {errorAlert.length > 0 && <Alert severity="error">{errorAlert}</Alert>}
+      {servers.length > 0 && (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>IP Address</TableCell>
+                <TableCell>Operating System</TableCell>
+                <TableCell>Archived (Old)</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {servers.map((server) => (
+                <TableRow key={server._id}>
+                  <TableCell>{server._id}</TableCell>
+                  <TableCell>{server.server_name}</TableCell>
+                  <TableCell>{server.server_ip}</TableCell>
+                  <TableCell>{server.operating_system}</TableCell>
+                  <TableCell>{server.old ? "Yes" : "No"}</TableCell>
+                  <TableCell>
+                    <ServerOptionsMenu serverId={server._id} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </>
   );
 };
 

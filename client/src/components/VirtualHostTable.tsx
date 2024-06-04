@@ -49,56 +49,66 @@ const VirtualHostTable: React.FC<{ serverId: string; webServerId: string }> = ({
   });
 
   return (
-    <>
-      <Box sx={{ display: "flex", justifyContent: "center", marginTop: 0 }}>
-        <h2>Server ID: {serverId}</h2>
-      </Box>
-      <Box sx={{ display: "flex", justifyContent: "center", marginTop: 0 }}>
-        <h3>Web Server ID: {webServerId}</h3>
-      </Box>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>IP Addresses</TableCell>
-              <TableCell>Domain Names</TableCell>
-              <TableCell>Is Enabled</TableCell>
-              <TableCell>Web Server ID</TableCell>
-              <TableCell>Certificate ID</TableCell>
-              <TableCell>Is Old</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {virtualHosts.map((virtualHost) => (
-              <TableRow key={virtualHost._id}>
-                <TableCell>{virtualHost._id}</TableCell>
-                <TableCell>
-                  <ul>
-                    {virtualHost.vh_ips.map((ip) => (
-                      <li>{ip}</li>
-                    ))}
-                  </ul>
-                </TableCell>
-                <TableCell>{virtualHost.domain_names}</TableCell>
-                <TableCell>{virtualHost.enabled ? "Yes" : "No"}</TableCell>
-                <TableCell>{virtualHost.web_server_id}</TableCell>
-                <TableCell>{virtualHost.web_server_id}</TableCell>
-                <TableCell>{virtualHost.old ? "Yes" : "No"}</TableCell>
-                <TableCell>
-                  <VirtualHostOptionsMenu
-                    serverId={serverId}
-                    webServerId={virtualHost.web_server_id}
-                    virtualHostId={virtualHost._id}
-                  />
-                </TableCell>
+    virtualHosts.length > 0 && (
+      <>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "left",
+            marginTop: 0,
+            marginLeft: 1,
+          }}
+        >
+          <p>
+            <strong>Server ID:</strong> {serverId}
+            <br />
+            <strong>Web Server ID:</strong> {webServerId}
+          </p>
+        </Box>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>IP Addresses</TableCell>
+                <TableCell>Domain Names</TableCell>
+                <TableCell>Is Enabled</TableCell>
+                <TableCell>Web Server ID</TableCell>
+                <TableCell>Certificate ID</TableCell>
+                <TableCell>Is Old</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </>
+            </TableHead>
+            <TableBody>
+              {virtualHosts.map((virtualHost) => (
+                <TableRow key={virtualHost._id}>
+                  <TableCell>{virtualHost._id}</TableCell>
+                  <TableCell>
+                    <ul>
+                      {virtualHost.vh_ips.map((ip) => (
+                        <li key={ip}>{ip}</li>
+                      ))}
+                    </ul>
+                  </TableCell>
+                  <TableCell>{virtualHost.domain_names}</TableCell>
+                  <TableCell>{virtualHost.enabled ? "Yes" : "No"}</TableCell>
+                  <TableCell>{virtualHost.web_server_id}</TableCell>
+                  <TableCell>{virtualHost.web_server_id}</TableCell>
+                  <TableCell>{virtualHost.old ? "Yes" : "No"}</TableCell>
+                  <TableCell>
+                    <VirtualHostOptionsMenu
+                      serverId={serverId}
+                      webServerId={virtualHost.web_server_id}
+                      virtualHostId={virtualHost._id}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </>
+    )
   );
 };
 

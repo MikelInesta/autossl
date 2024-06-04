@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -12,10 +12,12 @@ import {
 } from "@mui/material";
 import WebServerOptionsMenu from "./WebServerOptionsMenu";
 import { IWebServer } from "../types/models";
+import { IServer } from "../types/models";
 
 const WebServerTable = ({ serverId }: { serverId: string }) => {
   const [webServers, setWebServers] = useState<IWebServer[]>([]);
   const [showTable, setShowTable] = useState(false);
+  const [server, setServer] = useState<IServer | null>(null);
 
   useEffect(() => {
     const fetchWebServers = async () => {
@@ -33,19 +35,40 @@ const WebServerTable = ({ serverId }: { serverId: string }) => {
       }
     };
 
+    const fetchServerData = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/servers/${serverId}`
+        );
+        const data = await response.json();
+        setServer(data);
+      } catch (error) {
+        console.error("Error fetching server data:", error);
+      }
+    };
+
     fetchWebServers();
+    fetchServerData();
   });
 
   return (
-    <Paper sx={{ margin: 3 }}>
-      <Box sx={{ display: "flex", justifyContent: "center", marginTop: 0 }}>
-        <h2>Server ID: {serverId}</h2>
-      </Box>
-      {!showTable && (
-        <p style={{ textAlign: "center", color: "red" }}>
-          There are no Web Servers assigned to this Server
+    <>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "left",
+          marginTop: 0,
+          marginLeft: 1,
+        }}
+      >
+        <p>
+          <strong>Server ID:</strong> {serverId}
+          <br />
+          <strong>Server Name:</strong> {server && server.server_name}
+          <br />
+          <strong>Server IP:</strong> {server && server.server_ip}
         </p>
-      )}
+      </Box>
       {showTable && (
         <>
           <TableContainer component={Paper}>
@@ -82,7 +105,7 @@ const WebServerTable = ({ serverId }: { serverId: string }) => {
         </>
       )}
       <Divider></Divider>
-    </Paper>
+    </>
   );
 };
 
