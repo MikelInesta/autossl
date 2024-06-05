@@ -1,3 +1,4 @@
+import binascii
 import json
 import os
 import time
@@ -19,9 +20,51 @@ import requests
 import base64
 
 
+def decodeBase64(data):
+    try:
+        splitData = data.split(",")
+        if len(splitData) > 1:
+            cleanedData = splitData[1]
+        else:
+            cleanedData = splitData[0]
+        return base64.b64decode(cleanedData)
+    except binascii.Error as e:
+        print(f"Error decoding base64")
+        return None
+
+
 def installNewCertificate(data):
-    print(f"Recieved install request, Json data to install: {data}")
+    if "fileExtension" not in data or "file" not in data:
+        print("Error: Missing extension or file in the request")
+        return False
+
+    # If the fileExtension is .zip I'll need to extract the files
+    if ".zip" in data["fileExtension"]:
+        extractedFiles = CertificateUtils.extractZip(data["file"])
+
+    encodedFile = data["file"]
+    try:
+        decodedFile = decodeBase64(encodedFile)
+    except Exception as e:
+        print(f"Error decoding cert: {e}")
+        return False
+    print(f"Decoded cert: {decodedFile}")
+
+    try:
+        domainNames = data["domain_names"]
+    except KeyError as e:
+        print(f"Missing 'domain_names' key in data: {e}")
+        return False
+    try:
+        domainName = domainNames[0]
+    except IndexError as e:
+        print(f"Empty 'domain_names' list: {e}")
+        return False
+
     # Time to decode the file and write it to the filesystem on /etc/ssl/certs
+    filePath = f"/etc/ssl/certs/{domainName}/{domainName}.crt"
+    with open("/etc/ssl/certs", "w") as file:
+        file.write(decodedFile)
 
 
 def queuePolling(rabbit):
@@ -32,44 +75,66 @@ def queuePolling(rabbit):
         time.sleep(1)
 
 
+def sendNewCsr(data):
+    pkPath = f"/etc/ssl/private/{data['_id']}"
+    password = data[
+        "_id"
+    ]  # I'm using the domain id as the decryption password for the pk
+    print(f"password: {password}")
+    CertificateUtils.writePrivateKey(pkPath, password)
+    pk = CertificateUtils.readPrivateKey(pkPath, password)
+    csr = CertificateUtils.buildCsr(pk, data)
+    csrPem = csr.public_bytes(serialization.Encoding.PEM)
+    csrJson = json.dumps(
+        {"virtual_host_id": data["_id"], "csr": csrPem.decode("utf-8")}
+    )
+    if config["SERVER_ADDRESS"]:
+        res = requests.post(
+            f"{config['SERVER_ADDRESS']}csr",
+            data=csrJson,
+            headers={"Content-Type": "application/json"},
+        )
+        if res.status_code != 200:
+            raise Exception(f"Error: {res.status_code}")
+        else:
+            print("CSR sent successfully")
+            return True
+    else:
+        raise Exception("Could not get the SERVER_ADDRESS constant from config")
+
+
 def consumeCallback(ch, method, props, body):
-    # Time to actually generate the csr
-    # I receive the following data:
     try:
         decodedBody = body.decode("utf-8")
+    except UnicodeDecodeError as e:
+        print(f"Error decoding body: {e}")
+        return False
+
+    try:
         parsedBody = json.loads(decodedBody)
-        print(f"Parsed data consumed: {parsedBody}")
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON: {e}")
+        return False
+
+    try:
         typeOfRequest = parsedBody["request"]
-        if typeOfRequest == "install":
+    except KeyError as e:
+        print(f"Key 'request' not found in parsed body: {e}")
+        return False
+
+    try:
+        if "install" in typeOfRequest:
             installNewCertificate(parsedBody)
+        elif "csr" in typeOfRequest:
+            sendNewCsr(parsedBody)
         else:
-            pkPath = f"/etc/ssl/private/{parsedBody['_id']}"
-            password = parsedBody[
-                "_id"
-            ]  # I'm using the domain id as the decryption password for the pk
-            print(f"password: {password}")
-            CertificateUtils.writePrivateKey(pkPath, password)
-            pk = CertificateUtils.readPrivateKey(pkPath, password)
-            csr = CertificateUtils.buildCsr(pk, parsedBody)
-            csrPem = csr.public_bytes(serialization.Encoding.PEM)
-            csrJson = json.dumps(
-                {"virtual_host_id": parsedBody["_id"], "csr": csrPem.decode("utf-8")}
-            )
-            if config["SERVER_ADDRESS"]:
-                res = requests.post(
-                    f"{config['SERVER_ADDRESS']}csr",
-                    data=csrJson,
-                    headers={"Content-Type": "application/json"},
-                )
-                if res.status_code != 200:
-                    raise Exception(f"Error: {res.status_code}")
-                else:
-                    print("CSR sent successfully")
-                    return True
-            else:
-                raise Exception("Could not get the SERVER_ADDRESS constant from config")
+            print(f"Unknown request type: {typeOfRequest}")
+            return False
     except Exception as e:
-        print(f"Something went wrong creating the csr: {e}")
+        print(f"Error handling request type '{typeOfRequest}': {e}")
+        return False
+
+    return True
 
 
 class UpdateHandler(FileSystemEventHandler):
@@ -80,7 +145,7 @@ class UpdateHandler(FileSystemEventHandler):
         self.agent.update()
 
 
-if __name__ == "__main__":
+if "__main__" in __name__:
     if os.geteuid() != 0:
         exit("Root permissions are needed, please run as root or use sudo.")
 

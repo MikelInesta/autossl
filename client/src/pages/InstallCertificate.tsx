@@ -44,8 +44,9 @@ const InstallCertificate = () => {
 
   const handleUpload = async () => {
     if (file) {
+      const fileExtension = file.name.split(".").pop();
       const base64file = await getBase64(file);
-      const data = { file: base64file };
+      const data = { file: base64file, fileExtension: fileExtension };
       const jsonData = JSON.stringify(data);
 
       try {
@@ -105,7 +106,7 @@ const InstallCertificate = () => {
             <input
               type="file"
               hidden
-              accept=".pem, .crt, .cer, .der, .p7b, .p7s, .pfx, .p12"
+              accept=".zip, .pem, .crt, .cer, .der, .p7b, .p7s, .pfx, .p12"
               onChange={handleFileChange}
             />
           </Button>

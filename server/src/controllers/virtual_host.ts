@@ -5,7 +5,7 @@ import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
 
-const installCertificate = async (id: string, file: object) => {
+const installCertificate = async (id: string, data: object) => {
   try {
     // I need the agent Id for the server hosting this domain (virtual host)
     const agentId = await getAgentId(id);
@@ -22,7 +22,7 @@ const installCertificate = async (id: string, file: object) => {
     const jsonData = JSON.stringify({
       request: "install",
       ...virtualHost.toObject(),
-      ...file,
+      ...data,
     });
     publishMessage("csrExchange", agentId, jsonData);
     return true;
