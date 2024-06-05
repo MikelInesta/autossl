@@ -22,6 +22,7 @@ interface IServer {
   server_name: string;
   server_ip: string;
   operating_system: string;
+  agent_id: string;
   //old: boolean;
 }
 
@@ -53,6 +54,7 @@ const ServerTable: React.FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell>ID</TableCell>
+                <TableCell>Agent ID</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>IP Address</TableCell>
                 <TableCell>Operating System</TableCell>
@@ -63,6 +65,7 @@ const ServerTable: React.FC = () => {
               {servers.map((server) => (
                 <TableRow key={server._id}>
                   <TableCell>{server._id}</TableCell>
+                  <TableCell>{server.agent_id}</TableCell>
                   <TableCell>{server.server_name}</TableCell>
                   <TableCell>{server.server_ip}</TableCell>
                   <TableCell>{server.operating_system}</TableCell>
