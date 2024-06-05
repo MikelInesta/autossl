@@ -23,7 +23,6 @@ const schema = new Schema<IServer>({
     type: "string",
     required: true,
     max: 45,
-    unique: true,
   },
   operating_system: {
     type: "string",
