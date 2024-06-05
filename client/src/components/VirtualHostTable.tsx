@@ -18,7 +18,7 @@ interface IVirtualHost {
   enabled: boolean;
   web_server_id: string;
   certificate_id: string;
-  old: boolean;
+  //old: boolean;
 }
 
 const VirtualHostTable: React.FC<{ serverId: string; webServerId: string }> = ({
@@ -75,7 +75,6 @@ const VirtualHostTable: React.FC<{ serverId: string; webServerId: string }> = ({
                 <TableCell>Is Enabled</TableCell>
                 <TableCell>Web Server ID</TableCell>
                 <TableCell>Certificate ID</TableCell>
-                <TableCell>Is Old</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -94,7 +93,6 @@ const VirtualHostTable: React.FC<{ serverId: string; webServerId: string }> = ({
                   <TableCell>{virtualHost.enabled ? "Yes" : "No"}</TableCell>
                   <TableCell>{virtualHost.web_server_id}</TableCell>
                   <TableCell>{virtualHost.web_server_id}</TableCell>
-                  <TableCell>{virtualHost.old ? "Yes" : "No"}</TableCell>
                   <TableCell>
                     <VirtualHostOptionsMenu
                       serverId={serverId}

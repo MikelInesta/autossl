@@ -26,7 +26,7 @@ interface ICertificate extends Document {
   signature_algorithm: string;
   version: number;
   public_key_length: number;
-  old: boolean;
+  //old: boolean;
 }
 
 const schema = new Schema<ICertificate>({
@@ -46,15 +46,15 @@ const schema = new Schema<ICertificate>({
     state: { type: String },
     locality: { type: String },
   },
-  has_expired: { type: Boolean},
-  not_after: { type: Date},
-  not_before: { type: Date},
-  serial_number: { type: String},
-  serial_number_hex: { type: String},
-  signature_algorithm: { type: String},
-  version: { type: Number},
-  public_key_length: { type: Number},
-  old: { type: Boolean, default: false },
+  has_expired: { type: Boolean },
+  not_after: { type: Date },
+  not_before: { type: Date },
+  serial_number: { type: String },
+  serial_number_hex: { type: String },
+  signature_algorithm: { type: String },
+  version: { type: Number },
+  public_key_length: { type: Number },
+  //old: { type: Boolean, default: false },
 });
 
 const Certificate = model<ICertificate>("Certificate", schema);

@@ -31,6 +31,7 @@ const updateWebServer = async (
   return webServer;
 };
 
+/*
 const setOldWebServers = async (
   updatedWebServersIds: Types.ObjectId[]
 ): Promise<Boolean> => {
@@ -49,5 +50,6 @@ const setOldWebServers = async (
     return false;
   }
 };
+*/
 
-export { getVirtualHosts, updateWebServer, setOldWebServers };
+export { getVirtualHosts, updateWebServer };

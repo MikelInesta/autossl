@@ -124,6 +124,7 @@ const requestCsr = async (
   }
 };
 
+/*
 const setOldVirtualHosts = async (
   updatedVirtualHostsIds: Types.ObjectId[]
 ): Promise<Boolean> => {
@@ -142,6 +143,7 @@ const setOldVirtualHosts = async (
     return false;
   }
 };
+*/
 
 const updateVirtualHost = async (
   virtualHostData: IVirtualHost,
@@ -165,7 +167,7 @@ const updateVirtualHost = async (
 
 export {
   updateVirtualHost,
-  setOldVirtualHosts,
+  //setOldVirtualHosts,
   requestCsr,
   getAgentId,
   addCsr,

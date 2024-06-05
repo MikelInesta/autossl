@@ -80,7 +80,6 @@ const WebServerTable = ({ serverId }: { serverId: string }) => {
                   <TableCell>Name</TableCell>
                   <TableCell>IP Address</TableCell>
                   <TableCell>Operating System</TableCell>
-                  <TableCell>Archived (Old)</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -91,7 +90,6 @@ const WebServerTable = ({ serverId }: { serverId: string }) => {
                     <TableCell>{webServer.web_server_name}</TableCell>
                     <TableCell>{webServer.configuration_path}</TableCell>
                     <TableCell>{webServer.server_id}</TableCell>
-                    <TableCell>{webServer.old ? "Yes" : "No"}</TableCell>
                     <TableCell>
                       <WebServerOptionsMenu
                         serverId={serverId}

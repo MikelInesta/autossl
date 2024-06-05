@@ -3,6 +3,7 @@ import json
 from utils.SystemUtils import SystemUtils
 from utils.NginxUtils import NginxUtils
 from dotenv import dotenv_values
+from utils.Identification import Identification
 
 
 class Agent:
@@ -33,12 +34,14 @@ class Agent:
         serverIp = SystemUtils.getIpAddress()
         serverName = f"Server-{serverIp}"
         operatingSystem = SystemUtils.getOperatingSystem()
+        identification = Identification(self.agentUrl)
         return {
             "server": {
                 "server_name": serverName,
                 "server_ip": serverIp,
                 "operating_system": operatingSystem,
                 "web_servers": webServers,
+                "agent_id": identification.agentId,
             },
         }
 

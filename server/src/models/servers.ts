@@ -1,5 +1,6 @@
 import { Types, Schema, model } from "mongoose";
 import { WebServer, IWebServer } from "./web_servers";
+import { Agent } from "./agents";
 
 // Server DocType (for typescript)
 interface IServer {
@@ -7,7 +8,8 @@ interface IServer {
   server_name: string;
   server_ip: string;
   operating_system: string;
-  old: boolean;
+  agent_id: Types.ObjectId;
+  //old: boolean;
 }
 
 const schema = new Schema<IServer>({
@@ -28,7 +30,11 @@ const schema = new Schema<IServer>({
     required: true,
     max: 80,
   },
-  old: { type: Boolean, default: false },
+  agent_id: {
+    type: Schema.Types.ObjectId,
+    ref: Agent,
+  },
+  //old: { type: Boolean, default: false },
 });
 
 const Server = model<IServer>("Server", schema);

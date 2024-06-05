@@ -22,7 +22,7 @@ interface IServer {
   server_name: string;
   server_ip: string;
   operating_system: string;
-  old: boolean;
+  //old: boolean;
 }
 
 const ServerTable: React.FC = () => {
@@ -56,7 +56,6 @@ const ServerTable: React.FC = () => {
                 <TableCell>Name</TableCell>
                 <TableCell>IP Address</TableCell>
                 <TableCell>Operating System</TableCell>
-                <TableCell>Archived (Old)</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -67,7 +66,6 @@ const ServerTable: React.FC = () => {
                   <TableCell>{server.server_name}</TableCell>
                   <TableCell>{server.server_ip}</TableCell>
                   <TableCell>{server.operating_system}</TableCell>
-                  <TableCell>{server.old ? "Yes" : "No"}</TableCell>
                   <TableCell>
                     <ServerOptionsMenu serverId={server._id} />
                   </TableCell>

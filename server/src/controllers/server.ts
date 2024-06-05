@@ -26,12 +26,15 @@ const getServers = async (): Promise<IServer[]> => {
 
 const updateServer = async (serverData: IServer): Promise<IServer> => {
   const server = await Server.findOneAndUpdate(
-    { server_ip: serverData.server_ip },
+    {
+      agent_id: serverData.agent_id,
+    },
     {
       server_name: serverData.server_name,
       operating_system: serverData.operating_system,
+      server_ip: serverData.server_ip,
     },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
   return server;
 };
@@ -52,7 +55,7 @@ const update = async (updateData: any): Promise<Boolean> => {
       const webServer = await updateWebServer(
         webServerName,
         webServerData,
-        server._id,
+        server._id
       );
       updatedWebServersIds.push(webServer._id);
 
@@ -61,7 +64,7 @@ const update = async (updateData: any): Promise<Boolean> => {
           var certificateId = undefined;
           if (virtualHostData.certificate) {
             const certificate = await updateCertificate(
-              virtualHostData.certificate,
+              virtualHostData.certificate
             );
             certificateId = certificate._id;
             updatedCertificatesIds.push(certificateId);
@@ -69,16 +72,16 @@ const update = async (updateData: any): Promise<Boolean> => {
           const virtualHost = await updateVirtualHost(
             virtualHostData,
             webServer._id,
-            certificateId,
+            certificateId
           );
           updatedVirtualHostsIds.push(virtualHost._id);
         }
       }
     }
 
-    await setOldWebServers(updatedWebServersIds);
-    await setOldCertificates(updatedCertificatesIds);
-    await setOldVirtualHosts(updatedVirtualHostsIds);
+    //await setOldWebServers(updatedWebServersIds);
+    //await setOldCertificates(updatedCertificatesIds);
+    //await setOldVirtualHosts(updatedVirtualHostsIds);
 
     return true;
   } catch (e: any) {

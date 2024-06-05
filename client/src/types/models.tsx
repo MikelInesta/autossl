@@ -3,7 +3,7 @@ interface IWebServer {
   web_server_name: string;
   configuration_path: string;
   server_id: string;
-  old: boolean;
+  //old: boolean;
 }
 
 interface IServer {
@@ -11,7 +11,7 @@ interface IServer {
   server_name: string;
   server_ip: string;
   operating_system: string;
-  old: boolean;
+  //old: boolean;
 }
 
 interface IVirtualHost {
@@ -21,7 +21,7 @@ interface IVirtualHost {
   enabled: boolean;
   web_server_id: string;
   certificate_id: string;
-  old: boolean;
+  //old: boolean;
   csr: string;
 }
 

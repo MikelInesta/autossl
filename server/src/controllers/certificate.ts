@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { Certificate, ICertificate } from "../models/certificates";
 
+/*
 const setOldCertificates = async (
   updatedCertificatesIds: Types.ObjectId[],
 ): Promise<Boolean> => {
@@ -19,9 +20,10 @@ const setOldCertificates = async (
     return false;
   }
 };
+*/
 
 const getCertificateById = async (
-  certificateId: string,
+  certificateId: string
 ): Promise<ICertificate | null> => {
   try {
     const certificate = await Certificate.findById(certificateId);
@@ -34,7 +36,7 @@ const getCertificateById = async (
 };
 
 const updateCertificate = async (
-  certificateData: ICertificate,
+  certificateData: ICertificate
 ): Promise<ICertificate> => {
   const certificate = await Certificate.findOneAndUpdate(
     { serial_number: certificateData.serial_number },
@@ -50,9 +52,9 @@ const updateCertificate = async (
       version: certificateData.version,
       public_key_length: certificateData.public_key_length,
     },
-    { upsert: true, new: true },
+    { upsert: true, new: true }
   );
   return certificate;
 };
 
-export { getCertificateById, updateCertificate, setOldCertificates };
+export { getCertificateById, updateCertificate };
