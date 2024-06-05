@@ -1,6 +1,14 @@
 import json
+import os
 import requests
 from .SystemUtils import SystemUtils
+
+
+# A simpler function to authenticate the agent
+def authenticate(url):
+    identification = Identification(url)
+    identification.authenticate()
+    return identification.getAgentId()
 
 
 class Identification:
@@ -20,6 +28,7 @@ class Identification:
             if valid:
                 self.agentId = configData["agentId"]
             else:
+                print("Agent id is not valid, creating a new one")
                 self.agentId = self.createNew()
 
     def readConfigFile(self):
@@ -33,6 +42,11 @@ class Identification:
             return False
 
     def createNew(self):
+        # Remove the old config file
+        try:
+            os.remove(self.configPath)
+        except FileNotFoundError:
+            pass
         response = requests.get(self.agentUrl + "new/" + self.serverIp)
         # print("Getting agent id from backend: ", response)
         # print("Data obtained: ", response.json())
