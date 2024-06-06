@@ -86,7 +86,7 @@ const DownloadCsr = () => {
             later.
           </Alert>
         )}
-        {!err && !loading && csrData}
+        {!err && !loading && <pre>{csrData}</pre>}
       </Paper>
     </>
   );
