@@ -92,8 +92,8 @@ const InstallCertificate = () => {
       </Box>
       <Paper elevation={5} sx={{ padding: 3, marginTop: 3 }}>
         <p>
-          Please upload the certificate you wish to be installed for this
-          domain.
+          Please upload the .zip containing the certificate files you wish to be
+          installed for this domain.
         </p>
         <div>
           <Button
@@ -106,7 +106,7 @@ const InstallCertificate = () => {
             <input
               type="file"
               hidden
-              accept=".zip, .pem, .crt, .cer, .der, .p7b, .p7s, .pfx, .p12"
+              accept=".zip"
               onChange={handleFileChange}
             />
           </Button>
