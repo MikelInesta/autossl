@@ -123,10 +123,9 @@ class InstallCertificate:
         # Remove the temporary directory and its contents
         InstallCertificate.removeDirectoryAndContents(tempDir)
 
-        ## Time to decode the file and write it to the filesystem on /etc/ssl/certs
-        # filePath = f"/etc/ssl/certs/{domainName}/{domainName}.crt"
-        # with open("/etc/ssl/certs", "w") as file:
-        #    file.write(decodedFile)
+        InstallCertificate.configureNginx(domainNames)
+
+        return True
 
     @staticmethod
     def concatenateCerts(

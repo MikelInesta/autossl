@@ -150,6 +150,10 @@ const updateVirtualHost = async (
   webServerId: Types.ObjectId,
   certificateId: Types.ObjectId | undefined
 ): Promise<IVirtualHost> => {
+  console.log(`Receiving virtual host data: ${virtualHostData}`);
+  console.log(
+    `The certificate path in server is ${virtualHostData.certificate_path}, the private key path is ${virtualHostData.certificate_key_path}, the root is ${virtualHostData.root}`
+  );
   const virtualHost = await VirtualHost.findOneAndUpdate(
     {
       vh_ips: virtualHostData.vh_ips,
@@ -159,6 +163,10 @@ const updateVirtualHost = async (
       enabled: virtualHostData.enabled,
       web_server_id: webServerId,
       certificate_id: certificateId,
+      csr: virtualHostData.csr,
+      certificate_path: virtualHostData.certificate_path,
+      certificate_key_path: virtualHostData.certificate_key_path,
+      root: virtualHostData.root,
     },
     { upsert: true, new: true }
   );

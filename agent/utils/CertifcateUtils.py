@@ -7,9 +7,17 @@ class CertificateUtils:
 
     @staticmethod
     def processCertificate(certificatePath):
-        with open(certificatePath, "rb") as file:
-            caBuff = file.read()
-        certificate = x509Parser.parse_x509(caBuff, ignore_extensions=True)
+        try:
+            with open(certificatePath, "rb") as file:
+                caBuff = file.read()
+        except Exception as e:
+            print(f"Error reading the certificate file: {e}")
+            return None
+        try:
+            certificate = x509Parser.parse_x509(caBuff, ignore_extensions=True)
+        except Exception as e:
+            print(f"Error parsing the certificate: {e}")
+            return None
         return certificate
 
     @staticmethod

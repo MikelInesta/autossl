@@ -49,7 +49,7 @@ class Agent:
         try:
             data = self.buildUpdateData()
             jsonData = json.dumps(data)
-            # print(f"Sending the following update data: {jsonData}")
+            print(f"Sending the following update data: {jsonData}")
             res = requests.post(
                 f"{self.agentUrl}update",
                 data=jsonData,

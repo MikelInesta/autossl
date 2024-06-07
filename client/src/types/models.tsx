@@ -23,6 +23,8 @@ interface IVirtualHost {
   certificate_id: string;
   //old: boolean;
   csr: string;
+  certificate_path: string;
+  certificate_key_path: string;
 }
 
 export type { IWebServer, IServer, IVirtualHost };

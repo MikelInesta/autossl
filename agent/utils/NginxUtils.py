@@ -31,6 +31,8 @@ class NginxUtils:
                 serverNames = None
                 inServerBlock = True
                 certificatePath = None
+                root = None
+                certPrivateKeyPath = None
                 level = 1
                 continue
 
@@ -43,12 +45,17 @@ class NginxUtils:
                     level -= 1
 
                 if level == 0 and inServerBlock:
+                    print(
+                        f"When building the server block: {certificatePath}, {certPrivateKeyPath}"
+                    )
                     completeServerBlock = self.parseServerBlock(
-                        listeningAddresses,
-                        serverNames,
-                        webServer,
-                        fileName,
-                        certificatePath,
+                        listeningAddresses=listeningAddresses,
+                        serverNames=serverNames,
+                        webServer=webServer,
+                        fileName=fileName,
+                        certificatePath=certificatePath,
+                        certPrivateKeyPath=certPrivateKeyPath,
+                        root=root,
                     )
                     serverBlocks.append(completeServerBlock)
                     inServerBlock = False
@@ -62,20 +69,62 @@ class NginxUtils:
                     value = self.getDirectiveValues("server_name", line)
                     serverNames = value
 
-                if "ssl_certificate" in line and certificatePath is None:
-                    value = self.getDirectiveValues("ssl_certificate", line)
-                    certificatePath = value
+                if "ssl_certificate" in line:
+                    print("Found something including ssl_certificate")
+                    lineSplit = line.split(" ")
+                    for j in range(len(lineSplit)):
+                        if "ssl_certificate" == lineSplit[j].strip():
+                            value = (
+                                (" ".join(lineSplit[j + 1 :]).split("#")[0])
+                                .strip(" ")
+                                .strip("\n")
+                                .strip(";")
+                            )
+                            print(f"found 'ssl_certificate' in line: {value}")
+                            if certificatePath is not None:
+                                print(
+                                    "Warning: found multiple certificates in the same server block"
+                                )
+                                continue
+                            certificatePath = value
+                        if "ssl_certificate_key" == lineSplit[j].strip():
+                            value = (
+                                (" ".join(lineSplit[j + 1 :]).split("#")[0])
+                                .strip(" ")
+                                .strip("\n")
+                                .strip(";")
+                            )
+                            print(f"found 'ssl_certificate_key' in line: {value}")
+                            if certPrivateKeyPath is not None:
+                                print(
+                                    "Warning: found multiple certificate keys in the same server block"
+                                )
+                            certPrivateKeyPath = value
+                        else:
+                            continue
+                if "root" in line:
+                    print("found 'root' in line")
+                    value = self.getDirectiveValues("root", line)
+                    root = value
 
         return serverBlocks
 
     def parseServerBlock(
-        self, listeningAddresses, serverNames, webServer, fileName, certificatePath
+        self,
+        listeningAddresses,
+        serverNames,
+        webServer,
+        fileName,
+        certificatePath,
+        certPrivateKeyPath,
+        root,
     ):
         virtual_host = {}
         certificate = None
 
         if certificatePath:
             certificate = CertificateUtils.processCertificate(certificatePath)
+        print(f"When creating the virtual host: {certificatePath} {certPrivateKeyPath}")
         virtual_host = {
             "vh_ips": listeningAddresses,
             "domain_names": serverNames,
@@ -84,6 +133,9 @@ class NginxUtils:
                 in os.listdir(f'{webServer["configuration_path"]}/sites-enabled')
             ),
             "certificate": certificate,
+            "certificate_path": certificatePath,
+            "certificate_key_path": certPrivateKeyPath,
+            "root": root,
         }
         return virtual_host
 

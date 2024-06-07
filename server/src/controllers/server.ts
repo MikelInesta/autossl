@@ -56,9 +56,9 @@ const update = async (updateData: any): Promise<Boolean> => {
     const server = await updateServer(updateData.server);
 
     const webServers = updateData.server.web_servers;
-    var updatedWebServersIds = [];
-    var updatedCertificatesIds = [];
-    var updatedVirtualHostsIds = [];
+    //var updatedWebServersIds = [];
+    //var updatedCertificatesIds = [];
+    //var updatedVirtualHostsIds = [];
     for (const webServerName in webServers) {
       const webServerData = webServers[webServerName];
       const webServer = await updateWebServer(
@@ -66,7 +66,7 @@ const update = async (updateData: any): Promise<Boolean> => {
         webServerData,
         server._id
       );
-      updatedWebServersIds.push(webServer._id);
+      //updatedWebServersIds.push(webServer._id);
 
       for (const site in webServerData.virtual_hosts) {
         for (const virtualHostData of webServerData.virtual_hosts[site]) {
@@ -76,14 +76,14 @@ const update = async (updateData: any): Promise<Boolean> => {
               virtualHostData.certificate
             );
             certificateId = certificate._id;
-            updatedCertificatesIds.push(certificateId);
+            //updatedCertificatesIds.push(certificateId);
           }
           const virtualHost = await updateVirtualHost(
             virtualHostData,
             webServer._id,
             certificateId
           );
-          updatedVirtualHostsIds.push(virtualHost._id);
+          //updatedVirtualHostsIds.push(virtualHost._id);
         }
       }
     }
