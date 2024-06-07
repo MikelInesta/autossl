@@ -167,6 +167,7 @@ const updateVirtualHost = async (
       certificate_path: virtualHostData.certificate_path,
       certificate_key_path: virtualHostData.certificate_key_path,
       root: virtualHostData.root,
+      configuration_file: virtualHostData.configuration_file,
     },
     { upsert: true, new: true }
   );

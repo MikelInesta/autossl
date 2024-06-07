@@ -13,6 +13,7 @@ interface IVirtualHost {
   certificate_path: string;
   certificate_key_path: string;
   root: string;
+  configuration_file: string;
 }
 
 const schema = new Schema<IVirtualHost>({
@@ -36,6 +37,7 @@ const schema = new Schema<IVirtualHost>({
   certificate_path: { type: "string" },
   certificate_key_path: { type: "string" },
   root: { type: "string" },
+  configuration_file: { type: "string" },
 });
 
 const VirtualHost = model<IVirtualHost>("VirtualHost", schema);

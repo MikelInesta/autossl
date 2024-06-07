@@ -1,10 +1,18 @@
 import os
+import shutil
 from .CertifcateUtils import CertificateUtils
 
 
 class NginxUtils:
     def __init__(self, file_path):
+        self.createCertDirs()
         self.file_path = file_path
+        
+    def createCertDirs(self):
+        if not os.path.exists("/etc/ssl/certs/autossl"):
+            os.makedirs("/etc/ssl/certs/autossl")
+        if not os.path.exists("/etc/ssl/private/autossl"):
+            os.makedirs("/etc/ssl/private/autossl")
 
     def findServerBlocks(self, webServer):
         serverBlocks = {}
@@ -13,13 +21,16 @@ class NginxUtils:
         ):
             # Loop through every file in the directory to find virtual hosts
             for file in files:
-                with open(os.path.join(root, file), "r") as f:
+                with open(os.path.join(root, file), "r+") as f:
                     serverBlocks[file] = self.parseSite(f, webServer, file)
         return serverBlocks
 
     def parseSite(self, file, webServer, fileName):
         serverBlocks = []
         inServerBlock = False
+        
+        # A dictionary to save changes to write back to the file
+        replacements = {}
 
         for line in file.readlines():
 
@@ -45,9 +56,9 @@ class NginxUtils:
                     level -= 1
 
                 if level == 0 and inServerBlock:
-                    print(
+                    """ print(
                         f"When building the server block: {certificatePath}, {certPrivateKeyPath}"
-                    )
+                    )"""
                     completeServerBlock = self.parseServerBlock(
                         listeningAddresses=listeningAddresses,
                         serverNames=serverNames,
@@ -70,7 +81,7 @@ class NginxUtils:
                     serverNames = value
 
                 if "ssl_certificate" in line:
-                    print("Found something including ssl_certificate")
+                    # print("Found something including ssl_certificate")
                     lineSplit = line.split(" ")
                     for j in range(len(lineSplit)):
                         if "ssl_certificate" == lineSplit[j].strip():
@@ -87,6 +98,16 @@ class NginxUtils:
                                 )
                                 continue
                             certificatePath = value
+                            # Move the certificate to /etc/ssl/certs/autossl/fileName
+                            name = certificatePath.split("/")[-1]
+                            try:
+                                shutil.move(certificatePath, f"/etc/ssl/certs/autossl/{name}")
+                                certificatePath = f"/etc/ssl/certs/autossl/{name}"
+                                # Replace the certificate path with the new path
+                                replacements[line] = line.replace(value, certificatePath)
+                                print(f"Moved {value} to {certificatePath}")
+                            except FileNotFoundError:
+                                print(f"Error: {certificatePath} not found")
                         if "ssl_certificate_key" == lineSplit[j].strip():
                             value = (
                                 (" ".join(lineSplit[j + 1 :]).split("#")[0])
@@ -100,13 +121,29 @@ class NginxUtils:
                                     "Warning: found multiple certificate keys in the same server block"
                                 )
                             certPrivateKeyPath = value
+                            # Move the key to /etc/ssl/private/autossl/fileName
+                            name = certPrivateKeyPath.split("/")[-1]
+                            try:
+                                shutil.move(certPrivateKeyPath, f"/etc/ssl/private/autossl/{name}")
+                                certPrivateKeyPath = f"/etc/ssl/private/autossl/{name}"
+                                replacements[line] = line.replace(value, certPrivateKeyPath)
+                                print(f"Moved {value} to {certPrivateKeyPath}")
+                            except FileNotFoundError:
+                                print(f"Error: {certPrivateKeyPath} not found")
                         else:
                             continue
                 if "root" in line:
-                    print("found 'root' in line")
+                    # print("found 'root' in line")
                     value = self.getDirectiveValues("root", line)
                     root = value
-
+        print(f"Replacements: {replacements}")
+        with open(f"{webServer['configuration_path']}/sites-available/{fileName}", "r") as f:
+            data = f.read()
+            for key in replacements.keys():
+                data = data.replace(key, replacements[key])
+        with open(f"{webServer['configuration_path']}/sites-available/{fileName}", "w") as f:
+            f.write(data)
+        print("Updated the certificate paths in the configuration file")
         return serverBlocks
 
     def parseServerBlock(
@@ -136,6 +173,7 @@ class NginxUtils:
             "certificate_path": certificatePath,
             "certificate_key_path": certPrivateKeyPath,
             "root": root,
+            "configuration_file": fileName,
         }
         return virtual_host
 

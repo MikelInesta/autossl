@@ -118,7 +118,7 @@ class InstallCertificate:
             primaryCert, intermediateCerts, caBundle, rootCert, domainName
         )
 
-        print(f"Certificate placed in /etc/ssl/certs/{domainName}.crt")
+        print(f"Certificate placed in /etc/ssl/certs/autossl/{domainName}.crt")
 
         # Remove the temporary directory and its contents
         InstallCertificate.removeDirectoryAndContents(tempDir)
@@ -156,7 +156,7 @@ class InstallCertificate:
                 with open(caBundle, "r") as f:
                     caBundleData = f.read()
 
-            with open(f"/etc/ssl/certs/{domainName}.crt", "w") as f:
+            with open(f"/etc/ssl/certs/autossl/{domainName}.crt", "w") as f:
                 f.write(
                     primaryCertData
                     + caBundleData
