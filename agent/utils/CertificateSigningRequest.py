@@ -15,7 +15,7 @@ class CertificateSigningRequest:
             print("Error: No domain names in the request")
             return False
         domainName = domainNames.split(",")[0]
-        pkPath = f"/etc/ssl/private/{domainName}"
+        pkPath = f"/etc/ssl/private/{domainName}.key"
         password = data["_id"]
         # I'm using the domain id as the decryption password for the pk
         # Maybe I should use the agent id instead

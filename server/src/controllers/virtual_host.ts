@@ -5,6 +5,25 @@ import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
 
+const hasCertificate = async (
+  domainNames: string
+): Promise<IVirtualHost | null> => {
+  try {
+    const virtualHosts = await VirtualHost.find({
+      domain_names: domainNames,
+    });
+    for (const virtualHost of virtualHosts) {
+      if (virtualHost.certificate_id || virtualHost.certificate_path) {
+        return virtualHost;
+      }
+    }
+    return null;
+  } catch (e: any) {
+    console.log(e.message);
+    return null;
+  }
+};
+
 const installCertificate = async (id: string, data: object) => {
   try {
     // I need the agent Id for the server hosting this domain (virtual host)
@@ -182,4 +201,5 @@ export {
   addCsr,
   getCsr,
   installCertificate,
+  hasCertificate,
 };

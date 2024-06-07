@@ -25,6 +25,8 @@ class UpdateHandler(FileSystemEventHandler):
         self.agent = Agent()
 
     def on_modified(self, event):
+        # Wait for the file to be written
+        time.sleep(2)
         self.agent.update()
 
 
@@ -64,12 +66,18 @@ if "__main__" in __name__:
         rabbit.consumeBasic, [f"{agentId}Queue", Rabbit.consumeCallback]
     )
 
+    # I need to fix this executing many times when changes are detected
     observer = Observer()
     for webServerName in webServers:
         path = webServers[webServerName]["configuration_path"]
         event_handler = UpdateHandler()
         observer.schedule(event_handler, path, recursive=True)
     observer.start()
+    try:
+        while True:
+            time.sleep(300)
+    except KeyboardInterrupt:
+        observer.stop()
     observer.join()
 
 """

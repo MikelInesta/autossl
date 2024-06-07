@@ -1,14 +1,88 @@
 import base64
 import binascii
+
+import requests
 from .CertifcateUtils import CertificateUtils
 from zipfile import ZipFile
 import shutil, os, time
 import glob
+from config import config
 
+agentUrl = config["SERVER_ADDRESS"]
 certificateFileExtensions = ["crt", "ca-bundle"]
 
 
 class InstallCertificate:
+    @staticmethod
+    def getDomain(domainNames):
+        try:
+            res = requests.get(f"{agentUrl}get-domain/{domainNames}")
+            if res.status_code != 200:
+                raise Exception(f"Error: {res.status_code}")
+            else:
+                data = res.json()
+                return data
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
+    
+    @staticmethod
+    def hasCertificate(domainNames):
+        try:
+            res = requests.get(f"{agentUrl}has-certificate/{domainNames}")
+            if res.status_code != 200:
+                raise Exception(f"Error: {res.status_code}")
+            else:
+                data = res.json()
+                return data
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
+    
+    @staticmethod
+    def configureNginx(domainNames):
+        data = InstallCertificate.hasCertificate(domainNames)
+        if data is None:
+            hasCertificate = False
+        else:
+            hasCertificate = True
+        
+        domainName = domainNames.split(" ")[0]
+
+        # Change the name of the current certificate either to the certificate_id or the current date
+        if hasCertificate:
+            try:
+                certificateId = data["certificate_id"]
+                certificatePath = data["certificate_path"]
+                newPath = certificatePath
+                if certificateId is None:
+                    # This means the certificate is configured in nginx but the agent
+                    # was not able to parse it so it's not valid
+                    print("Error: Certificate is not valid")
+                    currentDate = time.strftime("%Y-%m-%d")
+                    newPath = f"{certificatePath}.{currentDate}"  # Save it just in case
+                else:
+                    newPath = f"{certificatePath}.{certificateId}"
+                shutil.move(certificatePath, newPath)
+            except Exception as e:
+                print(f"Error changing the name of the existing certificate: {e}")
+        else:
+            # I need the data of the domain
+            domainData = InstallCertificate.getDomain(domainNames)
+            if domainData is None:
+                print("Error: Domain data not found")
+                return False
+            try:
+                # Write the new ssl server block to the nginx configuration file
+                with open(f"/etc/nginx/sites-available/{domainData["configuration_file"]}", "r") as f:
+                    sslBlock = f"""server{{\nlisten 443 ssl;\nserver_name {domainNames};\n ssl_certificate /etc/ssl/certs/autossl/{domainName}.crt;\n ssl_certificate_key /etc/ssl/private/autossl/{domainName}.key;\n}}"""
+                    fileData = f.read()
+                    newFileData = f"{sslBlock}\n{fileData}"
+                with open(f"/etc/nginx/sites-available/{domainData["configuration_file"]}", "w") as f:
+                    f.write(newFileData)
+            except Exception as e:
+                print(f"Error writing the new ssl server block to the configuration file: {e}")
+
     @staticmethod
     def writeDataIntoFile(data, path):
         with open(path, "wb") as f:
@@ -82,16 +156,32 @@ class InstallCertificate:
         domainName = splitDomainNames[0]
 
         # Decode the .zip file in data["file"]
-        decodedFile = InstallCertificate.decodeBase64(data["file"])
+        try:
+            decodedFile = InstallCertificate.decodeBase64(data["file"])
+        except Exception as e:
+            print(f"Error decoding base64: {e}")
+            return False
 
-        # Create a temporary directory to extract the files
-        tempDir = InstallCertificate.createTempDir()
+        try:
+            # Create a temporary directory to extract the files
+            tempDir = InstallCertificate.createTempDir()
+        except Exception as e:
+            print(f"Error creating temporary directory: {e}")
+            return False
 
-        # Write the data to the filesystem as a .zip file
-        InstallCertificate.writeDataIntoFile(decodedFile, f"{tempDir}/temp.zip")
+        try:
+            # Write the data to the filesystem as a .zip file
+            InstallCertificate.writeDataIntoFile(decodedFile, f"{tempDir}/temp.zip")
+        except Exception as e:
+            print(f"Error writing data to filesystem: {e}")
+            return False
 
-        # Extract the .zip file
-        InstallCertificate.extractZip(f"{tempDir}/temp.zip", f"{tempDir}/extracted")
+        try:
+            # Extract the .zip file
+            InstallCertificate.extractZip(f"{tempDir}/temp.zip", f"{tempDir}/extracted")
+        except Exception as e:
+            print(f"Error extracting zip file: {e}")
+            return False
 
         # Recursively search for certificate files in the extracted files
         crtFiles = InstallCertificate.findCrtFiles(f"{tempDir}/extracted")
@@ -115,7 +205,7 @@ class InstallCertificate:
         print(f"Certificate files found: {crtFiles}")
 
         InstallCertificate.concatenateCerts(
-            primaryCert, intermediateCerts, caBundle, rootCert, domainName
+            primaryCert, intermediateCerts, caBundle, rootCert, domainName, domainNames
         )
 
         print(f"Certificate placed in /etc/ssl/certs/autossl/{domainName}.crt")
@@ -124,12 +214,15 @@ class InstallCertificate:
         InstallCertificate.removeDirectoryAndContents(tempDir)
 
         InstallCertificate.configureNginx(domainNames)
+        
+        # Restart nginx
+        os.system("systemctl restart nginx")
 
         return True
 
     @staticmethod
     def concatenateCerts(
-        primaryCert, intermediateCerts, caBundle, rootCert, domainName
+        primaryCert, intermediateCerts, caBundle, rootCert, domainName, domainNames
     ):
         try:
             if primaryCert is None:
@@ -155,8 +248,14 @@ class InstallCertificate:
             if caBundle is not None:
                 with open(caBundle, "r") as f:
                     caBundleData = f.read()
+            
+            installPath = f"/etc/ssl/certs/autossl/{domainName}.crt"
+            domain = InstallCertificate.hasCertificate(domainNames)
+            if domain is not None:
+                if domain["certificate_path"] is not None:
+                    installPath = domain["certificate_path"]
 
-            with open(f"/etc/ssl/certs/autossl/{domainName}.crt", "w") as f:
+            with open(installPath, "w") as f:
                 f.write(
                     primaryCertData
                     + caBundleData

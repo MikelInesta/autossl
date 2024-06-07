@@ -160,7 +160,11 @@ class NginxUtils:
         certificate = None
 
         if certificatePath:
-            certificate = CertificateUtils.processCertificate(certificatePath)
+            try:
+                certificate = CertificateUtils.processCertificate(certificatePath)
+            except Exception as e:
+                print(f"Error: {e}")
+                certificate = None
         print(f"When creating the virtual host: {certificatePath} {certPrivateKeyPath}")
         virtual_host = {
             "vh_ips": listeningAddresses,
