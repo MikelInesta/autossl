@@ -14,6 +14,9 @@ interface IVirtualHost {
   certificate_key_path: string;
   root: string;
   configuration_file: string;
+  csr_request_status?: string;
+  certificate_install_status?: string;
+  rollback_status?: string;
 }
 
 const schema = new Schema<IVirtualHost>({
@@ -38,6 +41,9 @@ const schema = new Schema<IVirtualHost>({
   certificate_key_path: { type: "string" },
   root: { type: "string" },
   configuration_file: { type: "string" },
+  csr_request_status: { type: "string" },
+  certificate_install_status: { type: "string" },
+  rollback_status: { type: "string" },
 });
 
 const VirtualHost = model<IVirtualHost>("VirtualHost", schema);
