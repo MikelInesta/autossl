@@ -12,8 +12,8 @@ def authenticate(url):
 
 
 class Identification:
-    def __init__(self, agentUrl):
-        self.agentUrl = agentUrl
+    def __init__(self, apiEndpoint):
+        self.apiEndpoint = apiEndpoint
         self.configPath = "agentId.json"
         self.agentId = self.getAgentIdFromConfig()
         self.serverIp = SystemUtils.getIpAddress()
@@ -47,7 +47,7 @@ class Identification:
             os.remove(self.configPath)
         except FileNotFoundError:
             pass
-        response = requests.get(self.agentUrl + "new/" + self.serverIp)
+        response = requests.get(self.apiEndpoint + "/agents/new/" + self.serverIp)
         # print("Getting agent id from backend: ", response)
         # print("Data obtained: ", response.json())
         if response.status_code == 200:
@@ -68,9 +68,7 @@ class Identification:
         if not id:
             return False
 
-        validationUrl = self.agentUrl + "validate/" + id
-        # print("Validation url: ", validationUrl)
-        response = requests.get(self.agentUrl + "validate/" + id)
+        response = requests.get(self.apiEndpoint + "/agents/validate/" + id)
         # print("Backend returned valitation: ", response)
         if response.status_code == 200:
             return True

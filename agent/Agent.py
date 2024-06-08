@@ -13,7 +13,7 @@ class Agent:
     ):
         config = dotenv_values(".env")
         if config["SERVER_ADDRESS"]:
-            self.agentUrl = config["SERVER_ADDRESS"]
+            self.apiEndpoint = config["SERVER_ADDRESS"]
         else:
             print("Couldn't get the Agent Endpoint Address from .env file")
             exit(1)
@@ -34,7 +34,7 @@ class Agent:
         serverIp = SystemUtils.getIpAddress()
         serverName = f"Server-{serverIp}"
         operatingSystem = SystemUtils.getOperatingSystem()
-        identification = Identification(self.agentUrl)
+        identification = Identification(self.apiEndpoint)
         return {
             "server": {
                 "server_name": serverName,
@@ -51,7 +51,7 @@ class Agent:
             jsonData = json.dumps(data)
             print(f"Sending the following update data: {jsonData}")
             res = requests.post(
-                f"{self.agentUrl}update",
+                f"{self.apiEndpoint}/agents/update",
                 data=jsonData,
                 headers={"Content-Type": "application/json"},
             )

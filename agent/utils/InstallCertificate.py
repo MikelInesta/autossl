@@ -8,7 +8,7 @@ import shutil, os, time
 import glob
 from config import config
 
-agentUrl = config["SERVER_ADDRESS"]
+apiEndpoint = config["SERVER_ADDRESS"]
 certificateFileExtensions = ["crt", "ca-bundle"]
 
 
@@ -16,7 +16,7 @@ class InstallCertificate:
     @staticmethod
     def getDomain(domainNames):
         try:
-            res = requests.get(f"{agentUrl}get-domain/{domainNames}")
+            res = requests.get(f"{apiEndpoint}/virtual-hosts/get-domain/{domainNames}")
             if res.status_code != 200:
                 raise Exception(f"Error: {res.status_code}")
             else:
@@ -29,7 +29,7 @@ class InstallCertificate:
     @staticmethod
     def hasCertificate(domainNames):
         try:
-            res = requests.get(f"{agentUrl}has-certificate/{domainNames}")
+            res = requests.get(f"{apiEndpoint}/virtual-hosts/has-certificate/{domainNames}")
             if res.status_code != 200:
                 raise Exception(f"Error: {res.status_code}")
             else:
@@ -41,8 +41,8 @@ class InstallCertificate:
     
     @staticmethod
     def configureNginx(domainNames):
-        data = InstallCertificate.hasCertificate(domainNames)
-        if data is None:
+        hasCertificateResponse = InstallCertificate.hasCertificate(domainNames)
+        if hasCertificateResponse is None:
             hasCertificate = False
         else:
             hasCertificate = True
@@ -52,8 +52,8 @@ class InstallCertificate:
         # Change the name of the current certificate either to the certificate_id or the current date
         if hasCertificate:
             try:
-                certificateId = data["certificate_id"]
-                certificatePath = data["certificate_path"]
+                certificateId = hasCertificateResponse["certificate_id"]
+                certificatePath = hasCertificateResponse["certificate_path"]
                 newPath = certificatePath
                 if certificateId is None:
                     # This means the certificate is configured in nginx but the agent

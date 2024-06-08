@@ -29,7 +29,7 @@ class CertificateSigningRequest:
         )
         if config["SERVER_ADDRESS"]:
             res = requests.post(
-                f"{config['SERVER_ADDRESS']}csr",
+                f"{config['SERVER_ADDRESS']}/agents/csr",
                 data=csrJson,
                 headers={"Content-Type": "application/json"},
             )

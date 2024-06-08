@@ -40,11 +40,11 @@ if "__main__" in __name__:
 
     # Identify the agent
     if config["SERVER_ADDRESS"]:
-        agentUrl = config["SERVER_ADDRESS"]
+        apiEndpoint = config["SERVER_ADDRESS"]
     else:
         print("Could not get the Agent's endpoint address from .env")
         exit(1)
-    agentId = authenticate(agentUrl)
+    agentId = authenticate(apiEndpoint)
     if not agentId:
         print("Can't get the agent id ")
         exit(1)

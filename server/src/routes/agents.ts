@@ -2,48 +2,9 @@ import express from "express";
 import { update } from "../controllers/server";
 import { Agent } from "../models/agents";
 import { createNewAgent } from "../controllers/agent";
-import { addCsr, hasCertificate } from "../controllers/virtual_host";
-import { VirtualHost } from "../models/virtual_hosts";
+import { addCsr } from "../controllers/virtual_host";
 
 const agentRouter = express.Router();
-
-agentRouter.get("/get-domain/:domainNames", async (req, res) => {
-  const domainNames = req.params.domainNames;
-  if (!domainNames) {
-    res.status(400).send("Domain names are required");
-    return;
-  }
-  try {
-    const domain = await VirtualHost.findOne({ domain_names: domainNames });
-    if (!domain) {
-      res.status(404).send("Domain not found");
-      return;
-    }
-    res.status(200).json(domain);
-  } catch (e: any) {
-    res.sendStatus(500);
-    return;
-  }
-});
-
-agentRouter.get("/has-certificate/:domainNames", async (req, res) => {
-  const domainNames = req.params.domainNames;
-  if (!domainNames) {
-    res.status(400).send("Domain names are required");
-    return;
-  }
-  try {
-    const virtualHost = await hasCertificate(domainNames);
-    if (!virtualHost) {
-      res.status(404).send("Domain has no certificates registered.");
-      return;
-    }
-    res.status(200).json(virtualHost);
-  } catch (e: any) {
-    res.sendStatus(500);
-    return;
-  }
-});
 
 agentRouter.post("/csr", async (req, res) => {
   try {

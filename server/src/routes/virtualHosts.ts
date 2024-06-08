@@ -1,12 +1,50 @@
 import express from "express";
 import { getVirtualHosts } from "../controllers/web_server";
-import { requestCsr } from "../controllers/virtual_host";
+import { hasCertificate, requestCsr } from "../controllers/virtual_host";
 import { publishMessage } from "../config/rabbit";
 import { getCsr } from "../controllers/virtual_host";
 import { VirtualHost } from "../models/virtual_hosts";
 import { installCertificate } from "../controllers/virtual_host";
 
 const virtualHostRouter = express.Router();
+
+virtualHostRouter.get("/get-domain/:domainNames", async (req, res) => {
+  const domainNames = req.params.domainNames;
+  if (!domainNames) {
+    res.status(400).send("Domain names are required");
+    return;
+  }
+  try {
+    const domain = await VirtualHost.findOne({ domain_names: domainNames });
+    if (!domain) {
+      res.status(404).send("Domain not found");
+      return;
+    }
+    res.status(200).json(domain);
+  } catch (e: any) {
+    res.sendStatus(500);
+    return;
+  }
+});
+
+virtualHostRouter.get("/has-certificate/:domainNames", async (req, res) => {
+  const domainNames = req.params.domainNames;
+  if (!domainNames) {
+    res.status(400).send("Domain names are required");
+    return;
+  }
+  try {
+    const virtualHost = await hasCertificate(domainNames);
+    if (!virtualHost) {
+      res.status(404).send("Domain has no certificates registered.");
+      return;
+    }
+    res.status(200).json(virtualHost);
+  } catch (e: any) {
+    res.sendStatus(500);
+    return;
+  }
+});
 
 virtualHostRouter.post(
   "/install-certificate/:virtualHostId",
