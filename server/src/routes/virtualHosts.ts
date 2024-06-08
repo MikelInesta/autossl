@@ -1,6 +1,12 @@
 import express from "express";
 import { getVirtualHosts } from "../controllers/web_server";
-import { hasCertificate, requestCsr } from "../controllers/virtual_host";
+import {
+  hasCertificate,
+  requestCsr,
+  updateCsrStatus,
+  updateInstallStatus,
+  updateRollBackStatus,
+} from "../controllers/virtual_host";
 import { publishMessage } from "../config/rabbit";
 import { getCsr } from "../controllers/virtual_host";
 import { VirtualHost } from "../models/virtual_hosts";
@@ -8,43 +14,51 @@ import { installCertificate } from "../controllers/virtual_host";
 
 const virtualHostRouter = express.Router();
 
-virtualHostRouter.post("/update/csr-status", async (req, res) => {
+virtualHostRouter.post("/update/rollback-status", async (req, res) => {
+  try {
+    const { vhId, rollBackStatus } = req.body;
+    const result = await updateRollBackStatus(vhId, rollBackStatus);
+    if (!result) res.sendStatus(400);
+    else res.sendStatus(200);
+  } catch (e: any) {
+    res.sendStatus(500);
+  }
   const requestBody = req.body;
   if (!requestBody) {
-    res.status(400);
+    res.sendStatus(400);
     return;
   }
+});
 
+virtualHostRouter.post("/update/csr-status", async (req, res) => {
   try {
-    const virtualHostId = requestBody.virtualHostId;
-    if (!virtualHostId) {
-      res.status(400);
-      return;
-    }
-
-    const status = requestBody.status;
-
-    const update = VirtualHost.findOneAndUpdate(
-      { _id: virtualHostId },
-      {
-        csr_request_status: status,
-      },
-      {
-        new: true,
-      }
-    );
-
-    if (!update) {
-      res.status(404);
-      return;
-    } else {
-      res.status(200);
-      return;
-    }
+    const { vhId, csrStatus } = req.body;
+    const result = await updateCsrStatus(vhId, csrStatus);
+    if (!result) res.sendStatus(400);
+    else res.sendStatus(200);
   } catch (e: any) {
-    res
-      .status(500)
-      .send("Something went wrong trying to update the csr-status");
+    res.sendStatus(500);
+  }
+  const requestBody = req.body;
+  if (!requestBody) {
+    res.sendStatus(400);
+    return;
+  }
+});
+
+virtualHostRouter.post("/update/install-status", async (req, res) => {
+  try {
+    const { vhId, installStatus } = req.body;
+    const result = await updateInstallStatus(vhId, installStatus);
+    if (!result) res.sendStatus(400);
+    else res.sendStatus(200);
+  } catch (e: any) {
+    res.sendStatus(500);
+  }
+  const requestBody = req.body;
+  if (!requestBody) {
+    res.sendStatus(400);
+    return;
   }
 });
 

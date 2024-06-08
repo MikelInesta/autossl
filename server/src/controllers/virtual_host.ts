@@ -5,6 +5,63 @@ import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
 
+const updateRollBackStatus = async (vhId: string, rollBackStatus: string) => {
+  if (!vhId || !rollBackStatus) {
+    return false;
+  }
+
+  const updateRes = await VirtualHost.findOneAndUpdate(
+    { _id: vhId },
+    {
+      rollback_status: rollBackStatus,
+    },
+    {
+      new: true,
+    }
+  );
+
+  const result = updateRes ? true : false;
+  return result;
+};
+
+const updateInstallStatus = async (vhId: string, installStatus: string) => {
+  if (!vhId || !installStatus) {
+    return false;
+  }
+
+  const updateRes = await VirtualHost.findOneAndUpdate(
+    { _id: vhId },
+    {
+      certificate_install_status: installStatus,
+    },
+    {
+      new: true,
+    }
+  );
+
+  const result = updateRes ? true : false;
+  return result;
+};
+
+const updateCsrStatus = async (vhId: string, csrStatus: string) => {
+  if (!vhId || !csrStatus) {
+    return false;
+  }
+
+  const updateRes = await VirtualHost.findOneAndUpdate(
+    { _id: vhId },
+    {
+      csr_request_status: csrStatus,
+    },
+    {
+      new: true,
+    }
+  );
+
+  const result = updateRes ? true : false;
+  return result;
+};
+
 const hasCertificate = async (
   domainNames: string
 ): Promise<IVirtualHost | null> => {
@@ -202,4 +259,7 @@ export {
   getCsr,
   installCertificate,
   hasCertificate,
+  updateCsrStatus,
+  updateInstallStatus,
+  updateRollBackStatus,
 };
