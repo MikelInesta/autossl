@@ -8,6 +8,46 @@ import { installCertificate } from "../controllers/virtual_host";
 
 const virtualHostRouter = express.Router();
 
+virtualHostRouter.post("/update/csr-status", async (req, res) => {
+  const requestBody = req.body;
+  if (!requestBody) {
+    res.status(400);
+    return;
+  }
+
+  try {
+    const virtualHostId = requestBody.virtualHostId;
+    if (!virtualHostId) {
+      res.status(400);
+      return;
+    }
+
+    const status = requestBody.status;
+
+    const update = VirtualHost.findOneAndUpdate(
+      { _id: virtualHostId },
+      {
+        csr_request_status: status,
+      },
+      {
+        new: true,
+      }
+    );
+
+    if (!update) {
+      res.status(404);
+      return;
+    } else {
+      res.status(200);
+      return;
+    }
+  } catch (e: any) {
+    res
+      .status(500)
+      .send("Something went wrong trying to update the csr-status");
+  }
+});
+
 virtualHostRouter.get("/get-domain/:domainNames", async (req, res) => {
   const domainNames = req.params.domainNames;
   if (!domainNames) {
