@@ -25,6 +25,11 @@ interface IVirtualHost {
   csr: string;
   certificate_path: string;
   certificate_key_path: string;
+  root: string;
+  configuration_file: string;
+  csr_request_status?: string;
+  certificate_install_status?: string;
+  rollback_status?: string;
 }
 
 export type { IWebServer, IServer, IVirtualHost };

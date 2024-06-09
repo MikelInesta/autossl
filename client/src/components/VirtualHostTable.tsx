@@ -10,6 +10,7 @@ import {
   Box,
 } from "@mui/material";
 import VirtualHostOptionsMenu from "./VirtualHostOptionsMenu";
+import { Link } from "react-router-dom";
 
 interface IVirtualHost {
   _id: string;
@@ -69,19 +70,20 @@ const VirtualHostTable: React.FC<{ serverId: string; webServerId: string }> = ({
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>IP Addresses</TableCell>
                 <TableCell>Domain Names</TableCell>
+                <TableCell>IP Addresses</TableCell>
                 <TableCell>Is Enabled</TableCell>
-                <TableCell>Web Server ID</TableCell>
-                <TableCell>Certificate ID</TableCell>
-                <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {virtualHosts.map((virtualHost) => (
-                <TableRow key={virtualHost._id}>
-                  <TableCell>{virtualHost._id}</TableCell>
+                <TableRow
+                  component={Link}
+                  to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHost._id}`}
+                  key={virtualHost._id}
+                  hover={true}
+                >
+                  <TableCell>{virtualHost.domain_names}</TableCell>
                   <TableCell>
                     <ul>
                       {virtualHost.vh_ips.map((ip) => (
@@ -89,17 +91,7 @@ const VirtualHostTable: React.FC<{ serverId: string; webServerId: string }> = ({
                       ))}
                     </ul>
                   </TableCell>
-                  <TableCell>{virtualHost.domain_names}</TableCell>
                   <TableCell>{virtualHost.enabled ? "Yes" : "No"}</TableCell>
-                  <TableCell>{virtualHost.web_server_id}</TableCell>
-                  <TableCell>{virtualHost.web_server_id}</TableCell>
-                  <TableCell>
-                    <VirtualHostOptionsMenu
-                      serverId={serverId}
-                      webServerId={virtualHost.web_server_id}
-                      virtualHostId={virtualHost._id}
-                    />
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

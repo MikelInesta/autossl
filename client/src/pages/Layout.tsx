@@ -1,64 +1,41 @@
-import { Link, Outlet } from "react-router-dom";
-//import BasicMenu from "../components/BasicMenu";
-import IMAGES from "../images/Images";
-import { Button, Paper } from "@mui/material";
+import { Outlet } from "react-router-dom";
+import { Grid, Paper, ThemeProvider, createTheme } from "@mui/material";
+import ResponsiveAppBar from "../components/ResponsiveAppBar";
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: "#579e49",
+      light: "#7cb870",
+      dark: "#3c8a2c",
+      contrastText: "ffffff",
+    },
+  },
+});
 
 const Layout = () => {
   return (
-    <>
-      <Paper
-        elevation={10}
-        square={true}
-        sx={{
-          width: "90%",
-          marginLeft: "5%",
-          marginRight: "5%",
-          padding: 3,
-          marginBottom: 3,
-        }}
-      >
-        <nav>
-          <div
-            style={{
-              display: "flex",
-              marginLeft: "10%",
-              marginRight: "10%",
+    <ThemeProvider theme={theme}>
+      <Grid container spacing={2} direction={"column"}>
+        <Grid item marginBottom={4}>
+          {/*<OldNavBar />*/}
+          <ResponsiveAppBar />
+        </Grid>
+        <Grid item>
+          <Paper
+            elevation={3}
+            square={true}
+            sx={{
+              ":hover": {
+                boxShadow: 10,
+              },
             }}
           >
-            <Link to="/">
-              <img
-                src={IMAGES.autosslLogo}
-                alt="AutoSSL"
-                style={{ width: 200, height: "auto", borderRadius: 1 }}
-              />
-            </Link>
-            <Button
-              variant="contained"
-              sx={{
-                marginTop: "20px",
-                marginBottom: "20px",
-                marginLeft: "auto",
-                backgroundColor: "#009933",
-                "&:hover": {
-                  backgroundColor: "#006600",
-                },
-              }}
-              component={Link}
-              to="/servers"
-            >
-              Servers
-            </Button>
-          </div>
-        </nav>
-      </Paper>
-      <Paper
-        elevation={3}
-        square={true}
-        sx={{ width: "90%", marginLeft: "5%", marginRight: "5%", padding: 3 }}
-      >
-        <Outlet />
-      </Paper>
-    </>
+            <Outlet />
+          </Paper>
+        </Grid>
+      </Grid>
+    </ThemeProvider>
   );
 };
 

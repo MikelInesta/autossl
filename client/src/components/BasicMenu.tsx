@@ -15,7 +15,7 @@ export default function BasicMenu() {
   };
 
   return (
-    <div style={{ margin: "20px" }}>
+    <div>
       <Button
         id="basic-button"
         aria-controls={open ? "basic-menu" : undefined}
