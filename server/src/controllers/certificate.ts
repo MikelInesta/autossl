@@ -1,18 +1,18 @@
 import { Types } from "mongoose";
 import { Certificate, ICertificate } from "../models/certificates";
 
-/*
 const setOldCertificates = async (
-  updatedCertificatesIds: Types.ObjectId[],
+  updatedCertificatesIds: Types.ObjectId[]
 ): Promise<Boolean> => {
   try {
     const oldCertificates = await Certificate.find({
       _id: { $nin: updatedCertificatesIds },
     });
-    if (oldCertificates.length === 0) console.log("No old certificates");
     for (const oldCertificate of oldCertificates) {
-      oldCertificate.old = true;
-      await oldCertificate.save();
+      console.log(
+        `Deleting certificate with serial: ${oldCertificate.serial_number}`
+      );
+      Certificate.findByIdAndDelete(oldCertificate._id);
     }
     return true;
   } catch (e: any) {
@@ -20,7 +20,6 @@ const setOldCertificates = async (
     return false;
   }
 };
-*/
 
 const getCertificateById = async (
   certificateId: string
@@ -57,4 +56,4 @@ const updateCertificate = async (
   return certificate;
 };
 
-export { getCertificateById, updateCertificate };
+export { getCertificateById, updateCertificate, setOldCertificates };

@@ -64,11 +64,12 @@ agentRouter.post("/update", async (req, res) => {
   try {
     //Receive the json data from the agent
     const data = req.body;
-    console.log(data);
+    //console.log(data);
     const updateResult = await update(data);
     if (!updateResult) {
       throw new Error("Failed to update");
     }
+    console.log("Updated received succesfully");
     res.sendStatus(200);
   } catch (e: any) {
     console.log(e.message);

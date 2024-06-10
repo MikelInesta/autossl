@@ -4,6 +4,7 @@ import { Agent } from "../models/agents";
 import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
+import { ObjectId } from "mongodb";
 
 const updateRollBackStatus = async (vhId: string, rollBackStatus: string) => {
   if (!vhId || !rollBackStatus) {
@@ -200,7 +201,6 @@ const requestCsr = async (
   }
 };
 
-/*
 const setOldVirtualHosts = async (
   updatedVirtualHostsIds: Types.ObjectId[]
 ): Promise<Boolean> => {
@@ -208,10 +208,11 @@ const setOldVirtualHosts = async (
     const oldVirtualHosts = await VirtualHost.find({
       _id: { $nin: updatedVirtualHostsIds },
     });
-    if (oldVirtualHosts.length === 0) console.log("No old virtual hosts");
     for (const oldVirtualHost of oldVirtualHosts) {
-      oldVirtualHost.old = true;
-      await oldVirtualHost.save();
+      console.log(
+        `Deleting virtual host with id:${oldVirtualHost._id}, names ${oldVirtualHost.domain_names}, ip: ${oldVirtualHost.vh_ips}`
+      );
+      await VirtualHost.findByIdAndDelete(oldVirtualHost._id);
     }
     return true;
   } catch (e: any) {
@@ -219,17 +220,16 @@ const setOldVirtualHosts = async (
     return false;
   }
 };
-*/
 
 const updateVirtualHost = async (
   virtualHostData: IVirtualHost,
   webServerId: Types.ObjectId,
   certificateId: Types.ObjectId | undefined
 ): Promise<IVirtualHost> => {
-  console.log(`Receiving virtual host data: ${virtualHostData}`);
-  console.log(
+  //console.log(`Receiving virtual host data: ${virtualHostData}`);
+  /*console.log(
     `The certificate path in server is ${virtualHostData.certificate_path}, the private key path is ${virtualHostData.certificate_key_path}, the root is ${virtualHostData.root}`
-  );
+  );*/
   const virtualHost = await VirtualHost.findOneAndUpdate(
     {
       vh_ips: virtualHostData.vh_ips,
@@ -252,7 +252,7 @@ const updateVirtualHost = async (
 
 export {
   updateVirtualHost,
-  //setOldVirtualHosts,
+  setOldVirtualHosts,
   requestCsr,
   getAgentId,
   addCsr,

@@ -31,7 +31,6 @@ const updateWebServer = async (
   return webServer;
 };
 
-/*
 const setOldWebServers = async (
   updatedWebServersIds: Types.ObjectId[]
 ): Promise<Boolean> => {
@@ -39,10 +38,11 @@ const setOldWebServers = async (
     const oldWebServers = await WebServer.find({
       _id: { $nin: updatedWebServersIds },
     });
-    if (oldWebServers.length === 0) console.log("No old web servers");
     for (const oldWebServer of oldWebServers) {
-      oldWebServer.old = true;
-      await oldWebServer.save();
+      console.log(
+        `Deleting web server with id: ${oldWebServer._id} name: ${oldWebServer.web_server_name}`
+      );
+      WebServer.findByIdAndDelete(oldWebServer._id);
     }
     return true;
   } catch (e: any) {
@@ -50,6 +50,5 @@ const setOldWebServers = async (
     return false;
   }
 };
-*/
 
-export { getVirtualHosts, updateWebServer };
+export { getVirtualHosts, updateWebServer, setOldWebServers };
