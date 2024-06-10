@@ -8,22 +8,33 @@ from config import config
 
 
 class CertificateSigningRequest:
+    # Main called method
     @staticmethod
     def sendNewCsr(data):
         domainNames = data["domain_names"]
         if not domainNames or domainNames == "":
             print("Error: No domain names in the request")
             return False
-        domainName = domainNames.split(",")[0]
-        pkPath = f"/etc/ssl/private/{domainName}.key"
-        password = data["_id"]
-        # I'm using the domain id as the decryption password for the pk
-        # Maybe I should use the agent id instead
-        # print(f"password: {password}")
-        CertificateUtils.writePrivateKey(pkPath, password)
-        pk = CertificateUtils.readPrivateKey(pkPath, password)
-        csr = CertificateSigningRequest.buildCsr(pk, data)
-        csrPem = csr.public_bytes(serialization.Encoding.PEM)
+        domainName = domainNames.split(" ")[0]
+        pkPath = f"/etc/ssl/private/autossl/{domainName}.key"
+        # I'm not encrypting the private key anymore
+        try:
+            CertificateUtils.writePrivateKey(pkPath)
+        except Exception:
+            print("Error writing the private key")
+        try:
+            pk = CertificateUtils.readPrivateKey(pkPath)
+        except Exception:
+            print("Error reading the private key")
+        try:
+            csr = CertificateSigningRequest.buildCsr(pk, data)
+        except Exception:
+            print("Error building the CSR")
+
+        try:
+            csrPem = csr.public_bytes(serialization.Encoding.PEM)
+        except Exception:
+            print("Error encoding the csr")
         csrJson = json.dumps(
             {"virtual_host_id": data["_id"], "csr": csrPem.decode("utf-8")}
         )
