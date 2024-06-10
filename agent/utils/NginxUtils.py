@@ -91,7 +91,7 @@ class NginxUtils:
                                 .strip("\n")
                                 .strip(";")
                             )
-                            print(f"found 'ssl_certificate' in line: {value}")
+                            # print(f"found 'ssl_certificate' in line: {value}")
                             if certificatePath is not None:
                                 print(
                                     "Warning: found multiple certificates in the same server block"
@@ -107,7 +107,9 @@ class NginxUtils:
                                 replacements[line] = line.replace(value, certificatePath)
                                 print(f"Moved {value} to {certificatePath}")
                             except FileNotFoundError:
-                                print(f"Error: {certificatePath} not found")
+                                # Gotta save the path to the database even though it does not exist because it is used when installng a new one
+                                #certificatePath = None
+                                print(f"{certificatePath} found in {fileName} config does not exist")
                         if "ssl_certificate_key" == lineSplit[j].strip():
                             value = (
                                 (" ".join(lineSplit[j + 1 :]).split("#")[0])
@@ -115,7 +117,7 @@ class NginxUtils:
                                 .strip("\n")
                                 .strip(";")
                             )
-                            print(f"found 'ssl_certificate_key' in line: {value}")
+                            # print(f"found 'ssl_certificate_key' in line: {value}")
                             if certPrivateKeyPath is not None:
                                 print(
                                     "Warning: found multiple certificate keys in the same server block"
@@ -129,21 +131,25 @@ class NginxUtils:
                                 replacements[line] = line.replace(value, certPrivateKeyPath)
                                 print(f"Moved {value} to {certPrivateKeyPath}")
                             except FileNotFoundError:
-                                print(f"Error: {certPrivateKeyPath} not found")
+                                print(f"{certPrivateKeyPath} found in {fileName} config does not exist")
+                                #certPrivateKeyPath = None
                         else:
                             continue
                 if "root" in line:
                     # print("found 'root' in line")
                     value = self.getDirectiveValues("root", line)
                     root = value
-        print(f"Replacements: {replacements}")
+        # print(f"Replacements: {replacements}")
+        if (len(replacements) == 0 ):
+            print(f"No changes were made to {fileName} configuration")
+        else:
+            print(f"Made {len(replacements)} changes to {fileName} configuration")
         with open(f"{webServer['configuration_path']}/sites-available/{fileName}", "r") as f:
             data = f.read()
             for key in replacements.keys():
                 data = data.replace(key, replacements[key])
         with open(f"{webServer['configuration_path']}/sites-available/{fileName}", "w") as f:
             f.write(data)
-        print("Updated the certificate paths in the configuration file")
         return serverBlocks
 
     def parseServerBlock(
@@ -165,7 +171,7 @@ class NginxUtils:
             except Exception as e:
                 print(f"Error: {e}")
                 certificate = None
-        print(f"When creating the virtual host: {certificatePath} {certPrivateKeyPath}")
+        #print(f"When creating the virtual host: {certificatePath} {certPrivateKeyPath}")
         virtual_host = {
             "vh_ips": listeningAddresses,
             "domain_names": serverNames,

@@ -1,9 +1,5 @@
-import binascii
-import json
 import os
 import time
-
-import schedule
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -15,10 +11,6 @@ from utils.Rabbit import Rabbit
 from utils.SystemUtils import SystemUtils
 from cryptography.hazmat.primitives import serialization
 
-import requests
-
-import base64
-
 
 class UpdateHandler(FileSystemEventHandler):
     def __init__(self):
@@ -26,7 +18,7 @@ class UpdateHandler(FileSystemEventHandler):
 
     def on_modified(self, event):
         # Wait for the file to be written
-        time.sleep(2)
+        time.sleep(30)
         self.agent.update()
 
 

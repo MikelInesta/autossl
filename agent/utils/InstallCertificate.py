@@ -2,140 +2,17 @@ import base64
 import binascii
 
 import requests
-from .CertifcateUtils import CertificateUtils
 from zipfile import ZipFile
 import shutil, os, time
 import glob
 from config import config
+from .Validation import Validation
 
 apiEndpoint = config["SERVER_ADDRESS"]
-certificateFileExtensions = ["crt", "ca-bundle"]
-
+certificateFileExtensions = ["crt", "ca-bundle"] # Im only accepting basic stuff rn 
 
 class InstallCertificate:
-    @staticmethod
-    def getDomain(domainNames):
-        try:
-            res = requests.get(f"{apiEndpoint}/virtual-hosts/get-domain/{domainNames}")
-            if res.status_code != 200:
-                raise Exception(f"Error: {res.status_code}")
-            else:
-                data = res.json()
-                return data
-        except Exception as e:
-            print(f"Error: {e}")
-            return None
-    
-    @staticmethod
-    def hasCertificate(domainNames):
-        try:
-            res = requests.get(f"{apiEndpoint}/virtual-hosts/has-certificate/{domainNames}")
-            if res.status_code != 200:
-                raise Exception(f"Error: {res.status_code}")
-            else:
-                data = res.json()
-                return data
-        except Exception as e:
-            print(f"Error: {e}")
-            return None
-    
-    @staticmethod
-    def configureNginx(domainNames):
-        hasCertificateResponse = InstallCertificate.hasCertificate(domainNames)
-        if hasCertificateResponse is None:
-            hasCertificate = False
-        else:
-            hasCertificate = True
-        
-        domainName = domainNames.split(" ")[0]
-
-        # Change the name of the current certificate either to the certificate_id or the current date
-        if hasCertificate:
-            try:
-                certificateId = hasCertificateResponse["certificate_id"]
-                certificatePath = hasCertificateResponse["certificate_path"]
-                newPath = certificatePath
-                if certificateId is None:
-                    # This means the certificate is configured in nginx but the agent
-                    # was not able to parse it so it's not valid
-                    print("Error: Certificate is not valid")
-                    currentDate = time.strftime("%Y-%m-%d")
-                    newPath = f"{certificatePath}.{currentDate}"  # Save it just in case
-                else:
-                    newPath = f"{certificatePath}.{certificateId}"
-                shutil.move(certificatePath, newPath)
-            except Exception as e:
-                print(f"Error changing the name of the existing certificate: {e}")
-        else:
-            # I need the data of the domain
-            domainData = InstallCertificate.getDomain(domainNames)
-            if domainData is None:
-                print("Error: Domain data not found")
-                return False
-            try:
-                # Write the new ssl server block to the nginx configuration file
-                with open(f"/etc/nginx/sites-available/{domainData["configuration_file"]}", "r") as f:
-                    sslBlock = f"""server{{\nlisten 443 ssl;\nserver_name {domainNames};\n ssl_certificate /etc/ssl/certs/autossl/{domainName}.crt;\n ssl_certificate_key /etc/ssl/private/autossl/{domainName}.key;\n}}"""
-                    fileData = f.read()
-                    newFileData = f"{sslBlock}\n{fileData}"
-                with open(f"/etc/nginx/sites-available/{domainData["configuration_file"]}", "w") as f:
-                    f.write(newFileData)
-            except Exception as e:
-                print(f"Error writing the new ssl server block to the configuration file: {e}")
-
-    @staticmethod
-    def writeDataIntoFile(data, path):
-        with open(path, "wb") as f:
-            f.write(data)
-
-    # Create a temporary directory
-    @staticmethod
-    def createTempDir():
-        try:
-            name = "temp"
-            os.mkdir("temp")
-        except FileExistsError:
-            name = "temp" + str(time.time())
-            os.mkdir(name)
-        return name
-
-    @staticmethod
-    def removeDirectoryAndContents(dir):
-        try:
-            shutil.rmtree(dir)
-        except OSError as e:
-            print("Error: %s - %s." % (e.filename, e.strerror))
-
-    @staticmethod
-    def extractZip(zipPath, extractPath):
-        try:
-            with ZipFile(zipPath) as zObject:
-                zObject.extractall(path=extractPath)
-        except Exception as e:
-            print(f"Error extracting zip: {e}")
-
-    @staticmethod
-    def decodeBase64(data):
-        try:
-            # Remove (if exists) the metadata from the base64 string
-            splitData = data.split(",")
-            if len(splitData) > 1:
-                cleanedData = splitData[1]
-            else:
-                cleanedData = splitData[0]
-            return base64.b64decode(cleanedData)
-        except binascii.Error as e:
-            print(f"Error decoding base64")
-            return None
-
-    @staticmethod
-    def findCrtFiles(searchPath):
-        files = []
-        for f in glob.glob(f"{searchPath}/**/*", recursive=True):
-            if f.split(".")[-1] in certificateFileExtensions:
-                files.append(f)
-        return files
-
+    # Main method
     @staticmethod
     def installNewCertificate(data):
         if "fileExtension" not in data or "file" not in data:
@@ -204,21 +81,153 @@ class InstallCertificate:
 
         print(f"Certificate files found: {crtFiles}")
 
+        InstallCertificate.configureNginx(domainNames)
+        
         InstallCertificate.concatenateCerts(
             primaryCert, intermediateCerts, caBundle, rootCert, domainName, domainNames
         )
-
-        print(f"Certificate placed in /etc/ssl/certs/autossl/{domainName}.crt")
-
+        
         # Remove the temporary directory and its contents
         InstallCertificate.removeDirectoryAndContents(tempDir)
 
-        InstallCertificate.configureNginx(domainNames)
+        print(f"Certificate placed in /etc/ssl/certs/autossl/{domainName}.crt")
+        
+        # It's important to make sure everything the agent changed
+        # is properly set up because nginx crashes in case it is not
         
         # Restart nginx
         os.system("systemctl restart nginx")
 
         return True
+    
+    
+    @staticmethod
+    def getDomain(domainNames):
+        try:
+            res = requests.get(f"{apiEndpoint}/virtual-hosts/get-domain/{domainNames}")
+            if res.status_code != 200:
+                raise Exception(f"Error: {res.status_code}")
+            else:
+                data = res.json()
+                return data
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
+    
+    @staticmethod
+    def hasCertificate(domainNames):
+        try:
+            res = requests.get(f"{apiEndpoint}/virtual-hosts/has-certificate/{domainNames}")
+            if res.status_code != 200:
+                raise Exception(f"Error: {res.status_code}")
+            else:
+                data = res.json()
+                return data
+        except Exception as e:
+            print(f"Error: {e}")
+            return None
+    
+    @staticmethod
+    def configureNginx(domainNames):
+        hasCertificateResponse = InstallCertificate.hasCertificate(domainNames)
+        if hasCertificateResponse is None:
+            hasCertificate = False
+        else:
+            hasCertificate = True
+        
+        domainName = domainNames.split(" ")[0]
+
+        # Change the name of the current certificate either to the certificate_id or the current date
+        if hasCertificate:
+            try:
+                certificateId = hasCertificateResponse["certificate_id"]
+                certificatePath = hasCertificateResponse["certificate_path"]
+                newPath = certificatePath
+                if certificateId is None:
+                    # This means the certificate is configured in nginx but the agent
+                    # was not able to parse it so it's not valid
+                    print("Error: Certificate is not valid")
+                    currentDate = time.strftime("%Y-%m-%d")
+                    newPath = f"{certificatePath}.{currentDate}"  # Save it just in case
+                else:
+                    print(f"New path for change: {certificatePath}.{certificateId}")
+                    newPath = f"{certificatePath}.{certificateId}"
+                shutil.move(certificatePath, newPath)
+            except Exception as e:
+                print(f"Error changing the name of the existing certificate: {e}")
+        else:
+            # I need the data of the domain
+            domainData = InstallCertificate.getDomain(domainNames)
+            if domainData is None:
+                print("Error: Domain data not found")
+                return False
+            try:
+                try:
+                    root = f"\nroot {domainData["root"]};"
+                except Exception:
+                    root = ''
+                # Write the new ssl server block to the nginx configuration file
+                with open(f"/etc/nginx/sites-available/{domainData["configuration_file"]}", "r") as f:
+                    sslBlock = f"""server{{\nlisten 443 ssl;\nserver_name {domainNames};{root}\n ssl_certificate /etc/ssl/certs/autossl/{domainName}.crt;\n ssl_certificate_key /etc/ssl/private/autossl/{domainName}.key;\n}}"""
+                    fileData = f.read()
+                    newFileData = f"{sslBlock}\n{fileData}"
+                with open(f"/etc/nginx/sites-available/{domainData["configuration_file"]}", "w") as f:
+                    f.write(newFileData)
+            except Exception as e:
+                print(f"Error writing the new ssl server block to the configuration file: {e}")
+
+    @staticmethod
+    def writeDataIntoFile(data, path):
+        with open(path, "wb") as f:
+            f.write(data)
+
+    # Create a temporary directory
+    @staticmethod
+    def createTempDir():
+        try:
+            name = "temp"
+            os.mkdir("temp")
+        except FileExistsError:
+            name = "temp" + str(time.time())
+            os.mkdir(name)
+        return name
+
+    @staticmethod
+    def removeDirectoryAndContents(dir):
+        try:
+            shutil.rmtree(dir)
+        except OSError as e:
+            print("Error: %s - %s." % (e.filename, e.strerror))
+
+    @staticmethod
+    def extractZip(zipPath, extractPath):
+        try:
+            with ZipFile(zipPath) as zObject:
+                zObject.extractall(path=extractPath)
+        except Exception as e:
+            print(f"Error extracting zip: {e}")
+
+    @staticmethod
+    def decodeBase64(data):
+        try:
+            # Remove (if exists) the metadata from the base64 string
+            splitData = data.split(",")
+            if len(splitData) > 1:
+                cleanedData = splitData[1]
+            else:
+                cleanedData = splitData[0]
+            return base64.b64decode(cleanedData)
+        except binascii.Error as e:
+            print(f"Error decoding base64")
+            return None
+
+    @staticmethod
+    def findCrtFiles(searchPath):
+        files = []
+        for f in glob.glob(f"{searchPath}/**/*", recursive=True):
+            if f.split(".")[-1] in certificateFileExtensions:
+                files.append(f)
+        return files
 
     @staticmethod
     def concatenateCerts(
@@ -257,9 +266,9 @@ class InstallCertificate:
 
             with open(installPath, "w") as f:
                 f.write(
-                    primaryCertData
-                    + caBundleData
-                    + intermediateCertsData
+                    primaryCertData + "\n"
+                    + caBundleData + "\n"
+                    + intermediateCertsData + "\n"
                     + rootCertData
                 )
 

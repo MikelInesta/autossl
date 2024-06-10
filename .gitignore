@@ -1,3 +1,5 @@
+test.py
+
 # I don't want to add the package-lock.json files
 /server/package-lock.json
 

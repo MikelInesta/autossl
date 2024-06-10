@@ -11,6 +11,12 @@ class Validation:
     """
     Funtion to validate if a certain domain has everything it needs for the ssl certificate
     to be used in the web server
+    1 Check to see if the Private Key and Main/Server Certificate are in PEM format
+    2 Verify that the Private Key and Main/Server Certificate match
+    3 Verify that the Public Key contained in the Private Key file and the Main/Server Certificate are the same
+    4 Check that the Valid From and Valid To dates of the certificate are correct
+    5 Check the validity of the Certificate Chain
+    6 Check the order of the Intermediate or Chain Certificates
     """
 
     @staticmethod
@@ -27,9 +33,9 @@ class Validation:
             print(f"The required private key '{certPath}' was not found.")
             return False
 
-        # Check if they are in pem format
+        # 1 Check if they are in pem format
         res = Validation.shellCommand(
-            ["openssl", "rsa", "-inform", "PEM", "-in", "/tmp/ssl.key"]
+            ["openssl", "rsa", "-inform", "PEM", "-in", keyPath]
         )
 
     """
