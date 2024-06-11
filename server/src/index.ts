@@ -13,6 +13,7 @@ import certificateRouter from "./routes/certificates.js";
 
 import { declareExchange, publishMessage } from "./config/rabbit.js";
 import * as amqp from "amqplib";
+import domainRouter from "./routes/domains.js";
 
 const app = express();
 
@@ -50,6 +51,8 @@ app.use("/api/virtual-hosts", virtualHostRouter);
 
 // Api route for certificates
 app.use("/api/certificates", certificateRouter);
+
+app.use("/api/domains", domainRouter);
 
 app.listen(api.port, async () => {
   try {
