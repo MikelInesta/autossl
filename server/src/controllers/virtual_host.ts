@@ -71,7 +71,8 @@ const hasCertificate = async (
       domain_names: domainNames,
     });
     for (const virtualHost of virtualHosts) {
-      if (virtualHost.certificate_id || virtualHost.certificate_path) {
+      // Only considers a valid certificate
+      if (virtualHost.certificate_id) {
         return virtualHost;
       }
     }

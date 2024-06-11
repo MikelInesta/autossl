@@ -8,7 +8,6 @@ interface IVirtualHost {
   enabled: boolean;
   web_server_id: Types.ObjectId;
   certificate_id: Types.ObjectId;
-  //old: boolean;
   csr: string;
   certificate_path: string;
   certificate_key_path: string;
@@ -35,7 +34,6 @@ const schema = new Schema<IVirtualHost>({
     type: Schema.Types.ObjectId,
     ref: Certificate,
   },
-  //old: { type: Boolean, default: false },
   csr: { type: "string" },
   certificate_path: { type: "string" },
   certificate_key_path: { type: "string" },

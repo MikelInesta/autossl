@@ -143,15 +143,8 @@ class InstallCertificate:
                 certificateId = hasCertificateResponse["certificate_id"]
                 certificatePath = hasCertificateResponse["certificate_path"]
                 newPath = certificatePath
-                if certificateId is None:
-                    # This means the certificate is configured in nginx but the agent
-                    # was not able to parse it so it's not valid
-                    print("Error: Certificate is not valid")
-                    currentDate = time.strftime("%Y-%m-%d")
-                    newPath = f"{certificatePath}.{currentDate}"  # Save it just in case
-                else:
-                    print(f"New path for change: {certificatePath}.{certificateId}")
-                    newPath = f"{certificatePath}.{certificateId}"
+                print(f"New path for change: {certificatePath}.{certificateId}")
+                newPath = f"{certificatePath}.{certificateId}"
                 shutil.move(certificatePath, newPath)
             except Exception as e:
                 print(f"Error changing the name of the existing certificate: {e}")

@@ -50,6 +50,7 @@ const updateCertificate = async (
       signature_algorithm: certificateData.signature_algorithm,
       version: certificateData.version,
       public_key_length: certificateData.public_key_length,
+      server_block: certificateData.server_block,
     },
     { upsert: true, new: true }
   );

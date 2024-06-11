@@ -7,7 +7,7 @@ class NginxUtils:
     def __init__(self, file_path):
         self.createCertDirs()
         self.file_path = file_path
-        
+
     def createCertDirs(self):
         if not os.path.exists("/etc/ssl/certs/autossl"):
             os.makedirs("/etc/ssl/certs/autossl")
@@ -28,9 +28,15 @@ class NginxUtils:
     def parseSite(self, file, webServer, fileName):
         serverBlocks = []
         inServerBlock = False
-        
+
         # A dictionary to save changes to write back to the file
         replacements = {}
+
+        invalidCert = False  # When an invalidCert is found it's corresponding server block is removed...
+
+        blockBuffer = (
+            ""  # A buffer to save the server block in case it has a certificate
+        )
 
         for line in file.readlines():
 
@@ -38,6 +44,7 @@ class NginxUtils:
                 continue
 
             if "server" in line.split(" ")[0] and "{" in line:
+                blockBuffer += line
                 listeningAddresses = []
                 serverNames = None
                 inServerBlock = True
@@ -56,20 +63,34 @@ class NginxUtils:
                     level -= 1
 
                 if level == 0 and inServerBlock:
+                    blockBuffer += line
                     """ print(
                         f"When building the server block: {certificatePath}, {certPrivateKeyPath}"
                     )"""
-                    completeServerBlock = self.parseServerBlock(
-                        listeningAddresses=listeningAddresses,
-                        serverNames=serverNames,
-                        webServer=webServer,
-                        fileName=fileName,
-                        certificatePath=certificatePath,
-                        certPrivateKeyPath=certPrivateKeyPath,
-                        root=root,
-                    )
-                    serverBlocks.append(completeServerBlock)
+                    # print(f"Server block: {blockBuffer}")
+                    # Currently: If the certificate is not considered valid the virtual host is not saved
+                    # blockBuffer contains the entire server block, I could add it to replacements and remove it
+                    # if invalid...
+                    if invalidCert:
+                        replacements[blockBuffer] = ""
+                        invalidCert = False
+                    else:
+                        response = completeServerBlock = self.parseServerBlock(
+                            listeningAddresses=listeningAddresses,
+                            serverNames=serverNames,
+                            webServer=webServer,
+                            fileName=fileName,
+                            certificatePath=certificatePath,
+                            certPrivateKeyPath=certPrivateKeyPath,
+                            root=root,
+                            blockBuffer=blockBuffer,
+                        )
+                        if response == False:
+                            replacements[blockBuffer] = ""
+                        else:
+                            serverBlocks.append(completeServerBlock)
                     inServerBlock = False
+                    blockBuffer = ""
                     continue
 
                 if "listen" in line:
@@ -101,15 +122,26 @@ class NginxUtils:
                             # Move the certificate to /etc/ssl/certs/autossl/fileName
                             name = certificatePath.split("/")[-1]
                             try:
-                                shutil.move(certificatePath, f"/etc/ssl/certs/autossl/{name}")
-                                certificatePath = f"/etc/ssl/certs/autossl/{name}"
-                                # Replace the certificate path with the new path
-                                replacements[line] = line.replace(value, certificatePath)
-                                print(f"Moved {value} to {certificatePath}")
-                            except FileNotFoundError:
-                                # Gotta save the path to the database even though it does not exist because it is used when installng a new one
-                                #certificatePath = None
-                                print(f"{certificatePath} found in {fileName} config does not exist")
+                                if certificatePath != f"/etc/ssl/certs/autossl/{name}":
+                                    shutil.move(
+                                        certificatePath,
+                                        f"/etc/ssl/certs/autossl/{name}",
+                                    )
+                                    certificatePath = f"/etc/ssl/certs/autossl/{name}"
+                                    # Replace the certificate path with the new path
+                                    replacements[line] = line.replace(
+                                        value, certificatePath
+                                    )
+                                    print(f"Moved {value} to {certificatePath}")
+                                # This might be dumb but I open and close it just to try if it exists
+                                else:
+                                    f = open(certificatePath)
+                                    f.close()
+                            except FileNotFoundError or OSError:
+                                invalidCert = True
+                                print(
+                                    f"{certificatePath} found in {fileName} config does not exist"
+                                )
                         if "ssl_certificate_key" == lineSplit[j].strip():
                             value = (
                                 (" ".join(lineSplit[j + 1 :]).split("#")[0])
@@ -126,29 +158,52 @@ class NginxUtils:
                             # Move the key to /etc/ssl/private/autossl/fileName
                             name = certPrivateKeyPath.split("/")[-1]
                             try:
-                                shutil.move(certPrivateKeyPath, f"/etc/ssl/private/autossl/{name}")
-                                certPrivateKeyPath = f"/etc/ssl/private/autossl/{name}"
-                                replacements[line] = line.replace(value, certPrivateKeyPath)
-                                print(f"Moved {value} to {certPrivateKeyPath}")
-                            except FileNotFoundError:
-                                print(f"{certPrivateKeyPath} found in {fileName} config does not exist")
-                                #certPrivateKeyPath = None
+                                if (
+                                    certPrivateKeyPath
+                                    != f"/etc/ssl/private/autossl/{name}"
+                                ):
+                                    shutil.move(
+                                        certPrivateKeyPath,
+                                        f"/etc/ssl/private/autossl/{name}",
+                                    )
+                                    certPrivateKeyPath = (
+                                        f"/etc/ssl/private/autossl/{name}"
+                                    )
+                                    replacements[line] = line.replace(
+                                        value, certPrivateKeyPath
+                                    )
+                                    print(f"Moved {value} to {certPrivateKeyPath}")
+                                # This might be dumb but I open and close it just to try if it exists
+                                else:
+                                    f = open(certPrivateKeyPath)
+                                    f.close()
+                            except FileNotFoundError or OSError:
+                                print(
+                                    f"{certPrivateKeyPath} found in {fileName} config does not exist"
+                                )
+                                invalidCert = True
+                                # certPrivateKeyPath = None
                         else:
                             continue
                 if "root" in line:
                     # print("found 'root' in line")
                     value = self.getDirectiveValues("root", line)
                     root = value
+                blockBuffer += line
         # print(f"Replacements: {replacements}")
-        if (len(replacements) == 0 ):
+        if len(replacements) == 0:
             print(f"No changes were made to {fileName} configuration")
         else:
             print(f"Made {len(replacements)} changes to {fileName} configuration")
-        with open(f"{webServer['configuration_path']}/sites-available/{fileName}", "r") as f:
+        with open(
+            f"{webServer['configuration_path']}/sites-available/{fileName}", "r"
+        ) as f:
             data = f.read()
             for key in replacements.keys():
                 data = data.replace(key, replacements[key])
-        with open(f"{webServer['configuration_path']}/sites-available/{fileName}", "w") as f:
+        with open(
+            f"{webServer['configuration_path']}/sites-available/{fileName}", "w"
+        ) as f:
             f.write(data)
         return serverBlocks
 
@@ -161,6 +216,7 @@ class NginxUtils:
         certificatePath,
         certPrivateKeyPath,
         root,
+        blockBuffer,
     ):
         virtual_host = {}
         certificate = None
@@ -168,10 +224,14 @@ class NginxUtils:
         if certificatePath:
             try:
                 certificate = CertificateUtils.processCertificate(certificatePath)
+                if certificate is not None:
+                    certificate["server_block"] = blockBuffer
+                # print(f"Added a server block: {certificate}")
             except Exception as e:
                 print(f"Error: {e}")
+                return False  # If certificate parsing fails straight up don't save the virtual host
                 certificate = None
-        #print(f"When creating the virtual host: {certificatePath} {certPrivateKeyPath}")
+        # print(f"When creating the virtual host: {certificatePath} {certPrivateKeyPath}")
         virtual_host = {
             "vh_ips": listeningAddresses,
             "domain_names": serverNames,
