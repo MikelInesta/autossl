@@ -93,7 +93,7 @@ class InstallCertificate:
         print(f"Certificate placed in /etc/ssl/certs/autossl/{domainName}.crt")
         
         # It's important to make sure everything the agent changed
-        # is properly set up because nginx crashes in case it is not
+        # is properly set up because nginx crashes in case it's not
         
         # Restart nginx
         os.system("systemctl restart nginx")
@@ -129,36 +129,45 @@ class InstallCertificate:
     
     @staticmethod
     def configureNginx(domainNames):
-        hasCertificateResponse = InstallCertificate.hasCertificate(domainNames)
-        if hasCertificateResponse is None:
-            hasCertificate = False
-        else:
-            hasCertificate = True
+        try:
+            domainData = InstallCertificate.getDomain(domainNames)
+            if domainData["certificate_id"] is None:
+                hasCertificate = False
+            else:
+                hasCertificate = True
+        except Exception as e:
+            print(f"Something went wrong trying to access domain data: {e}")
+            return False
         
+        try:
+            root = f"\nroot {domainData["root"]};"
+        except Exception as e:
+            root = ''
+    
         domainName = domainNames.split(" ")[0]
 
         # Change the name of the current certificate either to the certificate_id or the current date
         if hasCertificate:
             try:
-                certificateId = hasCertificateResponse["certificate_id"]
-                certificatePath = hasCertificateResponse["certificate_path"]
-                newPath = certificatePath
-                print(f"New path for change: {certificatePath}.{certificateId}")
-                newPath = f"{certificatePath}.{certificateId}"
+                certificateId = domainData["certificate_id"]
+                certificatePath = domainData["certificate_path"]
+                privateKeyPath = domainData["certificate_key_path"]
+            except Exception as e:
+                print(f"Couldnt retrieve necessary certificate data: {e}")
+                return False
+            try:
+                newPath = f"{certificatePath}.{certificateId}" # New name of the old certificate
                 shutil.move(certificatePath, newPath)
+                print(f"Moved {certificatePath} to {certificatePath}.{certificateId}")
+                # Maybe here make a copy of the private key with the name {pkeyPath}.{certificateId} in case different keys are used for different certs for rollback
+                try:
+                    shutil.copy2(privateKeyPath,f"{privateKeyPath}.{certificateId}")
+                except Exception as e:
+                    print(f"Error creating a copy of the private key: {e}")
             except Exception as e:
                 print(f"Error changing the name of the existing certificate: {e}")
         else:
-            # I need the data of the domain
-            domainData = InstallCertificate.getDomain(domainNames)
-            if domainData is None:
-                print("Error: Domain data not found")
-                return False
             try:
-                try:
-                    root = f"\nroot {domainData["root"]};"
-                except Exception:
-                    root = ''
                 # Write the new ssl server block to the nginx configuration file
                 with open(f"/etc/nginx/sites-available/{domainData["configuration_file"]}", "r") as f:
                     sslBlock = f"""server{{\nlisten 443 ssl;\nserver_name {domainNames};{root}\n ssl_certificate /etc/ssl/certs/autossl/{domainName}.crt;\n ssl_certificate_key /etc/ssl/private/autossl/{domainName}.key;\n}}"""

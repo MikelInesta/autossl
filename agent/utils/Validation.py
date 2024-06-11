@@ -26,10 +26,10 @@ class Validation:
         certPath = f"/etc/ssl/certs/autossl/{domainName}.crt"
 
         # Check if they exist
-        if os.path.isfile(keyPath) is False:
+        if os.path.exists(keyPath) is False:
             print(f"The required private key '{keyPath}' was not found.")
             return False
-        if os.path.isfile(certPath) is False:
+        if os.path.exists(certPath) is False:
             print(f"The required private key '{certPath}' was not found.")
             return False
 
