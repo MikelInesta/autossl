@@ -4,7 +4,22 @@ import { Agent } from "../models/agents";
 import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
-import { ObjectId } from "mongodb";
+import { Certificate } from "../models/certificates";
+
+const associateCsrToCert = async (vhId: string) => {
+  const virtualHost = await VirtualHost.findById(vhId);
+  if (!virtualHost) {
+    throw new Error("Could not find a virtual host with the given id");
+  }
+  const certificate = await Certificate.findOneAndUpdate(
+    {
+      _id: virtualHost.certificate_id,
+    },
+    {
+      csr_used: virtualHost.csr,
+    }
+  );
+};
 
 const updateRollBackStatus = async (vhId: string, rollBackStatus: string) => {
   if (!vhId || !rollBackStatus) {
@@ -263,4 +278,5 @@ export {
   updateCsrStatus,
   updateInstallStatus,
   updateRollBackStatus,
+  associateCsrToCert,
 };

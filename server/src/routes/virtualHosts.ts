@@ -1,6 +1,7 @@
 import express from "express";
 import { getVirtualHosts } from "../controllers/web_server";
 import {
+  associateCsrToCert,
   hasCertificate,
   requestCsr,
   updateCsrStatus,
@@ -13,6 +14,16 @@ import { VirtualHost } from "../models/virtual_hosts";
 import { installCertificate } from "../controllers/virtual_host";
 
 const virtualHostRouter = express.Router();
+
+virtualHostRouter.get("/associate-csr-cert/:vhId", async (req, res) => {
+  try {
+    const vhId = req.params.vhId;
+    associateCsrToCert(vhId);
+  } catch (e: any) {
+    console.log(`Something went wrong trying to associate csr to cert`);
+    res.sendStatus(500);
+  }
+});
 
 virtualHostRouter.post("/update/rollback-status", async (req, res) => {
   try {

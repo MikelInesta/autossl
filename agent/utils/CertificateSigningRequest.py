@@ -5,6 +5,9 @@ import json
 import requests
 from utils.CertifcateUtils import CertificateUtils
 from config import config
+from .InstallCertificate import InstallCertificate
+
+apiEndpoint = config["SERVER_ADDRESS"]
 
 
 class CertificateSigningRequest:
@@ -17,6 +20,14 @@ class CertificateSigningRequest:
             return False
         domainName = domainNames.split(" ")[0]
         pkPath = f"/etc/ssl/private/autossl/{domainName}.key"
+
+        # If the domain has a certificate and a csr already exists
+        # I'll associate it to the certificate before overwriting
+        try:
+            CertificateSigningRequest.associateToCertificate(domainNames)
+        except Exception as e:
+            print(f"Something went wrong associating the csr to a certificate: {e}")
+
         # I'm not encrypting the private key anymore
         try:
             CertificateUtils.writePrivateKey(pkPath)
@@ -51,6 +62,18 @@ class CertificateSigningRequest:
                 return True
         else:
             raise Exception("Could not get the SERVER_ADDRESS constant from config")
+
+    @staticmethod
+    def associateToCertificate(domainNames):
+        hasCertData = InstallCertificate.hasCertificate(domainNames)
+        if hasCertData is None:
+            return
+        vhid = hasCertData["_id"]
+        res = requests.get(f"{apiEndpoint}/virtual-hosts/associate-csr-cert/{vhid}")
+        if res.status_code != 200:
+            raise Exception(
+                f"Something went wrong requesting csr association: {res.status_code}"
+            )
 
     @staticmethod
     def buildCsr(key, data):

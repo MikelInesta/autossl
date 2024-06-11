@@ -99,6 +99,7 @@ class InstallCertificate:
         os.system("systemctl restart nginx")
 
         return True
+            
     
     
     @staticmethod
@@ -177,6 +178,8 @@ class InstallCertificate:
                     f.write(newFileData)
             except Exception as e:
                 print(f"Error writing the new ssl server block to the configuration file: {e}")
+                
+        
 
     @staticmethod
     def writeDataIntoFile(data, path):
