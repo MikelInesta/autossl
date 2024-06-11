@@ -89,7 +89,9 @@ const update = async (updateData: any): Promise<Boolean> => {
     }
 
     await setOldWebServers(updatedWebServersIds);
-    await setOldCertificates(updatedCertificatesIds);
+    // Certificates work a little different, I don't really want to delete them
+    // unless they are no longer in the autossl folder
+    //await setOldCertificates(updatedCertificatesIds);
     await setOldVirtualHosts(updatedVirtualHostsIds);
 
     return true;

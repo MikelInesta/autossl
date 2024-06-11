@@ -5,6 +5,7 @@ import { publishMessage } from "../config/rabbit";
 import { WebServer } from "../models/web_servers";
 import { Server } from "../models/servers";
 import { Certificate } from "../models/certificates";
+import { Domain, IDomain } from "../models/domains";
 
 const associateCsrToCert = async (vhId: string) => {
   const virtualHost = await VirtualHost.findById(vhId);
@@ -229,6 +230,19 @@ const setOldVirtualHosts = async (
         `Deleting virtual host with id:${oldVirtualHost._id}, names ${oldVirtualHost.domain_names}, ip: ${oldVirtualHost.vh_ips}`
       );
       await VirtualHost.findByIdAndDelete(oldVirtualHost._id);
+
+      // Now delete it's id from the corresponding domain
+      let domain = await Domain.findOne({
+        domain_names: oldVirtualHost.domain_names,
+      });
+      if (domain) {
+        domain.virtual_host_ids.forEach((vhId, i) => {
+          if (vhId == oldVirtualHost._id.toString()) {
+            domain.virtual_host_ids.splice(i, 1);
+          }
+        });
+        await domain.save();
+      }
     }
     return true;
   } catch (e: any) {
@@ -246,6 +260,7 @@ const updateVirtualHost = async (
   /*console.log(
     `The certificate path in server is ${virtualHostData.certificate_path}, the private key path is ${virtualHostData.certificate_key_path}, the root is ${virtualHostData.root}`
   );*/
+
   const virtualHost = await VirtualHost.findOneAndUpdate(
     {
       vh_ips: virtualHostData.vh_ips,
@@ -263,6 +278,31 @@ const updateVirtualHost = async (
     },
     { upsert: true, new: true }
   );
+
+  // Find the corresponding domain
+  let domain = await Domain.findOne({
+    domain_names: virtualHost.domain_names,
+  });
+
+  // If the domain does not exist create it
+  if (!domain) {
+    domain = await Domain.create({
+      virtualHost: [virtualHost._id],
+    });
+  }
+
+  // Make sure the current virtual host id is in the corresponding domain
+  if (!domain.virtual_host_ids.includes(virtualHost._id.toString())) {
+    domain.virtual_host_ids.push;
+  }
+
+  // Make sure the current cert is in the corresponding domain
+  if (!domain.virtual_host_ids.includes(virtualHost._id.toString())) {
+    domain.certificate_ids.push;
+  }
+
+  await domain.save();
+
   return virtualHost;
 };
 
