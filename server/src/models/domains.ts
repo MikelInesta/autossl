@@ -1,14 +1,19 @@
 import { Schema, model, Types } from "mongoose";
-import { Certificate } from "./certificates";
+import { WebServer } from "./web_servers";
 
 interface IDomain {
   _id: Types.ObjectId;
+  web_server_id: Types.ObjectId;
   domain_names: string;
   certificate_ids: Array<string>;
   virtual_host_ids: Array<string>;
 }
 
 const schema = new Schema<IDomain>({
+  web_server_id: {
+    type: Schema.Types.ObjectId,
+    ref: WebServer,
+  },
   domain_names: { type: String },
   certificate_ids: [],
   virtual_host_ids: [],

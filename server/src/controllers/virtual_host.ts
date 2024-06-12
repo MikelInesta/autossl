@@ -290,6 +290,12 @@ const updateVirtualHost = async (
       domain_names: virtualHost.domain_names,
     });
   }
+
+  // Add the virtual hosts web server to the domain
+  if (virtualHost.web_server_id) {
+    domain.web_server_id = virtualHost.web_server_id;
+  }
+
   // Make sure the current virtual host id is in the corresponding domain
   if (
     virtualHost._id &&
