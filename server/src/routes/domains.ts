@@ -24,46 +24,52 @@ domainRouter.post("/update-certificates", async (req, res) => {
   try {
     const data = req.body;
 
-    // Append the certificates to the corresponding domain
-    for (const cert in data) {
-      const dbVh = await VirtualHost.findOne({ certificate_id: cert });
-      if (dbVh) {
-        const dbDomain = await Domain.findOne({
-          domain_names: dbVh.domain_names,
+    if (data) {
+      // Append the certificates to the corresponding domain
+      for (const cert in data) {
+        const dbVh = await VirtualHost.findOne({ certificate_id: cert });
+        if (dbVh) {
+          const dbDomain = await Domain.findOne({
+            domain_names: dbVh.domain_names,
+          });
+          if (dbDomain) {
+            dbDomain.certificate_ids.push(cert);
+            await dbDomain.save();
+          }
+        }
+      }
+
+      // Remove the certificates that are no longer used both themselves and from domains
+      const certificateIds = Object.keys(data);
+      if (certificateIds.length > 0) {
+        const oldCertificates = await Certificate.find({
+          _id: { $nin: certificateIds },
         });
-        if (dbDomain) {
-          dbDomain.certificate_ids.push(cert);
-          await dbDomain.save();
+
+        for (const oldCertificate of oldCertificates) {
+          console.log(`Deleting certificate with id:${oldCertificate._id}`);
+          const deletedCert = await Certificate.findByIdAndDelete(
+            oldCertificate._id
+          );
+
+          // Now delete it's id from the corresponding domain
+          let domain = await Domain.findOne({
+            certificate_ids: oldCertificate._id,
+          });
+
+          if (domain) {
+            domain.certificate_ids.forEach((certId, i) => {
+              if (certId == oldCertificate._id.toString()) {
+                domain.certificate_ids.splice(i, 1);
+              }
+            });
+            await domain.save();
+          }
         }
       }
     }
-
-    // Remove the certificates that are no longer used both themselves and from domains
-    const oldCertificates = await Certificate.find({
-      _id: { $nin: data },
-    });
-
-    for (const oldCertificate of oldCertificates) {
-      console.log(`Deleting certificate with id:${oldCertificate._id}`);
-      const deletedCert = await Certificate.findByIdAndDelete(
-        oldCertificate._id
-      );
-
-      // Now delete it's id from the corresponding domain
-      let domain = await Domain.findOne({
-        certificate_ids: oldCertificate._id,
-      });
-
-      if (domain) {
-        domain.certificate_ids.forEach((certId, i) => {
-          if (certId == oldCertificate._id.toString()) {
-            domain.certificate_ids.splice(i, 1);
-          }
-        });
-        await domain.save();
-      }
-    }
   } catch (e: any) {
+    console.log(`Somethin went wrong updating the certificates: ${e.message}`);
     res.sendStatus(500);
   }
 });

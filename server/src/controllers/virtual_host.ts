@@ -287,18 +287,23 @@ const updateVirtualHost = async (
   // If the domain does not exist create it
   if (!domain) {
     domain = await Domain.create({
-      virtualHost: [virtualHost._id],
+      domain_names: virtualHost.domain_names,
     });
   }
-
   // Make sure the current virtual host id is in the corresponding domain
-  if (!domain.virtual_host_ids.includes(virtualHost._id.toString())) {
-    domain.virtual_host_ids.push;
+  if (
+    virtualHost._id &&
+    !domain.virtual_host_ids.includes(virtualHost._id.toString())
+  ) {
+    domain.virtual_host_ids.push(virtualHost._id.toString());
   }
 
   // Make sure the current cert is in the corresponding domain
-  if (!domain.virtual_host_ids.includes(virtualHost._id.toString())) {
-    domain.certificate_ids.push;
+  if (
+    virtualHost.certificate_id &&
+    !domain.certificate_ids.includes(virtualHost.certificate_id.toString())
+  ) {
+    domain.certificate_ids.push(virtualHost.certificate_id.toString());
   }
 
   await domain.save();

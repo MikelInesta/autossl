@@ -2,8 +2,7 @@ import json
 from .x509Parser import x509Parser
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
-import requests
-import os
+import requests, os
 from config import config
 
 apiEndpoint = config["SERVER_ADDRESS"]
@@ -25,9 +24,12 @@ class CertificateUtils:
                     if response.ok:
                         certificates.append(last)
             certificatesJson = json.dumps(certificates)
+            print(f"Sending certs: {certificatesJson}")
             response = requests.post(
-                f"{apiEndpoint}/domains/update-certificates", json=certificatesJson
+                f"{apiEndpoint}/domains/update-certificates", data=certificatesJson
             )
+            if not response.ok:
+                raise Exception
         except Exception as e:
             print(f"Something went wrong trying to update certificates: {e}")
 

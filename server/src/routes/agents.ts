@@ -72,7 +72,9 @@ agentRouter.post("/update", async (req, res) => {
     console.log("Updated received succesfully");
     res.sendStatus(200);
   } catch (e: any) {
-    console.log(e.message);
+    console.log(
+      `Something went wrong receiving the agent update: ${e.message}`
+    );
     res.sendStatus(500);
   }
 });
