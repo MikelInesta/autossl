@@ -61,6 +61,7 @@ class Agent:
             else:
                 print("Update sent successfully")
                 CertificateUtils.updateCertificates()
+                print("Certificates updated successfully")
                 return True
         except Exception as e:
             print(f"Error: {e}")

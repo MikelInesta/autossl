@@ -34,7 +34,11 @@ certificateRouter.get("/id/:cerificateId", async (req, res) => {
   }
   try {
     const certificate = await getCertificateById(certificateId);
-    res.status(200).json(certificate);
+    if (!certificate) {
+      res.sendStatus(404);
+    } else {
+      res.status(200).json(certificate);
+    }
   } catch (e: any) {
     console.error("Error getting the certificate:", e.message);
     res.sendStatus(500);

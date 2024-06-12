@@ -132,14 +132,14 @@ class InstallCertificate:
     def configureNginx(domainNames):
         try:
             domainData = InstallCertificate.getDomain(domainNames)
-            if domainData["certificate_id"] is None:
+            certificateId = domainData.get("certificate_id", None) # gotta be careful when accesing keys and error handling
+            if certificateId is None:
                 hasCertificate = False
             else:
                 hasCertificate = True
         except Exception as e:
             print(f"Something went wrong trying to access domain data: {e}")
-            return False
-        
+            return False        
         try:
             root = f"\nroot {domainData["root"]};"
         except Exception as e:
@@ -150,7 +150,6 @@ class InstallCertificate:
         # Change the name of the current certificate either to the certificate_id or the current date
         if hasCertificate:
             try:
-                certificateId = domainData["certificate_id"]
                 certificatePath = domainData["certificate_path"]
                 privateKeyPath = domainData["certificate_key_path"]
             except Exception as e:
