@@ -1,10 +1,35 @@
+import json
 from .x509Parser import x509Parser
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
+import requests
 import os
+from config import config
+
+apiEndpoint = config["SERVER_ADDRESS"]
 
 
 class CertificateUtils:
+
+    @staticmethod
+    def updateCertificates():
+        try:
+            certificates = []
+            # Walk through the application's certificates directory
+            for root, dirs, files in os.walk("/etc/ssl/certs/autossl", topdown=False):
+                for name in files:
+                    # Name's gonna be either domain.crt or domain.crt.id
+                    nameSplit = name.split(".")
+                    last = nameSplit[-1]
+                    response = requests.get(f"{apiEndpoint}/certificates/id/{last}")
+                    if response.ok:
+                        certificates.append(last)
+            certificatesJson = json.dumps(certificates)
+            response = requests.post(
+                f"{apiEndpoint}/domains/update-certificates", json=certificatesJson
+            )
+        except Exception as e:
+            print(f"Something went wrong trying to update certificates: {e}")
 
     @staticmethod
     def processCertificate(certificatePath):

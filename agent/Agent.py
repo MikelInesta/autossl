@@ -1,5 +1,6 @@
 import requests
 import json
+from utils.CertifcateUtils import CertificateUtils
 from utils.SystemUtils import SystemUtils
 from utils.NginxUtils import NginxUtils
 from dotenv import dotenv_values
@@ -59,6 +60,7 @@ class Agent:
                 raise Exception(f"Error: {res.status_code}")
             else:
                 print("Update sent successfully")
+                CertificateUtils.updateCertificates()
                 return True
         except Exception as e:
             print(f"Error: {e}")
