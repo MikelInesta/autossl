@@ -3,7 +3,6 @@ interface IWebServer {
   web_server_name: string;
   configuration_path: string;
   server_id: string;
-  //old: boolean;
 }
 
 interface IServer {
@@ -11,7 +10,7 @@ interface IServer {
   server_name: string;
   server_ip: string;
   operating_system: string;
-  //old: boolean;
+  agent_id: string;
 }
 
 interface IVirtualHost {
@@ -21,7 +20,6 @@ interface IVirtualHost {
   enabled: boolean;
   web_server_id: string;
   certificate_id: string;
-  //old: boolean;
   csr: string;
   certificate_path: string;
   certificate_key_path: string;
@@ -32,4 +30,12 @@ interface IVirtualHost {
   rollback_status?: string;
 }
 
-export type { IWebServer, IServer, IVirtualHost };
+interface IDomain {
+  _id: string;
+  web_server_id: string;
+  domain_names: string;
+  certificate_ids: Array<string>;
+  virtual_host_ids: Array<string>;
+}
+
+export type { IWebServer, IServer, IVirtualHost, IDomain };

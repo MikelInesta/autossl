@@ -4,15 +4,15 @@ import { Link } from "react-router-dom";
 const DomainOptions: React.FC<{
   serverId: string;
   webServerId: string;
-  virtualHostId: string;
+  domainId: string;
 }> = ({
   serverId,
   webServerId,
-  virtualHostId,
+  domainId,
 }: {
   serverId: string;
   webServerId: string;
-  virtualHostId: string;
+  domainId: string;
 }) => {
   return (
     <Grid
@@ -27,7 +27,7 @@ const DomainOptions: React.FC<{
           variant="contained"
           color="primary"
           component={Link}
-          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHostId}/csr`}
+          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domainId}/csr`}
           sx={{ color: "white" }}
         >
           Request a CSR
@@ -38,10 +38,10 @@ const DomainOptions: React.FC<{
           variant="contained"
           color="primary"
           component={Link}
-          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHostId}/downloadCsr`}
+          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domainId}/downloadCsr`}
           sx={{ color: "white" }}
         >
-          Download the CSR
+          Show CSR
         </Button>
       </Grid>
       <Grid item>
@@ -49,18 +49,7 @@ const DomainOptions: React.FC<{
           variant="contained"
           color="primary"
           component={Link}
-          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHostId}/certificates`}
-          sx={{ color: "white" }}
-        >
-          Show Certificates
-        </Button>
-      </Grid>
-      <Grid item>
-        <Button
-          variant="contained"
-          color="primary"
-          component={Link}
-          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHostId}/installCertificate`}
+          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domainId}/installCertificate`}
           sx={{ color: "white" }}
         >
           Install a Certificate

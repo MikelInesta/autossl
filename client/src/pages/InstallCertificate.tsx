@@ -1,7 +1,7 @@
 import { Alert, Box, Button, Paper } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { IVirtualHost } from "../types/models";
+import { IDomain, IVirtualHost } from "../types/models";
 
 async function getBase64(file: File) {
   return new Promise((resolve, reject) => {
@@ -15,26 +15,26 @@ async function getBase64(file: File) {
 }
 
 const InstallCertificate = () => {
-  const { virtualHostId } = useParams();
-  const [virtualHost, setVirtualHost] = useState<IVirtualHost | null>(null);
+  const { domainId } = useParams();
+  const [domain, setDomain] = useState<IDomain | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchVirtualHost = async () => {
+    const fetchDomain = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/virtual-hosts/${virtualHostId}`
+          `${import.meta.env.VITE_API_URL}/domains/${domainId}`
         );
         const data = await response.json();
-        setVirtualHost(data);
+        setDomain(data);
       } catch (error) {
-        console.error("Error fetching virtual host:", error);
+        console.error("Error fetching domains:", error);
       }
     };
 
-    fetchVirtualHost();
-  }, [virtualHostId]);
+    fetchDomain();
+  }, [domainId]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -54,7 +54,7 @@ const InstallCertificate = () => {
         await fetch(
           `${
             import.meta.env.VITE_API_URL
-          }/virtual-hosts/install-certificate/${virtualHostId}`,
+          }/domains/install-certificate/${domainId}`,
           {
             method: "POST",
             body: jsonData,
@@ -74,20 +74,8 @@ const InstallCertificate = () => {
     <>
       <Box display={"flex"} alignItems={"center"}>
         <div>
-          <h1>Install a new Certificate</h1>
+          <h1>Install a new Certificate for {domain && domain.domain_names}</h1>
           {error && <Alert severity="error">{error}</Alert>}
-          <br />
-          <strong>Virtual Host ID: </strong>
-          {virtualHostId}
-          <br />
-          <strong>IP Addresses: </strong>
-          {virtualHost && virtualHost.vh_ips.join(", ")}
-          <br />
-          <strong>Domain names: </strong>
-          {virtualHost && virtualHost.domain_names}
-          <br />
-          <strong>Active: </strong>
-          {virtualHost && virtualHost.enabled ? "Yes" : "No"}
         </div>
       </Box>
       <Paper elevation={5} sx={{ padding: 3, marginTop: 3 }}>
@@ -124,15 +112,3 @@ const InstallCertificate = () => {
 };
 
 export default InstallCertificate;
-
-/**
-<Button variant="contained" component="label">
-          Upload File
-          <input
-            type="file"
-            hidden
-            accept=".pem, .crt, .cer, .der, .p7b, .p7s, .pfx, .p12"
-            onChange={handleFileChange}
-          />
-        </Button>
- */

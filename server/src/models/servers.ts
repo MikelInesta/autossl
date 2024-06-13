@@ -9,7 +9,6 @@ interface IServer {
   server_ip: string;
   operating_system: string;
   agent_id: Types.ObjectId;
-  //old: boolean;
 }
 
 const schema = new Schema<IServer>({
@@ -33,7 +32,6 @@ const schema = new Schema<IServer>({
     type: Schema.Types.ObjectId,
     ref: Agent,
   },
-  //old: { type: Boolean, default: false },
 });
 
 const Server = model<IServer>("Server", schema);

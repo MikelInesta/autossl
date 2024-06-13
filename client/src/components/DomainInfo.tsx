@@ -1,35 +1,28 @@
 import { Box } from "@mui/material";
-import { IVirtualHost } from "../types/models";
+import { IDomain } from "../types/models";
 
-const DomainInfo = ({ virtualHost }: { virtualHost: IVirtualHost | null }) => {
+const DomainInfo = ({ domain }: { domain: IDomain | null }) => {
   return (
     <Box>
-      {virtualHost != null && (
+      {domain != null && (
         <>
-          <h1>Domain {virtualHost._id}</h1>
+          <h1>{domain.domain_names}</h1>
           <p>
-            <strong>Domain names: </strong>
-            {virtualHost.domain_names}
+            <strong>Domain ID: </strong>
+            {domain._id}
             <br />
-            <strong>IP Addresses: </strong>
-            {virtualHost.vh_ips.map((ip, i) => {
-              return i < virtualHost.vh_ips.length - 1 ? `${ip}, ` : ip;
+            <strong>Parent Web Server ID: </strong>
+            {domain.web_server_id}
+            <br />
+            <strong>Certificate IDs: </strong>
+            {domain.certificate_ids.map((id, i) => {
+              return i < domain.certificate_ids.length - 1 ? `${id}, ` : id;
             })}
             <br />
-            <strong>Certificate Path: </strong>
-            {virtualHost.certificate_path}
-            <br />
-            <strong>Private Key Path: </strong>
-            {virtualHost.certificate_key_path}
-            <br />
-            <strong>Nginx Configuration File: </strong>
-            {virtualHost.configuration_file}
-            <br />
-            <strong>Web Files root address: </strong>
-            {virtualHost.root}
-            <br />
-            <strong>Parent Web Server Id: </strong>
-            {virtualHost.web_server_id}
+            <strong>Virtual Host IDs: </strong>
+            {domain.virtual_host_ids.map((id, i) => {
+              return i < domain.virtual_host_ids.length - 1 ? `${id}, ` : id;
+            })}
             <br />
           </p>
         </>

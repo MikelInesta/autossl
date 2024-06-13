@@ -1,29 +1,28 @@
 import { Alert, CircularProgress, Grid } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { IDomain } from "../types/models";
-import DomainOptions from "../components/DomainOptions";
-import DomainInfo from "../components/DomainInfo";
-import DomainStatus from "../components/DomainStatus";
+import { IServer } from "../types/models";
+import WebServerTable from "../components/WebServerTable";
+import ServerInfo from "../components/ServerInfo";
 
-const Domain = () => {
-  const { domainId, serverId, webServerId } = useParams();
-  const [domain, setDomain] = useState<IDomain | null>(null);
+const Server = () => {
+  const { serverId } = useParams();
+  const [server, setServer] = useState<IServer | null>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchDomain = async () => {
+    const fetchServer = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/domains/id/${domainId}`
+          `${import.meta.env.VITE_API_URL}/servers/${serverId}`
         );
         if (response.status != 200) {
           throw new Error(response.statusText);
         }
         const result = await response.json();
-        setDomain(result);
+        setServer(result);
       } catch (error) {
         console.error("Error fetching data:", error);
         setErr(true);
@@ -32,8 +31,8 @@ const Domain = () => {
       }
     };
 
-    fetchDomain();
-  }, [domainId]);
+    fetchServer();
+  }, [serverId]);
 
   return (
     <>
@@ -45,25 +44,17 @@ const Domain = () => {
       )}
       {!err && !loading && (
         <Grid container spacing={2}>
-          {domainId && serverId && webServerId && (
+          {serverId && (
             <>
               <Grid item md={12}>
-                <DomainOptions
-                  domainId={domainId}
-                  serverId={serverId}
-                  webServerId={webServerId}
-                />
-              </Grid>
-              <Grid item md={12}>
                 <Grid container spacing={2} direction={"row"}>
-                  <Grid item xs={12} md={6}>
-                    <DomainInfo domain={domain} />
+                  <Grid item xs={12}>
+                    <ServerInfo server={server} />
                   </Grid>
-                  <Grid item xs={12} md={6}>
-                    <DomainStatus domain={domain} />
+                  <Grid item xs={12}>
+                    <WebServerTable serverId={serverId} />
                   </Grid>
                 </Grid>
-                {/* I need a virtual hosts table and a certificates table here */}
               </Grid>
             </>
           )}
@@ -73,4 +64,4 @@ const Domain = () => {
   );
 };
 
-export default Domain;
+export default Server;

@@ -1,16 +1,17 @@
 import { Box, Button, TextField } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Alert from "@mui/material/Alert";
+import { IDomain } from "../types/models";
 
 const CreateCsrForm = ({
   serverId,
   webServerId,
-  virtualHostId,
+  domainId,
 }: {
   serverId: string;
   webServerId: string;
-  virtualHostId: string;
+  domainId: string;
 }) => {
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
@@ -19,6 +20,27 @@ const CreateCsrForm = ({
   const [commonName, setCommonName] = useState("");
 
   const [download, setDownload] = useState(false);
+
+  const [domain, setDomain] = useState<IDomain | null>(null);
+
+  useEffect(() => {
+    const fetchDomain = async () => {
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/domains/id/${domainId}`
+        );
+        if (response.status != 200) {
+          throw new Error(response.statusText);
+        }
+        const result = await response.json();
+        setDomain(result);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchDomain();
+  }, [domainId]);
 
   const sendFormData = async () => {
     try {
@@ -38,7 +60,11 @@ const CreateCsrForm = ({
         body: formData,
       };
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/virtual-hosts/getCsr/${virtualHostId}`,
+        `${import.meta.env.VITE_API_URL}/virtual-hosts/getCsr/${
+          domain &&
+          domain.virtual_host_ids.length > 0 &&
+          domain.virtual_host_ids[0]
+        }`,
         requestOptions
       );
       console.log(`getCsr responded: ${response.status}`);
@@ -67,7 +93,7 @@ const CreateCsrForm = ({
           >
             <h3>
               Please fill the following form to solicit a CSR for{" "}
-              {virtualHostId}:
+              {domain && domain.domain_names}:
             </h3>
             <TextField
               label="Country"
@@ -128,7 +154,7 @@ const CreateCsrForm = ({
               },
             }}
             component={Link}
-            to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHostId}/downloadCsr`}
+            to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domainId}/downloadCsr`}
           >
             Show CSR
           </Button>

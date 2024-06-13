@@ -4,9 +4,9 @@ import { useParams } from "react-router-dom";
 import React from "react";
 
 const CreateCsr = () => {
-  const { serverId, webServerId, virtualHostId } = useParams();
+  const { serverId, webServerId, domainId } = useParams();
 
-  React.useEffect(() => {}, [virtualHostId]);
+  React.useEffect(() => {}, [domainId]);
   return (
     <>
       <Box
@@ -17,9 +17,9 @@ const CreateCsr = () => {
       >
         <h1>Generate a Certificate Signing Request</h1>
       </Box>
-      {serverId && webServerId && virtualHostId && (
+      {serverId && webServerId && domainId && (
         <CreateCsrForm
-          virtualHostId={virtualHostId}
+          domainId={domainId}
           serverId={serverId}
           webServerId={webServerId}
         />

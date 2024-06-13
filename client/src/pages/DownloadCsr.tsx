@@ -1,12 +1,12 @@
 import { Alert, Box, CircularProgress, Paper } from "@mui/material";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { IVirtualHost } from "../types/models";
+import { IDomain } from "../types/models";
 
 const DownloadCsr = () => {
-  const { virtualHostId } = useParams();
+  const { domainId } = useParams();
 
-  const [virtualHost, setVirtualHost] = useState<IVirtualHost | null>(null);
+  const [domain, setDomain] = useState<IDomain | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [err, setErr] = useState<boolean>(false);
   const [csrData, setCsrData] = useState(null);
@@ -15,9 +15,7 @@ const DownloadCsr = () => {
     const fetchCsr = async () => {
       try {
         const response = await fetch(
-          `${
-            import.meta.env.VITE_API_URL
-          }/virtual-hosts/viewCsr/${virtualHostId}`
+          `${import.meta.env.VITE_API_URL}/domains/getCsr/${domainId}`
         );
         if (response.status != 200) {
           throw new Error(response.statusText);
@@ -37,21 +35,23 @@ const DownloadCsr = () => {
       }
     };
 
-    const fetchVirtualHost = async () => {
+    const fetchDomain = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/virtual-hosts/${virtualHostId}`
+          `${import.meta.env.VITE_API_URL}/domains/id/${domainId}`
         );
-        const data = await response.json();
-        setVirtualHost(data);
+        if (response.status != 200) {
+          throw new Error(response.statusText);
+        }
+        const result = await response.json();
+        setDomain(result);
       } catch (error) {
-        console.error("Error fetching virtual host data:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchVirtualHost();
-    fetchCsr();
-  }, []);
+    fetchDomain().then(fetchCsr);
+  }, [domainId]);
 
   return (
     <>
@@ -62,14 +62,9 @@ const DownloadCsr = () => {
           padding: 5,
         }}
       >
-        <h2 style={{ alignSelf: "center" }}>Certificate Signing Request</h2>
-        <p style={{ alignSelf: "left" }}>
-          <strong>Domain names: </strong>
-          {virtualHost && virtualHost.domain_names}
-          <br />
-          <strong>Virtual Host ID: </strong>
-          {virtualHostId}
-        </p>
+        <h2 style={{ alignSelf: "center" }}>
+          Certificate Signing Request for {domain && domain.domain_names}
+        </h2>
       </Box>
       <Paper
         sx={{

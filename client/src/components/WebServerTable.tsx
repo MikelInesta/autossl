@@ -12,12 +12,11 @@ import {
 } from "@mui/material";
 import WebServerOptionsMenu from "./WebServerOptionsMenu";
 import { IWebServer } from "../types/models";
-import { IServer } from "../types/models";
+import { Link } from "react-router-dom";
 
 const WebServerTable = ({ serverId }: { serverId: string }) => {
   const [webServers, setWebServers] = useState<IWebServer[]>([]);
   const [showTable, setShowTable] = useState(false);
-  const [server, setServer] = useState<IServer | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -36,66 +35,29 @@ const WebServerTable = ({ serverId }: { serverId: string }) => {
       }
     };
 
-    const fetchServerData = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/servers/${serverId}`
-        );
-        const data = await response.json();
-        setServer(data);
-      } catch (error) {
-        console.error("Error fetching server data:", error);
-      }
-    };
-
     fetchWebServers();
-    fetchServerData();
   }, [serverId]);
 
   return (
     <>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "left",
-          marginTop: 0,
-          marginLeft: 1,
-        }}
-      >
-        <p>
-          <strong>Server ID:</strong> {serverId}
-          <br />
-          <strong>Server Name:</strong> {server && server.server_name}
-          <br />
-          <strong>Server IP:</strong> {server && server.server_ip}
-        </p>
-      </Box>
       {showTable && (
         <>
           <TableContainer component={Paper}>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>ID</TableCell>
                   <TableCell>Name</TableCell>
-                  <TableCell>IP Address</TableCell>
-                  <TableCell>Operating System</TableCell>
-                  <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {webServers.map((webServer) => (
-                  <TableRow key={webServer._id}>
-                    <TableCell>{webServer._id}</TableCell>
+                  <TableRow
+                    key={webServer._id}
+                    component={Link}
+                    to={`/servers/${serverId}/web-servers/${webServer._id}`}
+                    hover={true}
+                  >
                     <TableCell>{webServer.web_server_name}</TableCell>
-                    <TableCell>{webServer.configuration_path}</TableCell>
-                    <TableCell>{webServer.server_id}</TableCell>
-                    <TableCell>
-                      <WebServerOptionsMenu
-                        serverId={serverId}
-                        webServerId={webServer._id}
-                      />
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

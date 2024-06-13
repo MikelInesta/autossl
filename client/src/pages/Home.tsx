@@ -1,33 +1,29 @@
-import { Box } from '@mui/system';
-import List from "@mui/material/List"
-import ListItem from "@mui/material/ListItem"
+import { Box } from "@mui/system";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import { Grid } from "@mui/material";
 
 const Home = () => {
   return (
-    <>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <h1>Home</h1>
-
-      </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'center'
-        }}
-      >
-        <p>Pending implementation:</p>
-        <List>
-          <ListItem>Agent security identification and encryption with the backend</ListItem>
-          <ListItem>User management (log-in, owned servers, etc)</ListItem>
-          <ListItem>Encryption of the CSR</ListItem>
-        </List>
-      </Box>
-    </>
+    <Grid container spacing={2} direction={"row"}>
+      <Grid item xs={12}>
+        <Grid container justifyContent="center" alignItems="center">
+          <Grid item>
+            <h1>Home</h1>
+          </Grid>
+        </Grid>
+      </Grid>
+      <Grid item sm={12}>
+        <Grid container justifyContent="center" alignItems="center">
+          <Grid item xs={12} sm={10}>
+            <p>
+              Welcome to AutoSSL, you're supposed to be able to manage, install
+              and change TLS certificates here, good luck :){" "}
+            </p>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Grid>
   );
 };
 

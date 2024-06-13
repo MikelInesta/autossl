@@ -1,9 +1,3 @@
-/*
-  Pending:
-    - Fix the re-rendering issue
-    - Add pagination
-    - Add loading icon
-*/
 import React, { useEffect, useState } from "react";
 import {
   Table,
@@ -15,7 +9,7 @@ import {
   Paper,
   Alert,
 } from "@mui/material";
-import ServerOptionsMenu from "./ServerOptionsMenu";
+import { Link } from "react-router-dom";
 
 interface IServer {
   _id: string;
@@ -53,25 +47,20 @@ const ServerTable: React.FC = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Agent ID</TableCell>
                 <TableCell>Name</TableCell>
                 <TableCell>IP Address</TableCell>
-                <TableCell>Operating System</TableCell>
-                <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {servers.map((server) => (
-                <TableRow key={server._id}>
-                  <TableCell>{server._id}</TableCell>
-                  <TableCell>{server.agent_id}</TableCell>
+                <TableRow
+                  key={server._id}
+                  component={Link}
+                  to={`/servers/${server._id}`}
+                  hover={true}
+                >
                   <TableCell>{server.server_name}</TableCell>
                   <TableCell>{server.server_ip}</TableCell>
-                  <TableCell>{server.operating_system}</TableCell>
-                  <TableCell>
-                    <ServerOptionsMenu serverId={server._id} />
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

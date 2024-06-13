@@ -9,7 +9,6 @@ import {
   Paper,
   Box,
 } from "@mui/material";
-import VirtualHostOptionsMenu from "./VirtualHostOptionsMenu";
 import { Link } from "react-router-dom";
 
 interface IVirtualHost {
@@ -52,20 +51,6 @@ const VirtualHostTable: React.FC<{ serverId: string; webServerId: string }> = ({
   return (
     virtualHosts.length > 0 && (
       <>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "left",
-            marginTop: 0,
-            marginLeft: 1,
-          }}
-        >
-          <p>
-            <strong>Server ID:</strong> {serverId}
-            <br />
-            <strong>Web Server ID:</strong> {webServerId}
-          </p>
-        </Box>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>

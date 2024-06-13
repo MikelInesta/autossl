@@ -22,7 +22,7 @@ const Layout = () => {
         justifyContent="center"
         alignItems="center"
       >
-        <Grid item xs={12} sm={10} md={8} lg={6}>
+        <Grid item xs={12} sm={10} md={8} lg={8} xl={6}>
           <Grid container spacing={2} direction={"column"}>
             <Grid item marginBottom={4}>
               {/*<OldNavBar />*/}
