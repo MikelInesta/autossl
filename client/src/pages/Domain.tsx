@@ -5,6 +5,7 @@ import { IDomain } from "../types/models";
 import DomainOptions from "../components/DomainOptions";
 import DomainInfo from "../components/DomainInfo";
 import DomainStatus from "../components/DomainStatus";
+import VirtualHostTable from "../components/VirtualHostTable";
 
 const Domain = () => {
   const { domainId, serverId, webServerId } = useParams();
@@ -64,6 +65,14 @@ const Domain = () => {
                   </Grid>
                 </Grid>
                 {/* I need a virtual hosts table and a certificates table here */}
+              </Grid>
+              <Grid item xs={12}>
+                Virtual Hosts
+                <VirtualHostTable
+                  domainId={domainId}
+                  serverId={serverId}
+                  webServerId={webServerId}
+                />
               </Grid>
             </>
           )}

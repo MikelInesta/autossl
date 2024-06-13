@@ -7,7 +7,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Box,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 
@@ -18,15 +17,20 @@ interface IVirtualHost {
   enabled: boolean;
   web_server_id: string;
   certificate_id: string;
-  //old: boolean;
 }
 
-const VirtualHostTable: React.FC<{ serverId: string; webServerId: string }> = ({
+const VirtualHostTable: React.FC<{
+  serverId: string;
+  webServerId: string;
+  domainId: string;
+}> = ({
   serverId,
   webServerId,
+  domainId,
 }: {
   serverId: string;
   webServerId: string;
+  domainId: string;
 }) => {
   const [virtualHosts, setVirtualHosts] = useState<IVirtualHost[]>([]);
 
@@ -64,7 +68,7 @@ const VirtualHostTable: React.FC<{ serverId: string; webServerId: string }> = ({
               {virtualHosts.map((virtualHost) => (
                 <TableRow
                   component={Link}
-                  to={`/servers/${serverId}/web-servers/${webServerId}/domains/${virtualHost._id}`}
+                  to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domainId}/virtualHosts/${virtualHost._id}`}
                   key={virtualHost._id}
                   hover={true}
                 >
