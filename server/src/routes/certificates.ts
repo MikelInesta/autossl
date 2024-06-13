@@ -2,17 +2,88 @@ import express from "express";
 import { getCertificateById } from "../controllers/certificate";
 import { Domain } from "../models/domains";
 import { Certificate } from "../models/certificates";
+import { VirtualHost } from "../models/virtual_hosts";
+import { WebServer } from "../models/web_servers";
+import { Server } from "../models/servers";
+import { publishMessage } from "../config/rabbit";
 
 const certificateRouter = express.Router();
 
 /*
 
   Forwards the required data to the agent for rolling back to an old certificate
-
 */
 certificateRouter.get("/rollback/:certificateId", async (req, res) => {
   try {
-  } catch (e) {}
+    const certificateId = req.params.certificateId;
+    if (!certificateId) {
+      throw new Error("Certificate ID was not provided");
+    }
+
+    const wantedCertificate = await Certificate.findById(certificateId);
+
+    if (!wantedCertificate) {
+      throw new Error("Couldn't find a certificate with the given ID.");
+    }
+
+    const domain = await Domain.findOne({
+      certificate_ids: wantedCertificate._id,
+    });
+
+    if (!domain) {
+      throw new Error("Could not find a domain with the given certificate");
+    }
+
+    // Find the virtual host in this domain where the certificate is enabled
+    const virtualHost = await VirtualHost.findOne({
+      _id: { $in: domain.virtual_host_ids },
+      certificate_id: { $exists: true, $ne: null },
+    });
+
+    if (!virtualHost) {
+      throw new Error("Couldn't find the required virtual host for rollback");
+    }
+
+    const currentCertificate = await Certificate.findById(
+      virtualHost.certificate_id
+    );
+
+    if (!currentCertificate) {
+      throw new Error("Could not find a certificate to replace in rollback");
+    }
+
+    // Gotta climb up the tree to get the agent id
+
+    const webServer = await WebServer.findById(virtualHost.web_server_id);
+
+    if (!webServer) {
+      throw new Error("Could not get the agent Id related to this certificate");
+    }
+
+    const server = await Server.findById(webServer.server_id);
+
+    if (!server) {
+      throw new Error("Could not get the agent Id related to this certificate");
+    }
+
+    const data = {
+      request: "rollback",
+      wantedCertificateId: wantedCertificate._id,
+      currentCertificateId: currentCertificate._id,
+      wantedCertificateServerBlock: wantedCertificate.server_block,
+      currentCertificateServerBlock: currentCertificate.server_block,
+      configurationFile: virtualHost.configuration_file,
+    };
+
+    await publishMessage("csrExchange", server.agent_id.toString(), data);
+
+    res.sendStatus(200);
+  } catch (e) {
+    console.log(
+      `Something went wrong while sending the rollback request to the agent.`
+    );
+    res.status(500).send(e);
+  }
 });
 
 /*
