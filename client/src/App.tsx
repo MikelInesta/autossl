@@ -12,6 +12,7 @@ import InstallCertificate from "./pages/InstallCertificate";
 import Domain from "./pages/Domain";
 import Server from "./pages/Server";
 import WebServer from "./pages/WebServer";
+import Certificate from "./pages/Certificate";
 
 const App: React.FC = () => {
   return (
@@ -40,6 +41,10 @@ const App: React.FC = () => {
           <Route
             path="/servers/:serverId/web-servers/:webServerId/domains/:domainId/installCertificate"
             Component={InstallCertificate}
+          />
+          <Route
+            path="/servers/:serverId/web-servers/:webServerId/domains/:domainId/certificates/:certificateId"
+            Component={Certificate}
           />
           <Route
             path="/servers/:serverId/web-servers/:webServerId/domains/:domainId/"

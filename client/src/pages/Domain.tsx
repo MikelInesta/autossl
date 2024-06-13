@@ -6,6 +6,7 @@ import DomainOptions from "../components/DomainOptions";
 import DomainInfo from "../components/DomainInfo";
 import DomainStatus from "../components/DomainStatus";
 import VirtualHostTable from "../components/VirtualHostTable";
+import CertificateTable from "../components/CertificateTable";
 
 const Domain = () => {
   const { domainId, serverId, webServerId } = useParams();
@@ -45,7 +46,7 @@ const Domain = () => {
         </Alert>
       )}
       {!err && !loading && (
-        <Grid container spacing={2}>
+        <Grid container spacing={2} padding={5}>
           {domainId && serverId && webServerId && (
             <>
               <Grid item md={12}>
@@ -64,11 +65,18 @@ const Domain = () => {
                     <DomainStatus domain={domain} />
                   </Grid>
                 </Grid>
-                {/* I need a virtual hosts table and a certificates table here */}
               </Grid>
               <Grid item xs={12}>
                 Virtual Hosts
                 <VirtualHostTable
+                  domainId={domainId}
+                  serverId={serverId}
+                  webServerId={webServerId}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                Certificates
+                <CertificateTable
                   domainId={domainId}
                   serverId={serverId}
                   webServerId={webServerId}
