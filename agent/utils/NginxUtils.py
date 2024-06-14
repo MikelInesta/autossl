@@ -226,6 +226,7 @@ class NginxUtils:
                 certificate = CertificateUtils.processCertificate(certificatePath)
                 if certificate is not None:
                     certificate["server_block"] = blockBuffer
+                    certificate["domain_names"] = serverNames
                 # print(f"Added a server block: {certificate}")
             except Exception as e:
                 print(f"Error: {e}")

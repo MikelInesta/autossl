@@ -1,5 +1,7 @@
 import { Schema, model, Types } from "mongoose";
 import { WebServer } from "./web_servers";
+import { Certificate } from "./certificates";
+import { VirtualHost } from "./virtual_hosts";
 
 interface IDomain {
   _id: Types.ObjectId;
@@ -15,8 +17,8 @@ const schema = new Schema<IDomain>({
     ref: WebServer,
   },
   domain_names: { type: String },
-  certificate_ids: [],
-  virtual_host_ids: [],
+  certificate_ids: [{ type: Schema.Types.ObjectId, ref: Certificate }],
+  virtual_host_ids: [{ type: Schema.Types.ObjectId, ref: VirtualHost }],
 });
 
 const Domain = model<IDomain>("Domain", schema);

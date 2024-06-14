@@ -28,6 +28,7 @@ interface ICertificate extends Document {
   public_key_length: number;
   server_block: string;
   csr_used: string;
+  domain_names: string;
 }
 
 const schema = new Schema<ICertificate>({
@@ -57,6 +58,7 @@ const schema = new Schema<ICertificate>({
   public_key_length: { type: Number },
   server_block: { type: String },
   csr_used: { type: String },
+  domain_names: { type: String },
 });
 
 const Certificate = model<ICertificate>("Certificate", schema);

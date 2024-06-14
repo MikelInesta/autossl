@@ -66,6 +66,7 @@ interface ICertificate extends Document {
   public_key_length: number;
   server_block: string;
   csr_used: string;
+  domain_names: string;
 }
 
 export type { IWebServer, IServer, IVirtualHost, IDomain, ICertificate };

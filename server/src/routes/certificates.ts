@@ -27,11 +27,11 @@ certificateRouter.get("/rollback/:certificateId", async (req, res) => {
     }
 
     const domain = await Domain.findOne({
-      certificate_ids: wantedCertificate._id,
+      domain_names: wantedCertificate.domain_names,
     });
 
     if (!domain) {
-      throw new Error("Could not find a domain with the given certificate");
+      throw new Error(`Couldn't find a domain for the requested certificate.`);
     }
 
     // Find the virtual host in this domain where the certificate is enabled
@@ -80,7 +80,7 @@ certificateRouter.get("/rollback/:certificateId", async (req, res) => {
     res.sendStatus(200);
   } catch (e) {
     console.log(
-      `Something went wrong while sending the rollback request to the agent.`
+      `Something went wrong while sending the rollback request to the agent: ${e}.`
     );
     res.status(500).send(e);
   }
