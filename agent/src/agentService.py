@@ -11,6 +11,8 @@ from utils.Rabbit import Rabbit
 from utils.SystemUtils import SystemUtils
 from cryptography.hazmat.primitives import serialization
 
+from config import logger
+
 
 class UpdateHandler(FileSystemEventHandler):
     def __init__(self):
@@ -24,7 +26,8 @@ class UpdateHandler(FileSystemEventHandler):
 
 if "__main__" in __name__:
     if os.geteuid() != 0:
-        exit("Root permissions are needed, please run as root or use sudo.")
+        logger.error("Root permissions are needed, please run as root or use sudo.")
+        exit(-1)
 
     webServers = SystemUtils.getWebServersConfigPath(
         "/etc", ["nginx", "apache2", "apache", "httpd"]
