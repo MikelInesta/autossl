@@ -1,11 +1,13 @@
+import json
+import requests
+
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.x509.oid import NameOID
-import json
-import requests
-from utils.CertifcateUtils import CertificateUtils
-from agent.src.config import config
-from .InstallCertificate import InstallCertificate
+
+from .certifcateUtils import CertificateUtils
+from .config import config
+from .installCertificate import InstallCertificate
 
 apiEndpoint = config["SERVER_ADDRESS"]
 

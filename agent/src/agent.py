@@ -1,10 +1,13 @@
 import requests
 import json
-from utils.CertifcateUtils import CertificateUtils
-from utils.SystemUtils import SystemUtils
-from utils.NginxUtils import NginxUtils
+
 from dotenv import dotenv_values
-from utils.Identification import Identification
+
+from .certifcateUtils import CertificateUtils
+from .systemUtils import SystemUtils
+from .nginxUtils import NginxUtils
+from .identification import Identification
+from .config import logger
 
 
 class Agent:
@@ -12,12 +15,15 @@ class Agent:
         self,
         webServerNames=["nginx", "apache2", "apache", "httpd"],
     ):
-        config = dotenv_values(".env")
-        if config["SERVER_ADDRESS"]:
+        try:
+            config = dotenv_values(".env")
+        except Exception as e:
+            logger.error(f"Couldn't get the necessary environment variables: {e}")
+        try:
             self.apiEndpoint = config["SERVER_ADDRESS"]
-        else:
-            print("Couldn't get the Agent Endpoint Address from .env file")
-            exit(1)
+        except KeyError:
+            logger.error("Couldn't get the Agent Endpoint Address from .env file")
+            exit(-1)
         self.webServerNames = webServerNames
         self.nginx = None
 

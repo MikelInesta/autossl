@@ -1,5 +1,5 @@
-import hashlib, os, subprocess
-from OpenSSL import crypto
+import os
+import subprocess
 
 """
   Purpose of this class is to group static methods used to validate

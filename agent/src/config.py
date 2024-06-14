@@ -1,5 +1,7 @@
+import logging
+import sys
+
 from dotenv import dotenv_values
-import logging, sys
 
 
 def initLogger():

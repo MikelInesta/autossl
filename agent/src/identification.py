@@ -1,7 +1,8 @@
 import json
 import os
 import requests
-from .SystemUtils import SystemUtils
+
+from .systemUtils import SystemUtils
 
 
 # A simpler function to authenticate the agent

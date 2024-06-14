@@ -1,9 +1,9 @@
 import pika
 import json
 
-from .CertificateSigningRequest import CertificateSigningRequest
-from .InstallCertificate import InstallCertificate
-from .Rollback import Rollback
+from .certificateSigningRequest import CertificateSigningRequest
+from .installCertificate import InstallCertificate
+from .rollback import Rollback
 
 
 class Rabbit:

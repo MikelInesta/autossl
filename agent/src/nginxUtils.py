@@ -1,6 +1,7 @@
 import os
 import shutil
-from .CertifcateUtils import CertificateUtils
+
+from .certifcateUtils import CertificateUtils
 
 
 class NginxUtils:

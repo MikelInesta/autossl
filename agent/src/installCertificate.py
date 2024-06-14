@@ -1,12 +1,14 @@
 import base64
 import binascii
-
 import requests
-from zipfile import ZipFile
-import shutil, os, time
+import shutil
+import os
+import time
 import glob
-from agent.src.config import config
-from .Validation import Validation
+
+from zipfile import ZipFile
+
+from .config import config
 
 apiEndpoint = config["SERVER_ADDRESS"]
 certificateFileExtensions = ["crt", "ca-bundle"] # Im only accepting basic stuff rn 

@@ -1,17 +1,15 @@
 import logging
 import os
 import time
+
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from agent.src.Agent import Agent
-from agent.src.config import config
-from utils.Identification import authenticate
-from utils.Rabbit import Rabbit
-from utils.SystemUtils import SystemUtils
-from cryptography.hazmat.primitives import serialization
-
-from config import logger
+from .agent import Agent
+from .config import config, logger
+from .identification import authenticate
+from .rabbit import Rabbit
+from .systemUtils import SystemUtils
 
 
 class UpdateHandler(FileSystemEventHandler):

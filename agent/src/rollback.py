@@ -1,6 +1,6 @@
 import os
 import shutil
-from agent.src.Agent import Agent
+from .agent import Agent
 
 
 """
