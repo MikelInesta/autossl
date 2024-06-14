@@ -23,10 +23,12 @@ class CertificateSigningRequest:
 
         # If the domain has a certificate and a csr already exists
         # I'll associate it to the certificate before overwriting
+        """
         try:
             CertificateSigningRequest.associateToCertificate(domainNames)
         except Exception as e:
             print(f"Something went wrong associating the csr to a certificate: {e}")
+        """
 
         # I'm not encrypting the private key anymore
         try:

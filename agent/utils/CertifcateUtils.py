@@ -20,9 +20,12 @@ class CertificateUtils:
                     # Name's gonna be either domain.crt or domain.crt.id
                     nameSplit = name.split(".")
                     last = nameSplit[-1]
-                    response = requests.get(f"{apiEndpoint}/certificates/id/{last}")
-                    if response.ok:
-                        certificates.append(last)
+                    # There is no need to update the current certificate, that one gets updated
+                    # in the regular agent update :)
+                    if "crt" not in last:
+                        response = requests.get(f"{apiEndpoint}/certificates/id/{last}")
+                        if response.ok:
+                            certificates.append(last)
             certificatesJson = json.dumps(certificates)
             print(f"Sending certs: {certificatesJson}")
             response = requests.post(

@@ -65,7 +65,7 @@ interface ICertificate extends Document {
   version: number;
   public_key_length: number;
   server_block: string;
-  csr_used: string;
+  //csr_used: string;
   domain_names: string;
 }
 

@@ -108,7 +108,6 @@ const CertificateInfo = ({
               <strong>Server Block:</strong> <br />
               <pre>{certificate.server_block}</pre>
               <br />
-              <strong>CSR:</strong> {certificate.csr_used}
             </p>
           </Grid>
         </Grid>

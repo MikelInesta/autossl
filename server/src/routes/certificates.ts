@@ -66,6 +66,8 @@ certificateRouter.get("/rollback/:certificateId", async (req, res) => {
       throw new Error("Could not get the agent Id related to this certificate");
     }
 
+    const domainName = virtualHost.domain_names.split(" ")[0];
+
     const data = {
       request: "rollback",
       wantedCertificateId: wantedCertificate._id,
@@ -73,9 +75,15 @@ certificateRouter.get("/rollback/:certificateId", async (req, res) => {
       wantedCertificateServerBlock: wantedCertificate.server_block,
       currentCertificateServerBlock: currentCertificate.server_block,
       configurationFile: virtualHost.configuration_file,
+      domainName: domainName,
+      currentCertPath: virtualHost.certificate_path,
     };
 
-    await publishMessage("csrExchange", server.agent_id.toString(), data);
+    await publishMessage(
+      "csrExchange",
+      server.agent_id.toString(),
+      JSON.stringify(data)
+    );
 
     res.sendStatus(200);
   } catch (e) {

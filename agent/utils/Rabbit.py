@@ -3,6 +3,7 @@ import json
 
 from .CertificateSigningRequest import CertificateSigningRequest
 from .InstallCertificate import InstallCertificate
+from .Rollback import Rollback
 
 
 class Rabbit:
@@ -74,6 +75,8 @@ class Rabbit:
                 InstallCertificate.installNewCertificate(parsedBody)
             elif "csr" in typeOfRequest:
                 CertificateSigningRequest.sendNewCsr(parsedBody)
+            elif "rollback" in typeOfRequest:
+                Rollback.rollback()
             else:
                 print(f"Unknown request type: {typeOfRequest}")
                 return False

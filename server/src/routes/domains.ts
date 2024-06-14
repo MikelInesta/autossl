@@ -60,6 +60,7 @@ domainRouter.get("/certificates/:domainNames", async (req, res) => {
       const cert = await Certificate.findById(certificateId);
       certificates.push(cert);
     }
+    res.status(200).send(certificates);
   } catch (e: any) {
     console.log(
       `Something went wrong retrieving the certificates: ${e.message}`
@@ -163,21 +164,21 @@ domainRouter.post("/install-certificate/:domainId", async (req, res) => {
             const req = installCertificate(vh._id.toString(), data).then(
               (response) => {
                 if (response) {
-                  res.sendStatus(200);
                   return;
                 } else {
-                  res.sendStatus(500);
-                  return;
+                  throw new Error(
+                    "Something went wrong installing the certificate"
+                  );
                 }
               }
             );
           }
         })
         .catch((e: any) => {
-          res.sendStatus(500);
-          return;
+          console.log("Something went wrong installing a certificatej: " + e);
         });
     });
+    res.sendStatus(200);
   } catch (e: any) {
     res.sendStatus(500);
     return;
@@ -199,22 +200,18 @@ domainRouter.get("/getCsr/:domainId", async (req, res) => {
       return;
     }
 
-    domain.virtual_host_ids.forEach((vhId) => {
-      VirtualHost.findById(vhId)
-        .then((vh) => {
-          if (vh && vh.csr) {
-            const csrJson = JSON.stringify({
-              csr: vh.csr,
-            });
-            res.status(200).send(csrJson);
-            return;
-          }
-        })
-        .catch((e: any) => {
-          res.sendStatus(500);
-          return;
+    for (const vhId in domain.virtual_host_ids) {
+      const vh = await VirtualHost.findById(vhId);
+      if (vh && vh.csr) {
+        const csrJson = JSON.stringify({
+          csr: vh.csr,
         });
-    });
+        res.status(200).send(csrJson);
+        return;
+      }
+    }
+
+    res.sendStatus(404);
   } catch (e: any) {
     console.log(`Something went wrong getting the csr: ${e.message}`);
     res.sendStatus(500);
