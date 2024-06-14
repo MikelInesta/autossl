@@ -5,7 +5,7 @@ import requests
 from zipfile import ZipFile
 import shutil, os, time
 import glob
-from config import config
+from agent.src.config import config
 from .Validation import Validation
 
 apiEndpoint = config["SERVER_ADDRESS"]

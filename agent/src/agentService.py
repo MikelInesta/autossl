@@ -1,11 +1,11 @@
+import logging
 import os
 import time
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from Agent import Agent
-from config import config
-from utils.CertifcateUtils import CertificateUtils
+from agent.src.Agent import Agent
+from agent.src.config import config
 from utils.Identification import authenticate
 from utils.Rabbit import Rabbit
 from utils.SystemUtils import SystemUtils
@@ -64,6 +64,7 @@ if "__main__" in __name__:
         path = webServers[webServerName]["configuration_path"]
         event_handler = UpdateHandler()
         observer.schedule(event_handler, path, recursive=True)
+    logging.info("AutoSSL agent started")
     observer.start()
     try:
         while True:
@@ -71,7 +72,3 @@ if "__main__" in __name__:
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
-
-"""
-    Below is code I need to move to another file and refactor        
-"""

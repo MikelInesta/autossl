@@ -3,7 +3,7 @@ from .x509Parser import x509Parser
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 import requests, os
-from config import config
+from agent.src.config import config
 
 apiEndpoint = config["SERVER_ADDRESS"]
 

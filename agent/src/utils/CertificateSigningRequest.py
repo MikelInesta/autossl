@@ -4,7 +4,7 @@ from cryptography.x509.oid import NameOID
 import json
 import requests
 from utils.CertifcateUtils import CertificateUtils
-from config import config
+from agent.src.config import config
 from .InstallCertificate import InstallCertificate
 
 apiEndpoint = config["SERVER_ADDRESS"]

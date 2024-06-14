@@ -1,0 +1,17 @@
+[Unit]
+Description=AutoSSL agent to do TLS certificate related functions
+After=multi-user.target
+[Service]
+User=root
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/opt/autossl
+ExecStart=/opt/autossl/.venv/bin/python /opt/autossl/agentService.py
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartSec=60s
+StandardOutput=/opt/autossl/logs.txt
+StandardError=/opt/autossl/logs.txt
+[Install]
+WantedBy=multi-user.target
