@@ -51,6 +51,7 @@ const updateCertificate = async (
       version: certificateData.version,
       public_key_length: certificateData.public_key_length,
       server_block: certificateData.server_block,
+      domain_names: certificateData.domain_names,
     },
     { upsert: true, new: true }
   );
