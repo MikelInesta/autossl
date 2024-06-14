@@ -5,14 +5,16 @@ import shutil
 
 try:
     # Move the actual application to its working directory
-    shutil.move("agent", "/opt/autossl/")
+    shutil.copytree("src", "/opt/autossl/")
     print("Moved agent to /opt/autossl/")
 
     # Move the service file
-    shutil.move("autossl.service", "/lib/systemd/system/autossl.service")
+    shutil.copy("autossl.service", "/lib/systemd/system/autossl.service")
     print("Moved autossl.service to /lib/systemd/system/autossl.service")
 except Exception as e:
     print(f"Something went wrong installing the agent: {e}")
+    exit(-1)
+
 
 try:
     # Create the venv and install the requirements
@@ -21,12 +23,18 @@ try:
 
     # where requirements.txt is in same dir as this script
     run(
-        ["bin/pip", "install", "-r", abspath("/opt/autossl/agent/requirements.txt")],
-        cwd=dir,
+        [
+            "bin/pip",
+            "install",
+            "-r",
+            abspath("/opt/autossl/requirements.txt"),
+        ],
+        cwd="/opt/autossl/.venv",
     )
     print("Installed the necessary python dependencies")
 except Exception as e:
-    print(f"Something went wrong installing the necessary python dependencies")
+    print(f"Something went wrong installing the necessary python dependencies: {e}")
+    exit(-1)
 
 try:
     # Enable the service
@@ -35,4 +43,5 @@ try:
     run(["sudo", "systemctl", "start", "autossl.service"])
     print(f"Succesfully deployed the autossl agent")
 except Exception as e:
-    print(f"Something went wrong enabling the autossl service")
+    print(f"Something went wrong enabling the autossl service: {e}")
+    exit(-1)
