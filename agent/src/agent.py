@@ -18,7 +18,7 @@ class Agent:
         try:
             config = dotenv_values(".env")
         except Exception as e:
-            logger.error(f"Couldn't get the necessary environment variables: {e}")
+            logger.error("Couldn't get the necessary environment variables: {e}")
         try:
             self.apiEndpoint = config["SERVER_ADDRESS"]
         except KeyError:
@@ -54,21 +54,20 @@ class Agent:
 
     def update(self):
         try:
-            data = self.buildUpdateData()
-            jsonData = json.dumps(data)
-            print(f"Sending the following update data: {jsonData}")
-            res = requests.post(
-                f"{self.apiEndpoint}/agents/update",
-                data=jsonData,
-                headers={"Content-Type": "application/json"},
-            )
-            if res.status_code != 200:
-                raise Exception(f"Error: {res.status_code}")
-            else:
-                print("Update sent successfully")
-                CertificateUtils.updateCertificates()
-                print("Certificates updated successfully")
-                return True
+            updateData = self.buildUpdateData()
         except Exception as e:
-            print(f"Error: {e}")
-            return False
+            logger.error(e)
+            exit(-1)
+        jsonData = json.dumps(updateData)
+        res = requests.post(
+            f"{self.apiEndpoint}/agents/update",
+            data=jsonData,
+            headers={"Content-Type": "application/json"},
+        )
+        if res.status_code != 200:
+            raise Exception(f"Error: {res.status_code}")
+        else:
+            print("Update sent successfully")
+            CertificateUtils.updateCertificates()
+            print("Certificates updated successfully")
+            return True
