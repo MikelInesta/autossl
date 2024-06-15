@@ -3,11 +3,11 @@ import json
 
 from dotenv import dotenv_values
 
-from .certifcateUtils import CertificateUtils
-from .systemUtils import SystemUtils
-from .nginxUtils import NginxUtils
-from .identification import Identification
-from .config import logger
+from certifcateUtils import CertificateUtils
+from systemUtils import SystemUtils
+from nginxUtils import NginxUtils
+from identification import Identification
+from config import logger
 
 
 class Agent:
@@ -18,7 +18,7 @@ class Agent:
         try:
             config = dotenv_values(".env")
         except Exception as e:
-            logger.error("Couldn't get the necessary environment variables: {e}")
+            logger.error(f"Couldn't get the necessary environment variables: {e}")
         try:
             self.apiEndpoint = config["SERVER_ADDRESS"]
         except KeyError:
@@ -41,6 +41,7 @@ class Agent:
         serverIp = SystemUtils.getIpAddress()
         serverName = f"Server-{serverIp}"
         operatingSystem = SystemUtils.getOperatingSystem()
+        # This will authenticate in its init function
         identification = Identification(self.apiEndpoint)
         return {
             "server": {
@@ -48,7 +49,7 @@ class Agent:
                 "server_ip": serverIp,
                 "operating_system": operatingSystem,
                 "web_servers": webServers,
-                "agent_id": identification.agentId,
+                "agent_id": identification.getAgentId(),
             },
         }
 

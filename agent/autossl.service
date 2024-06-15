@@ -6,7 +6,7 @@ User=root
 Type=simple
 Environment=PYTHONUNBUFFERED=1
 WorkingDirectory=/opt/autossl
-ExecStart=/opt/autossl/.venv/bin/python /opt/autossl/agentService.py
+ExecStart=/opt/autossl/.venv/bin/python /opt/autossl/watcher.py
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=on-failure
