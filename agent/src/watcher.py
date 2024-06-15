@@ -6,6 +6,7 @@ from watchdog.events import FileSystemEventHandler
 
 from config import logger
 from agent import Agent
+from rabbit import Rabbit
 
 
 class Watcher:
@@ -69,6 +70,12 @@ class FileChangeHandler(FileSystemEventHandler):
 
 
 if __name__ == "__main__":
+
+    a = Agent()
+    a.update()
+
+    Rabbit.start()
+
     w = Watcher("/etc/nginx/sites-available", FileChangeHandler())
 
     signal.signal(signal.SIGINT, w.signalHandler)

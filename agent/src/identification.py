@@ -5,7 +5,7 @@ import requests
 from systemUtils import SystemUtils
 
 
-# A simpler function to authenticate the agent
+# A static function to authenticate and get the agent's id
 def authenticate(url):
     identification = Identification(url)
     identification.authenticate()

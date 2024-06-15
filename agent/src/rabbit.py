@@ -4,6 +4,9 @@ import json
 from certificateSigningRequest import CertificateSigningRequest
 from installCertificate import InstallCertificate
 from rollback import Rollback
+from config import logger, config
+from identification import authenticate
+from systemUtils import SystemUtils
 
 
 class Rabbit:
@@ -32,16 +35,6 @@ class Rabbit:
             print(
                 f"Something went wrong while declaring {queueName} and binding it to {exchangeName} with key {routingKey}"
             )
-
-    def consumeGet(self, queueName):
-        # print(f"Cheking wether {queueName} queue has messages")
-        method, properties, body = self.channel.basic_get(
-            queue=queueName, auto_ack=True
-        )
-        if body is not None:
-            print(f"Consumed the following message from queue '{queueName}': ", body)
-        else:
-            print(f"Nothing in queue '{queueName}' to consume")
 
     def consumeBasic(self, queueName, callbackFunction):
         self.channel.basic_consume(
@@ -86,6 +79,52 @@ class Rabbit:
 
         return True
 
+    """
+        Connects to the rabbitmq server, declares and binds a queue
+        and starts the consumer thread
+    """
+
+    @staticmethod
+    def start():
+        # Create a queue, bind it to the csr exchange and start polling
+        try:
+            rabbitAddress = config["RABBIT_ADDRESS"]
+            rabbitUser = config["RABBIT_USER"]
+            rabbitPassword = config["RABBIT_PASSWORD"]
+        except KeyError as e:
+            logger.error(f"Couldn't get rabbit configuration info: {e}")
+            exit(-1)
+
+        rabbit = Rabbit(
+            rabbitAddress,
+            rabbitUser,
+            rabbitPassword,
+        )
+
+        try:
+            agentId = authenticate()
+        except Exception as e:
+            logger.error(f"Couldn't authenticate: {e}")
+            exit(-1)
+
+        try:
+            rabbit.declareAndBind(f"{agentId}Queue", agentId, "csrExchange")
+        except Exception as e:
+            logger.error(
+                f"Something went wrong trying to declare and bind a queue: {e}"
+            )
+            exit(-1)
+
+        try:
+            SystemUtils.openThread(
+                rabbit.consumeBasic, [f"{agentId}Queue", Rabbit.consumeCallback]
+            )
+        except Exception as e:
+            logger.error(
+                f"Something went wrong trying to open a thread for rabbit message consumption: {e}"
+            )
+            exit(-1)
+
 
 """
 # Unused polling function * In case it could be more efficient than just consuming basic
@@ -95,5 +134,15 @@ def queuePolling(rabbit):
     while True:
         schedule.run_pending()
         time.sleep(1)
+        
+def consumeGet(self, queueName):
+    # print(f"Cheking wether {queueName} queue has messages")
+    method, properties, body = self.channel.basic_get(
+        queue=queueName, auto_ack=True
+    )
+    if body is not None:
+        print(f"Consumed the following message from queue '{queueName}': ", body)
+    else:
+        print(f"Nothing in queue '{queueName}' to consume")
         
 """
