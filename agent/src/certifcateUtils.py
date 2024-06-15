@@ -5,8 +5,8 @@ import os
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
-from .x509Parser import x509Parser
-from .config import config
+from x509Parser import x509Parser
+from config import config
 
 apiEndpoint = config["SERVER_ADDRESS"]
 

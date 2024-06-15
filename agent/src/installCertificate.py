@@ -8,7 +8,7 @@ import glob
 
 from zipfile import ZipFile
 
-from .config import config
+from config import config
 
 apiEndpoint = config["SERVER_ADDRESS"]
 certificateFileExtensions = ["crt", "ca-bundle"] # Im only accepting basic stuff rn 
