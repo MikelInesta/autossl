@@ -1,12 +1,20 @@
-from venv import create
-from os.path import join, expanduser, abspath
-from subprocess import run
 import shutil
+import os
+
+from venv import create
+from os.path import abspath
+from subprocess import run
+
+# Check for sudo
+if os.geteuid() != 0:
+    exit(
+        "You need to have root privileges to run this script.\nPlease try again, this time using 'sudo'. Exiting."
+    )
 
 try:
     # Move the actual application to its working directory
     shutil.copytree("src", "/opt/autossl/")
-    print("Moved agent to /opt/autossl/")
+    print("Moved src to /opt/autossl/")
 
     # Move the service file
     shutil.copy("autossl.service", "/lib/systemd/system/autossl.service")
@@ -41,7 +49,7 @@ try:
     run(["sudo", "systemctl", "daemon-reload"])
     run(["sudo", "systemctl", "enable", "autossl.service"])
     run(["sudo", "systemctl", "start", "autossl.service"])
-    print(f"Succesfully deployed the autossl agent")
+    print("Succesfully deployed the autossl agent")
 except Exception as e:
     print(f"Something went wrong enabling the autossl service: {e}")
     exit(-1)

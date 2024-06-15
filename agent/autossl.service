@@ -8,10 +8,10 @@ Environment=PYTHONUNBUFFERED=1
 WorkingDirectory=/opt/autossl
 ExecStart=/opt/autossl/.venv/bin/python /opt/autossl/watcher.py
 ExecReload=/bin/kill -HUP $MAINPID
-KillMode=process
+KillMode=control-group
 Restart=on-failure
 RestartSec=60s
-StandardOutput=/opt/autossl/logs.txt
-StandardError=/opt/autossl/logs.txt
+StandardOutput=append:/opt/autossl/agent.log
+StandardError=append:/opt/autossl/agent.log
 [Install]
 WantedBy=multi-user.target

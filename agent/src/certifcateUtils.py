@@ -20,24 +20,45 @@ class CertificateUtils:
             # Walk through the application's certificates directory
             for root, dirs, files in os.walk("/etc/ssl/certs/autossl", topdown=False):
                 for name in files:
-                    # Name's gonna be either domain.crt or domain.crt.id
-                    nameSplit = name.split(".")
-                    last = nameSplit[-1]
-                    # There is no need to update the current certificate, that one gets updated
-                    # in the regular agent update :)
+                    try:
+                        nameSplit = name.split(".")
+                        last = nameSplit[-1]
+                    except Exception as e:
+                        logger.error(
+                            f"Something went wrong while trying to extract the id from certificates: {e}"
+                        )
+
                     if "crt" not in last:
-                        response = requests.get(f"{apiEndpoint}/certificates/id/{last}")
+                        try:
+                            response = requests.get(
+                                f"{apiEndpoint}/certificates/id/{last}"
+                            )
+                        except Exception as e:
+                            logger.error(
+                                f"Something went wrong trying to check wether a certificate is valid: {e}"
+                            )
                         if response.ok:
                             certificates.append(last)
+                        else:
+                            logger.warning(
+                                f"Found the following certificate which is not valid: {name}"
+                            )
             certificatesJson = json.dumps(certificates)
-            print(f"Sending certs: {certificatesJson}")
-            response = requests.post(
-                f"{apiEndpoint}/domains/update-certificates", data=certificatesJson
-            )
-            if not response.ok:
-                raise Exception
+            try:
+                response = requests.post(
+                    f"{apiEndpoint}/domains/update-certificates", data=certificatesJson
+                )
+                if not response.ok:
+                    raise Exception(
+                        f"Received a negative status in response when trying to update certificates: {response}"
+                    )
+            except Exception as e:
+                logger.error(
+                    f"Something wen't wrong trying to update the certificates: {e}"
+                )
+            logger.info("Successfully updated the certificates")
         except Exception as e:
-            print(f"Something went wrong trying to update certificates: {e}")
+            print(f"Something went wrong in updating the certificates: {e}")
 
     @staticmethod
     def processCertificate(certificatePath):

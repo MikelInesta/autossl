@@ -59,23 +59,22 @@ agentRouter.get("/new/:ip", async (req, res) => {
   }
 });
 
-// Endpoint for agents to update web servers
+/*
+  This endpoint is used by agents to send their host's data, if the data is
+  correctly structured the server handles the update of all the correspoding entities
+*/
 agentRouter.post("/update", async (req, res) => {
   try {
-    //Receive the json data from the agent
     const data = req.body;
-    //console.log(data);
+    console.log(data);
     const updateResult = await update(data);
-    if (!updateResult) {
-      throw new Error("Failed to update");
-    }
-    console.log("Updated received succesfully");
     res.sendStatus(200);
   } catch (e: any) {
-    console.log(
-      `Something went wrong receiving the agent update: ${e.message}`
-    );
-    res.sendStatus(500);
+    console.error("Error receiving the agent update:", e);
+    res.status(500).send({
+      error: e.message,
+      details: e,
+    });
   }
 });
 

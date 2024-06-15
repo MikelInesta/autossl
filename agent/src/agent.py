@@ -45,24 +45,51 @@ class Agent:
 
         for webServerName in webServers:
             if webServerName == "nginx":
-                self.nginx = NginxUtils(webServers[webServerName]["configuration_path"])
-                virtual_hosts = self.nginx.findServerBlocks(webServers[webServerName])
-                if virtual_hosts:
-                    webServers[webServerName]["virtual_hosts"] = virtual_hosts
-        serverIp = SystemUtils.getIpAddress()
-        serverName = f"Server-{serverIp}"
-        operatingSystem = SystemUtils.getOperatingSystem()
-        # This will authenticate in its init function
-        identification = Identification(self.apiEndpoint)
-        return {
-            "server": {
-                "server_name": serverName,
-                "server_ip": serverIp,
-                "operating_system": operatingSystem,
-                "web_servers": webServers,
-                "agent_id": identification.getAgentId(),
-            },
-        }
+                try:
+                    self.nginx = NginxUtils(
+                        webServers[webServerName]["configuration_path"]
+                    )
+                    virtual_hosts = self.nginx.findServerBlocks(
+                        webServers[webServerName]
+                    )
+                    if virtual_hosts:
+                        webServers[webServerName]["virtual_hosts"] = virtual_hosts
+                except Exception as e:
+                    logger.error(
+                        f"Something went wrong while parsing the Nginx server configuration: {e}"
+                    )
+        try:
+            serverIp = SystemUtils.getIpAddress()
+            serverName = f"Server-{serverIp}"
+        except Exception as e:
+            logger.error(f"Couldn't get the server's IP address: {e} ")
+
+        try:
+            operatingSystem = SystemUtils.getOperatingSystem()
+        except Exception as e:
+            logger.error(f"Couldn't get the server's operating system: {e}")
+
+        try:
+            identification = Identification(self.apiEndpoint)
+        except Exception as e:
+            logger.error(
+                f"Something went wrong while instantiating a Identification object: {e}"
+            )
+
+        try:
+            updateData = {
+                "server": {
+                    "server_name": serverName,
+                    "server_ip": serverIp,
+                    "operating_system": operatingSystem,
+                    "web_servers": webServers,
+                    "agent_id": identification.getAgentId(),
+                },
+            }
+        except Exception as e:
+            logger.error(f"Something went wrong building the update data: {e}")
+
+        return updateData
 
     """
         Turns the update data into json and sends it to the backend
@@ -88,7 +115,7 @@ class Agent:
                 headers={"Content-Type": "application/json"},
             )
             if res.status_code != 200:
-                raise Exception(f"Error: {res.status_code}")
+                raise Exception(f"Received the following http code: {res.status_code}")
 
             try:
                 CertificateUtils.updateCertificates()

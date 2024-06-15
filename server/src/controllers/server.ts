@@ -1,6 +1,6 @@
 import { IWebServer, WebServer } from "../models/web_servers";
 import { IServer, Server } from "../models/servers";
-import { setOldCertificates, updateCertificate } from "./certificate";
+import { updateCertificate } from "./certificate";
 import { setOldWebServers, updateWebServer } from "./web_server";
 import { setOldVirtualHosts, updateVirtualHost } from "./virtual_host";
 import { Agent } from "../models/agents";
@@ -40,19 +40,26 @@ const updateServer = async (serverData: IServer): Promise<IServer> => {
   return server;
 };
 
-const update = async (updateData: any): Promise<Boolean> => {
-  try {
-    if (!updateData.server) return false;
+/*
+  Function used by /agents/update to handle the update of every entity
+*/
 
+const update = async (updateData: any): Promise<Boolean> => {
+  if (!updateData.server) {
+    throw new Error("Server data is missing.");
+  }
+
+  try {
     const agentExists = await Agent.findOne({
       _id: updateData.server.agent_id,
     });
 
     if (!agentExists) {
-      return false;
+      throw new Error(
+        `Could not find an agent in the database with id: ${updateData.server.agent_id}`
+      );
     }
 
-    /*--------------------------Server------------------------------*/
     const server = await updateServer(updateData.server);
 
     const webServers = updateData.server.web_servers;
@@ -96,8 +103,8 @@ const update = async (updateData: any): Promise<Boolean> => {
 
     return true;
   } catch (e: any) {
-    console.log(e.message);
-    return false;
+    console.error("Failed to update:", e.message, e.stack);
+    throw e;
   }
 };
 

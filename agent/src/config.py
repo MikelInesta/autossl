@@ -7,6 +7,8 @@ from dotenv import dotenv_values
 def initLogger():
     logger = logging.getLogger("autossl")
     logger.setLevel(logging.INFO)
+
+    # handler = logging.FileHandler("/opt/autossl/agent.log")
     handler = logging.StreamHandler(
         sys.stdout
     )  # stdout is written to /opt/autossl/logs.txt in the service
@@ -17,7 +19,15 @@ def initLogger():
     logger.addHandler(handler)
 
 
-initLogger()
+try:
+    initLogger()
+    logger = logging.getLogger("autossl")
+except Exception as e:
+    print(f"Something went wrong trying to start the logger: {e}")
+    exit(-1)
 
-logger = logging.getLogger("autossl")
-config = dotenv_values(".env")
+try:
+    config = dotenv_values(".env")
+except Exception as e:
+    logger.error(f"Couldn't read the environment variables from .env: {e}")
+    exit(-1)

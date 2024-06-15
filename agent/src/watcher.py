@@ -4,9 +4,10 @@ import signal
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-from config import logger
+from config import logger, config
 from agent import Agent
 from rabbit import Rabbit
+from identification import authenticate
 
 
 class Watcher:
@@ -71,14 +72,44 @@ class FileChangeHandler(FileSystemEventHandler):
 
 if __name__ == "__main__":
 
-    a = Agent()
-    a.update()
+    try:
+        url = config["SERVER_ADDRESS"]
+    except KeyError as e:
+        logger.error(f"Couldn't retrieve the server address from the backend: {e}")
 
-    Rabbit.start()
+    try:
+        # Force authentication
+        authenticate(url)
+    except Exception as e:
+        logger.error(f"Something went wrong authenticating: {e}")
 
-    w = Watcher("/etc/nginx/sites-available", FileChangeHandler())
+    try:
+        logger.info("Application started")
+        a = Agent()
+        logger.info("Agent instantiated")
+        a.update()
+        logger.info("Agent update sent")
+    except Exception as e:
+        logger.error(f"Something went wrong starting the agent: {e}")
 
-    signal.signal(signal.SIGINT, w.signalHandler)
-    signal.signal(signal.SIGTERM, w.signalHandler)
+    try:
+        Rabbit.start()
+        logger.info("Started rabbitmq listener")
+    except Exception as e:
+        logger.error(f"Something went wrong starting the rabbitmq listener: {e}")
 
-    w.run()
+    try:
+        w = Watcher("/etc/nginx/sites-available", FileChangeHandler())
+    except Exception as e:
+        logger.error(f"Something went wrong starting the watcher: {e}")
+
+    try:
+        signal.signal(signal.SIGINT, w.signalHandler)
+        signal.signal(signal.SIGTERM, w.signalHandler)
+    except Exception as e:
+        logger.error(f"Something went wrong setting up the signal handlers: {e}")
+
+    try:
+        w.run()
+    except Exception as e:
+        logger.error(f"Something went wrong while running the watcher: {e}")
