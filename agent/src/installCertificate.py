@@ -8,13 +8,15 @@ import glob
 
 from zipfile import ZipFile
 
-from config import config
+from config import config, logger
 
-apiEndpoint = config["SERVER_ADDRESS"]
-certificateFileExtensions = ["crt", "ca-bundle"] # Im only accepting basic stuff rn 
+try:
+    apiEndpoint = config["SERVER_ADDRESS"]
+    certificateFileExtensions = ["crt", "ca-bundle"] # Im only accepting basic stuff rn 
+except KeyError as e:
+    logger.error(f"Couldn't get a necessary key {e}")
 
 class InstallCertificate:
-    # Main method
     @staticmethod
     def installNewCertificate(data):
         if "fileExtension" not in data or "file" not in data:
