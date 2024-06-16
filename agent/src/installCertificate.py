@@ -268,7 +268,6 @@ class InstallCertificate:
             if hasCertificate:
                 try:
                     certificatePath = domainData["certificate_path"]
-                    privateKeyPath = domainData["certificate_key_path"]
                 except Exception as e:
                     logger.error(f"Couldnt retrieve necessary certificate data: {e}")
                     return False
@@ -276,11 +275,6 @@ class InstallCertificate:
                     newPath = f"{certificatePath}.{certificateId}" # New name of the old certificate
                     shutil.move(certificatePath, newPath)
                     logger.info(f"Moved {certificatePath} to {certificatePath}.{certificateId}")
-                    # Maybe here make a copy of the private key with the name {pkeyPath}.{certificateId} in case different keys are used for different certs for rollback
-                    try:
-                        shutil.copy2(privateKeyPath,f"{privateKeyPath}.{certificateId}")
-                    except Exception as e:
-                        logger.error(f"Error creating a copy of the private key: {e}")
                 except Exception as e:
                     logger.error(f"Error changing the name of the existing certificate: {e}")
             
