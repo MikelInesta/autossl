@@ -1,5 +1,6 @@
 import time
 import signal
+import threading
 
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -50,28 +51,27 @@ class Watcher:
 class FileChangeHandler(FileSystemEventHandler):
     def __init__(self):
         super().__init__()
-        self.lastUpdateTime = 0
+        self.updateScheduled = False
 
-    # This goes for modified, deleted, created, moved and closed
+    def schedule_update(self):
+        self.updateScheduled = False
+        a = Agent()
+        a.update()
+
     def on_any_event(self, event):
-        # I'm not really interested in file closed nor opened
-        if event.event_type == "opened" or event.event_type == "closed":
-            return
-        # I need to ignore directories and temporary files
-        if event.is_directory:
+        if event.event_type in ["opened", "closed"] or event.is_directory:
             return
         fileName = event.src_path.split("/")[-1]
-        if fileName.startswith(".") or fileName.endswith("~"):
-            return
-        # Ignore numeric file names
-        fileNameWithoutExtension = fileName.split(".")[0]
-        if fileNameWithoutExtension.isdigit():
+        if (
+            fileName.startswith(".")
+            or fileName.endswith("~")
+            or fileName.split(".")[0].isdigit()
+        ):
             return
 
-        currentTime = time.time()
-        if currentTime - self.lastUpdateTime >= 45:
-            a = Agent()
-            a.update()
+        if not self.updateScheduled:
+            self.updateScheduled = True
+            threading.Timer(25, self.schedule_update).start()
 
 
 if __name__ == "__main__":
