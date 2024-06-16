@@ -14,6 +14,46 @@ apiEndpoint = config["SERVER_ADDRESS"]
 class CertificateUtils:
 
     @staticmethod
+    def register(certFileName, certId):
+
+        # Gotta remove the .crt from the domain name
+        domainName = certFileName.replace(f".{certId}", "")
+        domainName = domainName.replace(".crt", "")
+
+        path = f"/etc/ssl/certs/autossl/{certFileName}"
+        try:
+            cert = CertificateUtils.processCertificate(path)
+        except Exception as e:
+            logger.error(
+                f"Something went wrong while trying to process a certificate: {e}"
+            )
+            return False
+
+        certData = {"domainName": domainName, "cert": cert}
+
+        try:
+            jsonData = json.dumps(certData)
+        except Exception as e:
+            logger.error(f"Couldn't dump the new certificate data into json: {e}")
+            return False
+
+        try:
+            res = requests.post(
+                f"{apiEndpoint}/certificates/new",
+                data=jsonData,
+                headers={"Content-Type": "application/json"},
+            )
+            if res.status_code != 200:
+                raise Exception(f"Received the following http code: {res.status_code}")
+            logger.info(f"Succesfully registered a new certificate: {res.status_code}")
+        except Exception as e:
+            logger.error(
+                f"Something went wrong while sending new certificate data to the backend: {e}"
+            )
+            return False
+        return True
+
+    @staticmethod
     def updateCertificates():
         try:
             certificates = []
@@ -40,9 +80,14 @@ class CertificateUtils:
                         if response.ok:
                             certificates.append(last)
                         else:
-                            logger.warning(
-                                f"Found the following certificate which is not valid: {name}"
-                            )
+                            # Register it as a new certificate
+                            try:
+                                if CertificateUtils.register(name, last) is True:
+                                    certificates.append(last)
+                            except Exception as e:
+                                logger.error(
+                                    f"Something went wrong trying to register a new certificate: {e}"
+                                )
             certificatesJson = json.dumps(certificates)
             try:
                 response = requests.post(

@@ -1,5 +1,8 @@
 import express from "express";
-import { getCertificateById } from "../controllers/certificate";
+import {
+  getCertificateById,
+  updateCertificate,
+} from "../controllers/certificate";
 import { Domain } from "../models/domains";
 import { Certificate } from "../models/certificates";
 import { VirtualHost } from "../models/virtual_hosts";
@@ -10,7 +13,57 @@ import { publishMessage } from "../config/rabbit";
 const certificateRouter = express.Router();
 
 /*
+  This route is for the agent to register those certificates that are found in the filesystem
+  (/etc/ssl/certs/autossl) but are not in the database.
+  Here they must be:
+    1- Registered as certificates
+    2- Related to their domain
+*/
+certificateRouter.post("/new", async (req, res) => {
+  try {
+    const body = req.body;
+    const cert = req.body.cert;
+    const domainName = req.body.domainName;
+    if (!body || !cert || !domainName) {
+      res.sendStatus(400);
+      return;
+    }
 
+    console.log(`Received cert:${cert} and domain name: ${domainName}`);
+
+    const domain = await Domain.findOne({
+      domain_names: { $regex: new RegExp(domainName) },
+    });
+
+    if (!domain) {
+      res.sendStatus(404);
+      return;
+    }
+
+    // Save the certificate
+    const createdCert = await updateCertificate(cert);
+
+    if (!createdCert) {
+      res.sendStatus(500);
+      return;
+    }
+
+    if (!domain.certificate_ids.includes(createdCert._id.toString())) {
+      domain.certificate_ids.push(createdCert._id.toString());
+    }
+
+    await domain.save();
+
+    res.sendStatus(200);
+  } catch (e: any) {
+    console.log(
+      `routes.certificates:Error:Something went wrong while registering a new certificate: ${e}`
+    );
+    res.sendStatus(500);
+  }
+});
+
+/*
   Forwards the required data to the agent for rolling back to an old certificate
 */
 certificateRouter.get("/rollback/:certificateId", async (req, res) => {

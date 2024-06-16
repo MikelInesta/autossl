@@ -261,6 +261,7 @@ class InstallCertificate:
                 domainData = InstallCertificate.getDomain(domainNames)
                 certificateId = domainData.get("certificate_id", None)
                 hasCertificate = False if certificateId is None else True  
+                logger.info(f"Domain {domainNames} has certificate? -> {hasCertificate}")
             except Exception as e:
                 logger.error(f"Something went wrong trying to access domain data: {e}")
                 return False  
@@ -273,7 +274,7 @@ class InstallCertificate:
                     return False
                 try:
                     newPath = f"{certificatePath}.{certificateId}" # New name of the old certificate
-                    shutil.move(certificatePath, newPath)
+                    shutil.move(certificatePath, newPath) # Move the current certificate to its dom.id
                     logger.info(f"Moved {certificatePath} to {certificatePath}.{certificateId}")
                 except Exception as e:
                     logger.error(f"Error changing the name of the existing certificate: {e}")

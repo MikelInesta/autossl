@@ -17,7 +17,7 @@ class Rollback:
     def rollback(data):
         try:
             wantedCertificateId = data["wantedCertificateId"]
-            currentCertificateId = data["curentCertificateId"]
+            currentCertificateId = data["currentCertificateId"]
             currentCertPath = data["currentCertPath"]
             # currentCertificateServerBlock = data["currentCertificateServerBlock"]
             # configurationFile = data["configurationFile"]
@@ -35,6 +35,12 @@ class Rollback:
         except Exception as e:
             logger.error(f"Something went wrong exchanging certificates: {e}")
             return
+
+        # Restart nginx
+        try:
+            os.system("systemctl restart nginx")
+        except Exception as e:
+            logger.error(f"Something went wrong restarting the Nginx service: {e}")
 
         # Force an update
         a = Agent()
@@ -54,7 +60,7 @@ class Rollback:
         try:
             shutil.move(currentCertPath, f"{currentCertPath}.{currentCertId}")
             logger.info(f"Moved {currentCertPath} to {currentCertPath}.{currentCertId}")
-            logger.info(wantedCertPath, currentCertPath)
+            shutil.move(wantedCertPath, currentCertPath)
             logger.info(f"Moved {wantedCertPath} to {currentCertPath}")
         except Exception as e:
             logger.error(

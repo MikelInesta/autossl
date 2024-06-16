@@ -94,6 +94,10 @@ class x509Parser:
             )
 
         try:
+
+            serial = str(x509_cert.get_serial_number())
+            logger.info(f"Parsing certificate with serial: {serial}")
+
             cert = {
                 "subject": subject,
                 "issuer": issuer,
@@ -108,7 +112,7 @@ class x509Parser:
                         bytes_to_string(x509_cert.get_notBefore()), "%Y%m%d%H%M%SZ"
                     )
                 ),
-                "serial_number": str(x509_cert.get_serial_number()),
+                "serial_number": serial,
                 "serial_number_hex": hex(x509_cert.get_serial_number()),
                 "signature_algorithm": bytes_to_string(
                     x509_cert.get_signature_algorithm()

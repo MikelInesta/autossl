@@ -1,5 +1,6 @@
 import requests
 import json
+import os
 
 from certifcateUtils import CertificateUtils
 from systemUtils import SystemUtils
@@ -119,6 +120,12 @@ class Agent:
                 CertificateUtils.updateCertificates()
             except Exception as e:
                 logger.error(f"Something went wrong updating the certificates: {e}")
+
+            # Restart nginx in case certificates changed
+            try:
+                os.system("systemctl restart nginx")
+            except Exception as e:
+                logger.error(f"Something went wrong restarting the Nginx service: {e}")
 
         except Exception as e:
             logger.error(
