@@ -24,8 +24,15 @@ agentRouter.post("/csr", async (req, res) => {
 
 // maybe hide the agent id
 
-agentRouter.get("/validate/:id", async (req, res) => {
-  const id = req.params.id;
+agentRouter.post("/validate", async (req, res) => {
+  const body = req.body;
+  const id = body.id;
+
+  if (!body || !id) {
+    res.sendStatus(400);
+    return;
+  }
+
   console.log("validating with id: ", id);
   // I'm testing handling async without await here
   Agent.findOne({ _id: id })

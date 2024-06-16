@@ -107,17 +107,20 @@ class Identification:
                 f"Something went wrong trying to write agent id to config file: {e}"
             )
 
-    def isValid(self, id):
-        if not id:
+    def isValid(self, agentId):
+        if not agentId:
             return False
 
         try:
-            response = requests.get(self.apiEndpoint + "/agents/validate/" + id)
+            jsonId = json.dumps({"id": agentId})
+            response = requests.post(
+                self.apiEndpoint + "/agents/validate/" + agentId, json=jsonId
+            )
             if response.status_code == 200:
-                logger.info(f"Agent with id {id} validated succesfully")
+                logger.info(f"Agent with id {agentId} validated succesfully")
                 return True
             else:
-                logger.info(f"Agent with id {id} not valid")
+                logger.info(f"Agent with id {agentId} not valid")
                 return False
         except Exception as e:
             logger.error(f"Something went wrong trying to validate agent id: {e}")
