@@ -9,6 +9,7 @@ import glob
 from zipfile import ZipFile
 
 from config import config, logger
+from agent import Agent
 
 try:
     apiEndpoint = config["SERVER_ADDRESS"]
@@ -118,11 +119,9 @@ class InstallCertificate:
         # It's important to make sure everything the agent changed
         # is properly set up because nginx crashes in case it's not
         
-        # Restart nginx
-        try:
-            os.system("systemctl restart nginx")
-        except Exception as e:
-            logger.error(f"Something went wrong restarting the Nginx service: {e}")
+        # Force an update
+        a = Agent()
+        a.update()
 
         return True
             

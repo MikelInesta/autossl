@@ -43,13 +43,9 @@ class Rollback:
             logger.error(f"Something went wrong restarting the Nginx service: {e}")
 
         # Force an update
+        # This update should relate the new certificate to virtual host
         a = Agent()
         a.update()
-
-        try:
-            os.system("systemctl restart nginx")
-        except Exception as e:
-            logger.error(f"Something went wrong restarting Nginx: {e}")
 
     """
         Places the wanted cert path as the current cert path
