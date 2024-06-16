@@ -142,19 +142,6 @@ class InstallCertificate:
             return None
     
     @staticmethod
-    def hasCertificate(domainNames):
-        try:
-            res = requests.get(f"{apiEndpoint}/virtual-hosts/has-certificate/{domainNames}")
-            if res.status_code != 200:
-                raise Exception(f"Received bad response: {res}")
-            else:
-                data = res.json()
-                return data
-        except Exception as e:
-            logger.error(f"Something went wrong checking wether a virtual host has a certificate: {e}")
-            return None
-    
-    @staticmethod
     def configureNginx(domainNames):
         try:
             domainData = InstallCertificate.getDomain(domainNames)
@@ -295,10 +282,6 @@ class InstallCertificate:
                     caBundleData = f.read()
             
             installPath = f"/etc/ssl/certs/autossl/{domainName}.crt"
-            domain = InstallCertificate.hasCertificate(domainNames)
-            if domain is not None:
-                if domain["certificate_path"] is not None:
-                    installPath = domain["certificate_path"]
 
             with open(installPath, "w") as f:
                 f.write(
