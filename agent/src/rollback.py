@@ -1,6 +1,8 @@
 import os
 import shutil
+
 from agent import Agent
+from config import logger
 
 
 """
@@ -21,7 +23,7 @@ class Rollback:
             # configurationFile = data["configurationFile"]
             # wantedCertificateServerBlock = data["wantedCertificateServerBlock"]
         except Exception as e:
-            print(f"Couldn't retrieve necessary data for rollback: {e}")
+            logger.error(f"Couldn't retrieve necessary data for rollback: {e}")
             return
 
         wantedCertPath = f"{currentCertPath}.{wantedCertificateId}"
@@ -31,7 +33,7 @@ class Rollback:
                 currentCertPath, currentCertificateId, wantedCertPath
             )
         except Exception as e:
-            print(f"Something went wrong exchanging certificates: {e}")
+            logger.error(f"Something went wrong exchanging certificates: {e}")
             return
 
         # Force an update
@@ -41,7 +43,7 @@ class Rollback:
         try:
             os.system("systemctl restart nginx")
         except Exception as e:
-            print(f"Something went wrong restarting Nginx")
+            logger.error(f"Something went wrong restarting Nginx: {e}")
 
     """
         Places the wanted cert path as the current cert path
@@ -49,7 +51,12 @@ class Rollback:
 
     @staticmethod
     def exchangeCerts(currentCertPath, currentCertId, wantedCertPath):
-        shutil.move(currentCertPath, f"{currentCertPath}.{currentCertId}")
-        print(f"Moved {currentCertPath} to {currentCertPath}.{currentCertId}")
-        shutil.move(wantedCertPath, currentCertPath)
-        print(f"Moved {wantedCertPath} to {currentCertPath}")
+        try:
+            shutil.move(currentCertPath, f"{currentCertPath}.{currentCertId}")
+            logger.info(f"Moved {currentCertPath} to {currentCertPath}.{currentCertId}")
+            logger.info(wantedCertPath, currentCertPath)
+            logger.info(f"Moved {wantedCertPath} to {currentCertPath}")
+        except Exception as e:
+            logger.error(
+                f"Couldn't exchange the certificates {currentCertPath} and {wantedCertPath}: {e}"
+            )

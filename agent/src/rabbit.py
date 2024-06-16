@@ -18,8 +18,10 @@ class Rabbit:
                 )
             )
             self.channel = self.connection.channel()
-        except Exception:
-            print("Could not establish a connection to the rabbitmq server:")
+        except Exception as e:
+            logger.error(
+                f"Could not establish a connection to the rabbitmq server: {e}"
+            )
             exit(1)
 
     def declareAndBind(self, queueName, routingKey, exchangeName):
@@ -31,36 +33,41 @@ class Rabbit:
                 routing_key=routingKey,
             )
             """print(f"Succesfully declared {queueName} queue and binded it to the {exchangeName} with key {routingKey}")"""
-        except Exception:
-            print(
-                f"Something went wrong while declaring {queueName} and binding it to {exchangeName} with key {routingKey}"
+        except Exception as e:
+            logger(
+                f"Something went wrong while declaring {queueName} and binding it to {exchangeName} with key {routingKey}: {e}"
             )
 
     def consumeBasic(self, queueName, callbackFunction):
-        self.channel.basic_consume(
-            queue=queueName, on_message_callback=callbackFunction, auto_ack=True
-        )
-        # Maybe I should execute this function in a separate thread
-        self.channel.start_consuming()
+        try:
+            self.channel.basic_consume(
+                queue=queueName, on_message_callback=callbackFunction, auto_ack=True
+            )
+            # Maybe I should execute this function in a separate thread
+            self.channel.start_consuming()
+        except Exception as e:
+            logger.error(
+                f"Something went wrong starting to consume rabbitmq's queue: {e}"
+            )
 
     @staticmethod
     def consumeCallback(ch, method, props, body):
         try:
             decodedBody = body.decode("utf-8")
         except UnicodeDecodeError as e:
-            print(f"Error decoding body: {e}")
+            logger.error(f"Error decoding the queue's message body: {e}")
             return False
 
         try:
             parsedBody = json.loads(decodedBody)
         except json.JSONDecodeError as e:
-            print(f"Error parsing JSON: {e}")
+            logger.error(f"Couldn't parse the queue's message body as json: {e}")
             return False
 
         try:
             typeOfRequest = parsedBody["request"]
         except KeyError as e:
-            print(f"Key 'request' not found in parsed body: {e}")
+            logger.error(f"Key 'request' not found in parsed body: {e}")
             return False
 
         try:
@@ -71,10 +78,10 @@ class Rabbit:
             elif "rollback" in typeOfRequest:
                 Rollback.rollback()
             else:
-                print(f"Unknown request type: {typeOfRequest}")
+                logger.error(f"Unknown request type: {typeOfRequest}")
                 return False
         except Exception as e:
-            print(f"Error handling request type '{typeOfRequest}': {e}")
+            logger.error(f"Error handling request type '{typeOfRequest}': {e}")
             return False
 
         return True
@@ -91,6 +98,7 @@ class Rabbit:
             rabbitAddress = config["RABBIT_ADDRESS"]
             rabbitUser = config["RABBIT_USER"]
             rabbitPassword = config["RABBIT_PASSWORD"]
+            apiEndpoint = config["SERVER_ADDRESS"]
         except KeyError as e:
             logger.error(f"Couldn't get rabbit configuration info: {e}")
             exit(-1)
@@ -102,7 +110,7 @@ class Rabbit:
         )
 
         try:
-            agentId = authenticate()
+            agentId = authenticate(apiEndpoint)
         except Exception as e:
             logger.error(f"Couldn't authenticate: {e}")
             exit(-1)

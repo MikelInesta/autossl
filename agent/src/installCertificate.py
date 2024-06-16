@@ -12,65 +12,75 @@ from config import config, logger
 
 try:
     apiEndpoint = config["SERVER_ADDRESS"]
-    certificateFileExtensions = ["crt", "ca-bundle"] # Im only accepting basic stuff rn 
+    certificateFileExtensions = ["crt", "ca-bundle"]
 except KeyError as e:
     logger.error(f"Couldn't get a necessary key {e}")
 
 class InstallCertificate:
     @staticmethod
     def installNewCertificate(data):
-        if "fileExtension" not in data or "file" not in data:
-            print("Error: Missing extension or file in the request")
+        
+        try:
+            fileData = data["file"]
+            fileExtension = data["fileExtension"]
+        except KeyError as e:
+            logger.error(f"Missing key {e} in install request data")
             return False
 
         # File currently must be .zip
-        if "zip" not in data["fileExtension"]:
-            print("Error: File extension is not zip")
+        if "zip" not in fileExtension:
+            logger.error("File extension is not zip")
             return False
 
         try:
             domainNames = data["domain_names"]
         except KeyError as e:
-            print(f"Missing 'domain_names' key in data: {e}")
+            logger.error(f"Missing 'domain_names' key in data: {e}")
             return False
+        
         splitDomainNames = domainNames.split(" ")
         domainName = splitDomainNames[0]
 
-        # Decode the .zip file in data["file"]
         try:
-            decodedFile = InstallCertificate.decodeBase64(data["file"])
+            decodedFile = InstallCertificate.decodeBase64(fileData)
         except Exception as e:
-            print(f"Error decoding base64: {e}")
+            logger.error(f"Error decoding base64: {e}")
             return False
 
         try:
             # Create a temporary directory to extract the files
             tempDir = InstallCertificate.createTempDir()
         except Exception as e:
-            print(f"Error creating temporary directory: {e}")
+            logger.error(f"Error creating temporary directory: {e}")
             return False
 
         try:
             # Write the data to the filesystem as a .zip file
             InstallCertificate.writeDataIntoFile(decodedFile, f"{tempDir}/temp.zip")
         except Exception as e:
-            print(f"Error writing data to filesystem: {e}")
+            logger.error(f"Error writing data to filesystem: {e}")
             return False
 
         try:
             # Extract the .zip file
             InstallCertificate.extractZip(f"{tempDir}/temp.zip", f"{tempDir}/extracted")
         except Exception as e:
-            print(f"Error extracting zip file: {e}")
+            logger.error(f"Error extracting zip file: {e}")
             return False
 
-        # Recursively search for certificate files in the extracted files
-        crtFiles = InstallCertificate.findCrtFiles(f"{tempDir}/extracted")
+        try:
+            # Recursively search for certificate files in the extracted files
+            crtFiles = InstallCertificate.findCrtFiles(f"{tempDir}/extracted")
+        except Exception as e:
+            logger.error(f"Something went wrong finding crt files: {e}")
+            return False
+
 
         primaryCert = None
         intermediateCerts = []
         caBundle = None
         rootCert = None
+
 
         # Identify the type of files provided
         for file in crtFiles:
@@ -83,24 +93,36 @@ class InstallCertificate:
             elif "bundle" in file:
                 caBundle = file
 
-        print(f"Certificate files found: {crtFiles}")
+        logger.info(f"Certificate files found: {crtFiles}")
 
-        InstallCertificate.configureNginx(domainNames)
+        try:
+            InstallCertificate.configureNginx(domainNames)
+        except Exception as e:
+            logger.error(f"Something went wrong configuring Nginx for the new certificate: {e}")
         
-        InstallCertificate.concatenateCerts(
-            primaryCert, intermediateCerts, caBundle, rootCert, domainName, domainNames
-        )
+        try:
+            InstallCertificate.concatenateCerts(
+                primaryCert, intermediateCerts, caBundle, rootCert, domainName, domainNames
+            )
+        except Exception as e:
+            logger.error(f"Something went wrong concatenating the certificates: {e}")
         
-        # Remove the temporary directory and its contents
-        InstallCertificate.removeDirectoryAndContents(tempDir)
+        try:
+            # Remove the temporary directory and its contents
+            InstallCertificate.removeDirectoryAndContents(tempDir)
+        except Exception as e:
+            logger.error(f"Something went wrong removing the temporary directory: {e}")
 
-        print(f"Certificate placed in /etc/ssl/certs/autossl/{domainName}.crt")
+        logger.info(f"Certificate placed in /etc/ssl/certs/autossl/{domainName}.crt")
         
         # It's important to make sure everything the agent changed
         # is properly set up because nginx crashes in case it's not
         
         # Restart nginx
-        os.system("systemctl restart nginx")
+        try:
+            os.system("systemctl restart nginx")
+        except Exception as e:
+            logger.error(f"Something went wrong restarting the Nginx service: {e}")
 
         return True
             
@@ -111,12 +133,12 @@ class InstallCertificate:
         try:
             res = requests.get(f"{apiEndpoint}/virtual-hosts/get-domain/{domainNames}")
             if res.status_code != 200:
-                raise Exception(f"Error: {res.status_code}")
+                raise Exception(f"Received bad response: {res}")
             else:
                 data = res.json()
                 return data
         except Exception as e:
-            print(f"Error: {e}")
+            logger.error(f"Something went wrong getting the domain: {e}")
             return None
     
     @staticmethod
@@ -124,19 +146,19 @@ class InstallCertificate:
         try:
             res = requests.get(f"{apiEndpoint}/virtual-hosts/has-certificate/{domainNames}")
             if res.status_code != 200:
-                raise Exception(f"Error: {res.status_code}")
+                raise Exception(f"Received bad response: {res}")
             else:
                 data = res.json()
                 return data
         except Exception as e:
-            print(f"Error: {e}")
+            logger.error(f"Something went wrong checking wether a virtual host has a certificate: {e}")
             return None
     
     @staticmethod
     def configureNginx(domainNames):
         try:
             domainData = InstallCertificate.getDomain(domainNames)
-            certificateId = domainData.get("certificate_id", None) # gotta be careful when accesing keys and error handling
+            certificateId = domainData.get("certificate_id", None)
             if certificateId is None:
                 hasCertificate = False
             else:
@@ -186,10 +208,12 @@ class InstallCertificate:
 
     @staticmethod
     def writeDataIntoFile(data, path):
-        with open(path, "wb") as f:
-            f.write(data)
+        try:
+            with open(path, "wb") as f:
+                f.write(data)
+        except Exception as e:
+            logger.error(f"Something went wrong writing data into a file: {e}")
 
-    # Create a temporary directory
     @staticmethod
     def createTempDir():
         try:
@@ -205,7 +229,7 @@ class InstallCertificate:
         try:
             shutil.rmtree(dir)
         except OSError as e:
-            print("Error: %s - %s." % (e.filename, e.strerror))
+            logger.error("Something went wrong deleting  %s - %s." % (e.filename, e.strerror))
 
     @staticmethod
     def extractZip(zipPath, extractPath):
@@ -226,31 +250,35 @@ class InstallCertificate:
                 cleanedData = splitData[0]
             return base64.b64decode(cleanedData)
         except binascii.Error as e:
-            print(f"Error decoding base64")
+            print(f"Error decoding base64: {e}")
             return None
 
     @staticmethod
     def findCrtFiles(searchPath):
         files = []
-        for f in glob.glob(f"{searchPath}/**/*", recursive=True):
-            if f.split(".")[-1] in certificateFileExtensions:
-                files.append(f)
-        return files
+        try:
+            for f in glob.glob(f"{searchPath}/**/*", recursive=True):
+                if f.split(".")[-1] in certificateFileExtensions:
+                    files.append(f)
+            return files
+        except Exception as e:
+            logger.error(f"Something went wrong finding crt files: {e}")
 
     @staticmethod
     def concatenateCerts(
         primaryCert, intermediateCerts, caBundle, rootCert, domainName, domainNames
     ):
         try:
-            if primaryCert is None:
-                print("Error: No primary certificate found")
-                return False
 
             primaryCertData = intermediateCertsData = rootCertData = caBundleData = ""
 
             # Concatenate the primary certificate and intermediate certificates
-            with open(primaryCert, "r") as f:
-                primaryCertData = f.read()
+            try:
+                with open(primaryCert, "r") as f:
+                    primaryCertData = f.read()
+            except Exception as e:
+                logger.error(f"Something went wrong opening the file {primaryCert}. : {e}")
+                return
 
             if len(intermediateCerts) > 0:
                 intermediateCertsData = ""
@@ -282,5 +310,5 @@ class InstallCertificate:
 
             return True
         except Exception as e:
-            print(f"Error concatenating certificates: {e}")
+            logger.error(f"Error concatenating certificates: {e}")
             return False

@@ -7,9 +7,9 @@ from config import logger
 
 
 # A static function to authenticate and get the agent's id
-def authenticate(url):
+def authenticate(apiEndpoint):
     try:
-        identification = Identification(url)
+        identification = Identification(apiEndpoint)
     except Exception as e:
         logger.error(f"Couldn't instantiate the Identification object: {e}")
 

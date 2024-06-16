@@ -23,7 +23,7 @@ class Watcher:
         logger.info(f"Watcher Running in {self.directory}/")
         try:
             while True:
-                time.sleep(1)
+                time.sleep(30)
         except KeyboardInterrupt:
             logger.info("Watcher Stopped by KeyboardInterrupt")
         except Exception as e:
@@ -64,7 +64,7 @@ class FileChangeHandler(FileSystemEventHandler):
         fileNameWithoutExtension = fileName.split(".")[0]
         if fileNameWithoutExtension.isdigit():
             return
-        logger.info(event)
+        # logger.info(event)
         # Run the update
         a = Agent()
         a.update()

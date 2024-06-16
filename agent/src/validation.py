@@ -4,6 +4,9 @@ import subprocess
 """
   Purpose of this class is to group static methods used to validate
   wether the certificate installation processes are properly done
+  
+  *** Currently incomplete and not in use
+  
 """
 
 

@@ -1,8 +1,12 @@
 # Author : Sean Wright
+# Github: https://github.com/SeanWrightSec/x509-parser
+# Licence: Apache-2.0
 import json
 
 from OpenSSL import crypto
 from datetime import datetime
+
+from config import logger
 
 
 def bytes_to_string(bytes):
@@ -31,62 +35,98 @@ class x509Parser:
 
     @staticmethod
     def x509_to_str(x509_cert):
-        cert_str = x509Parser.parse_x509(x509_cert)
+        try:
+            cert_str = x509Parser.parse_x509(x509_cert)
 
-        return json.dumps(cert_str, indent=4)
+            return json.dumps(cert_str, indent=4)
+        except Exception as e:
+            logger.error(f"Something went wrong parsing the x509 certificate: {e}")
 
     @staticmethod
     def parse_x509(cert, ignore_extensions=False):
-        x509_cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
 
-        # Coding the key as PEM and decoding it to string
-        # public_key_obj = x509_cert.get_pubkey()
-        # public_key_pem = crypto.dump_publickey(crypto.FILETYPE_PEM, public_key_obj)
-        # public_key_str = public_key_pem.decode('utf-8')
-        # Pending parsing of the public key
+        try:
+            x509_cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
+        except Exception as e:
+            logger.error(f"Couldn't load the x509 certificate as PEM: {e}")
 
         # Parse the subject and issuer
-        subjectObj = x509_name_to_json(x509_cert.get_subject())
-        subject = {
-            "common_name": subjectObj.get("CN"),
-            "organization": subjectObj.get("O"),
-            "organizational_unit": subjectObj.get("OU"),
-            "country": subjectObj.get("C"),
-            "state": subjectObj.get("ST"),
-            "locality": subjectObj.get("L"),
-        }
-        issuerObj = x509_name_to_json(x509_cert.get_issuer())
-        issuer = {
-            "common_name": issuerObj.get("CN"),
-            "organization": issuerObj.get("O"),
-            "organizational_unit": issuerObj.get("OU"),
-            "country": issuerObj.get("C"),
-            "state": issuerObj.get("ST"),
-            "locality": issuerObj.get("L"),
-        }
+        try:
+            subjectObj = x509_name_to_json(x509_cert.get_subject())
+        except Exception as e:
+            logger.error(
+                f"Something went wrong extracting the subject object from the certificate: {e}"
+            )
 
-        cert = {
-            "subject": subject,
-            "issuer": issuer,
-            "has_expired": x509_cert.has_expired(),
-            "not_after": str(
-                datetime.strptime(
-                    bytes_to_string(x509_cert.get_notAfter()), "%Y%m%d%H%M%SZ"
-                )
-            ),
-            "not_before": str(
-                datetime.strptime(
-                    bytes_to_string(x509_cert.get_notBefore()), "%Y%m%d%H%M%SZ"
-                )
-            ),
-            "serial_number": str(x509_cert.get_serial_number()),
-            "serial_number_hex": hex(x509_cert.get_serial_number()),
-            "signature_algorithm": bytes_to_string(x509_cert.get_signature_algorithm()),
-            "version": x509_cert.get_version(),
-            "pulic_key_length": x509_cert.get_pubkey().bits(),
-        }
+        try:
+            subject = {
+                "common_name": subjectObj.get("CN"),
+                "organization": subjectObj.get("O"),
+                "organizational_unit": subjectObj.get("OU"),
+                "country": subjectObj.get("C"),
+                "state": subjectObj.get("ST"),
+                "locality": subjectObj.get("L"),
+            }
+        except Exception as e:
+            logger.error(
+                f"Something went wrong extracting subject fields from the subject object: {e}"
+            )
+
+        try:
+            issuerObj = x509_name_to_json(x509_cert.get_issuer())
+        except Exception as e:
+            logger.error(
+                f"Something went wrong extracting the issuer object from the certificate: {e}"
+            )
+
+        try:
+            issuer = {
+                "common_name": issuerObj.get("CN"),
+                "organization": issuerObj.get("O"),
+                "organizational_unit": issuerObj.get("OU"),
+                "country": issuerObj.get("C"),
+                "state": issuerObj.get("ST"),
+                "locality": issuerObj.get("L"),
+            }
+        except Exception as e:
+            logger.error(
+                f"Something went wrong extracting the fields from the issuer object: {e}"
+            )
+
+        try:
+            cert = {
+                "subject": subject,
+                "issuer": issuer,
+                "has_expired": x509_cert.has_expired(),
+                "not_after": str(
+                    datetime.strptime(
+                        bytes_to_string(x509_cert.get_notAfter()), "%Y%m%d%H%M%SZ"
+                    )
+                ),
+                "not_before": str(
+                    datetime.strptime(
+                        bytes_to_string(x509_cert.get_notBefore()), "%Y%m%d%H%M%SZ"
+                    )
+                ),
+                "serial_number": str(x509_cert.get_serial_number()),
+                "serial_number_hex": hex(x509_cert.get_serial_number()),
+                "signature_algorithm": bytes_to_string(
+                    x509_cert.get_signature_algorithm()
+                ),
+                "version": x509_cert.get_version(),
+                "pulic_key_length": x509_cert.get_pubkey().bits(),
+            }
+        except Exception as e:
+            logger.error(
+                f"Something went wrong while building the extracted x509 certificate data: {e}"
+            )
 
         if not ignore_extensions:
-            cert.update({"extensions": x509_extensions_to_json(x509_cert)})
+            try:
+                cert.update({"extensions": x509_extensions_to_json(x509_cert)})
+            except Exception as e:
+                logger.error(
+                    f"Something went wrong trying to update the certificates extensions: {e}"
+                )
 
         return cert
