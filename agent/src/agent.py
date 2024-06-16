@@ -46,9 +46,7 @@ class Agent:
         for webServerName in webServers:
             if webServerName == "nginx":
                 try:
-                    self.nginx = NginxUtils(
-                        webServers[webServerName]["configuration_path"]
-                    )
+                    self.nginx = NginxUtils()
                     virtual_hosts = self.nginx.findServerBlocks(
                         webServers[webServerName]
                     )

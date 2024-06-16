@@ -5,9 +5,8 @@ from certifcateUtils import CertificateUtils
 
 
 class NginxUtils:
-    def __init__(self, file_path):
+    def __init__(self):
         self.createCertDirs()
-        self.file_path = file_path
 
     def createCertDirs(self):
         if not os.path.exists("/etc/ssl/certs/autossl"):
@@ -30,14 +29,10 @@ class NginxUtils:
         serverBlocks = []
         inServerBlock = False
 
-        # A dictionary to save changes to write back to the file
         replacements = {}
-
         invalidCert = False  # When an invalidCert is found it's corresponding server block is removed...
 
-        blockBuffer = (
-            ""  # A buffer to save the server block in case it has a certificate
-        )
+        blockBuffer = ""
 
         for line in file.readlines():
 
@@ -65,10 +60,6 @@ class NginxUtils:
 
                 if level == 0 and inServerBlock:
                     blockBuffer += line
-                    """ print(
-                        f"When building the server block: {certificatePath}, {certPrivateKeyPath}"
-                    )"""
-                    # print(f"Server block: {blockBuffer}")
                     # Currently: If the certificate is not considered valid the virtual host is not saved
                     # blockBuffer contains the entire server block, I could add it to replacements and remove it
                     # if invalid...
@@ -86,7 +77,7 @@ class NginxUtils:
                             root=root,
                             blockBuffer=blockBuffer,
                         )
-                        if response == False:
+                        if not response:
                             replacements[blockBuffer] = ""
                         else:
                             serverBlocks.append(completeServerBlock)
@@ -150,7 +141,7 @@ class NginxUtils:
                                 .strip("\n")
                                 .strip(";")
                             )
-                            # print(f"found 'ssl_certificate_key' in line: {value}")
+
                             if certPrivateKeyPath is not None:
                                 print(
                                     "Warning: found multiple certificate keys in the same server block"
@@ -187,11 +178,9 @@ class NginxUtils:
                         else:
                             continue
                 if "root" in line:
-                    # print("found 'root' in line")
                     value = self.getDirectiveValues("root", line)
                     root = value
                 blockBuffer += line
-        # print(f"Replacements: {replacements}")
         if len(replacements) == 0:
             print(f"No changes were made to {fileName} configuration")
         else:
@@ -228,12 +217,10 @@ class NginxUtils:
                 if certificate is not None:
                     certificate["server_block"] = blockBuffer
                     certificate["domain_names"] = serverNames
-                # print(f"Added a server block: {certificate}")
             except Exception as e:
                 print(f"Error: {e}")
-                return False  # If certificate parsing fails straight up don't save the virtual host
                 certificate = None
-        # print(f"When creating the virtual host: {certificatePath} {certPrivateKeyPath}")
+                return False  # If certificate parsing fails straight up don't save the virtual host
         virtual_host = {
             "vh_ips": listeningAddresses,
             "domain_names": serverNames,
@@ -248,6 +235,10 @@ class NginxUtils:
             "configuration_file": fileName,
         }
         return virtual_host
+
+    """
+        This function summarizes the parsing of a line to extract the value for the directive
+    """
 
     def getDirectiveValues(self, directive, line):
         lineSplit = line.split(" ")
