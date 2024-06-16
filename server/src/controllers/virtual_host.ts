@@ -296,6 +296,14 @@ const updateVirtualHost = async (
     domain.web_server_id = virtualHost.web_server_id;
   }
 
+  /*
+  
+    A virtual host can only correspond to one domain, so here
+    I shoould check if the virtual host already belongs to 
+    one before adding it... 
+  
+  */
+
   // Make sure the current virtual host id is in the corresponding domain
   if (
     virtualHost._id &&

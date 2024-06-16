@@ -94,11 +94,6 @@ class InstallCertificate:
                 caBundle = file
 
         logger.info(f"Certificate files found: {crtFiles}")
-
-        try:
-            InstallCertificate.configureNginx(domainNames)
-        except Exception as e:
-            logger.error(f"Something went wrong configuring Nginx for the new certificate: {e}")
         
         try:
             InstallCertificate.concatenateCerts(
@@ -114,6 +109,11 @@ class InstallCertificate:
             logger.error(f"Something went wrong removing the temporary directory: {e}")
 
         logger.info(f"Certificate placed in /etc/ssl/certs/autossl/{domainName}.crt")
+
+        try:
+            InstallCertificate.configureNginx(domainNames)
+        except Exception as e:
+            logger.error(f"Something went wrong configuring Nginx for the new certificate: {e}")
         
         # It's important to make sure everything the agent changed
         # is properly set up because nginx crashes in case it's not
@@ -126,8 +126,6 @@ class InstallCertificate:
 
         return True
             
-    
-    
     @staticmethod
     def getDomain(domainNames):
         try:
@@ -146,40 +144,18 @@ class InstallCertificate:
         try:
             domainData = InstallCertificate.getDomain(domainNames)
             certificateId = domainData.get("certificate_id", None)
-            if certificateId is None:
-                hasCertificate = False
-            else:
-                hasCertificate = True
+            hasCertificate = False if certificateId is None else True  
+            logger.info(f"Does {domainNames} have a certificate? -> {hasCertificate}")
         except Exception as e:
-            print(f"Something went wrong trying to access domain data: {e}")
+            logger.error(f"Something went wrong trying to access domain data: {e}")
             return False        
         try:
             root = f"\nroot {domainData["root"]};"
-        except Exception as e:
+        except KeyError:
             root = ''
     
         domainName = domainNames.split(" ")[0]
-
-        # Change the name of the current certificate either to the certificate_id or the current date
-        if hasCertificate:
-            try:
-                certificatePath = domainData["certificate_path"]
-                privateKeyPath = domainData["certificate_key_path"]
-            except Exception as e:
-                print(f"Couldnt retrieve necessary certificate data: {e}")
-                return False
-            try:
-                newPath = f"{certificatePath}.{certificateId}" # New name of the old certificate
-                shutil.move(certificatePath, newPath)
-                print(f"Moved {certificatePath} to {certificatePath}.{certificateId}")
-                # Maybe here make a copy of the private key with the name {pkeyPath}.{certificateId} in case different keys are used for different certs for rollback
-                try:
-                    shutil.copy2(privateKeyPath,f"{privateKeyPath}.{certificateId}")
-                except Exception as e:
-                    print(f"Error creating a copy of the private key: {e}")
-            except Exception as e:
-                print(f"Error changing the name of the existing certificate: {e}")
-        else:
+        if hasCertificate is False:
             try:
                 # Write the new ssl server block to the nginx configuration file
                 with open(f"/etc/nginx/sites-available/{domainData["configuration_file"]}", "r") as f:
@@ -189,7 +165,7 @@ class InstallCertificate:
                 with open(f"/etc/nginx/sites-available/{domainData["configuration_file"]}", "w") as f:
                     f.write(newFileData)
             except Exception as e:
-                print(f"Error writing the new ssl server block to the configuration file: {e}")
+                logger.error(f"Error writing the new ssl server block to the configuration file: {e}")
                 
         
 
@@ -224,7 +200,7 @@ class InstallCertificate:
             with ZipFile(zipPath) as zObject:
                 zObject.extractall(path=extractPath)
         except Exception as e:
-            print(f"Error extracting zip: {e}")
+            logger.error(f"Error extracting zip: {e}")
 
     @staticmethod
     def decodeBase64(data):
@@ -237,7 +213,7 @@ class InstallCertificate:
                 cleanedData = splitData[0]
             return base64.b64decode(cleanedData)
         except binascii.Error as e:
-            print(f"Error decoding base64: {e}")
+            logger.error(f"Error decoding base64: {e}")
             return None
 
     @staticmethod
@@ -280,6 +256,33 @@ class InstallCertificate:
             if caBundle is not None:
                 with open(caBundle, "r") as f:
                     caBundleData = f.read()
+                    
+            try:
+                domainData = InstallCertificate.getDomain(domainNames)
+                certificateId = domainData.get("certificate_id", None)
+                hasCertificate = False if certificateId is None else True  
+            except Exception as e:
+                logger.error(f"Something went wrong trying to access domain data: {e}")
+                return False  
+                    
+            if hasCertificate:
+                try:
+                    certificatePath = domainData["certificate_path"]
+                    privateKeyPath = domainData["certificate_key_path"]
+                except Exception as e:
+                    logger.error(f"Couldnt retrieve necessary certificate data: {e}")
+                    return False
+                try:
+                    newPath = f"{certificatePath}.{certificateId}" # New name of the old certificate
+                    shutil.move(certificatePath, newPath)
+                    logger.info(f"Moved {certificatePath} to {certificatePath}.{certificateId}")
+                    # Maybe here make a copy of the private key with the name {pkeyPath}.{certificateId} in case different keys are used for different certs for rollback
+                    try:
+                        shutil.copy2(privateKeyPath,f"{privateKeyPath}.{certificateId}")
+                    except Exception as e:
+                        logger.error(f"Error creating a copy of the private key: {e}")
+                except Exception as e:
+                    logger.error(f"Error changing the name of the existing certificate: {e}")
             
             installPath = f"/etc/ssl/certs/autossl/{domainName}.crt"
 

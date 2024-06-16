@@ -76,7 +76,7 @@ class Rabbit:
             elif "csr" in typeOfRequest:
                 CertificateSigningRequest.sendNewCsr(parsedBody)
             elif "rollback" in typeOfRequest:
-                Rollback.rollback()
+                Rollback.rollback(parsedBody)
             else:
                 logger.error(f"Unknown request type: {typeOfRequest}")
                 return False

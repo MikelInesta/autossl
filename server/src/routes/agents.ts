@@ -66,7 +66,7 @@ agentRouter.get("/new/:ip", async (req, res) => {
 agentRouter.post("/update", async (req, res) => {
   try {
     const data = req.body;
-    console.log(data);
+    console.log("/agents/update");
     const updateResult = await update(data);
     res.sendStatus(200);
   } catch (e: any) {

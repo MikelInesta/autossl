@@ -74,18 +74,36 @@ virtualHostRouter.post("/update/install-status", async (req, res) => {
 });
 
 virtualHostRouter.get("/get-domain/:domainNames", async (req, res) => {
+  /*
+    Gotta return (if exists) the domain with a certificate
+  */
   const domainNames = req.params.domainNames;
   if (!domainNames) {
     res.status(400).send("Domain names are required");
     return;
   }
   try {
-    const domain = await VirtualHost.findOne({ domain_names: domainNames });
-    if (!domain) {
-      res.status(404).send("Domain not found");
-      return;
+    const domains = await VirtualHost.find({ domain_names: domainNames });
+
+    let foundDomain = null;
+
+    domains.forEach((domain) => {
+      if (domain.certificate_id) {
+        foundDomain = domain;
+      }
+    });
+
+    if (foundDomain == null) {
+      if (domains.length < 1) {
+        res.sendStatus(404);
+        return;
+      }
+
+      // This means no virtual host with a certificate id was found so I just send one
+      foundDomain = domains.pop();
     }
-    res.status(200).json(domain);
+
+    res.status(200).json(foundDomain);
   } catch (e: any) {
     res.sendStatus(500);
     return;
