@@ -20,6 +20,8 @@ const certificateRouter = express.Router();
     2- Related to their domain
 */
 certificateRouter.post("/new", async (req, res) => {
+  console.log("/certificates/new");
+
   try {
     const body = req.body;
     const cert = req.body.cert;
@@ -28,8 +30,6 @@ certificateRouter.post("/new", async (req, res) => {
       res.sendStatus(400);
       return;
     }
-
-    console.log(`Received cert:${cert} and domain name: ${domainName}`);
 
     const domain = await Domain.findOne({
       domain_names: { $regex: new RegExp(domainName) },
@@ -56,22 +56,25 @@ certificateRouter.post("/new", async (req, res) => {
 
     res.sendStatus(200);
   } catch (e: any) {
-    console.log(
-      `routes.certificates:Error:Something went wrong while registering a new certificate: ${e}`
-    );
+    console.log(`Error at '/certificates/new' :${e}`);
     res.sendStatus(500);
   }
 });
 
 /*
   Forwards the required data to the agent for rolling back to an old certificate
+  TODO: Move this into the controller
 */
 certificateRouter.get("/rollback/:certificateId", async (req, res) => {
+  const certificateId = req.params.certificateId;
+  console.log(`/certificates/rollback/${certificateId}`);
+
   try {
-    const certificateId = req.params.certificateId;
     if (!certificateId) {
       throw new Error("Certificate ID was not provided");
     }
+
+    console.log(`/certificates/rollback/${certificateId}`);
 
     const wantedCertificate = await Certificate.findById(certificateId);
 
@@ -140,9 +143,7 @@ certificateRouter.get("/rollback/:certificateId", async (req, res) => {
 
     res.sendStatus(200);
   } catch (e) {
-    console.log(
-      `Something went wrong while sending the rollback request to the agent: ${e}.`
-    );
+    console.log(`Error at '/certificates/rollback/${certificateId}' :${e}`);
     res.status(500).send(e);
   }
 });
@@ -151,8 +152,9 @@ certificateRouter.get("/rollback/:certificateId", async (req, res) => {
   Returns the certificates associated to the domain with the given id
 */
 certificateRouter.get("/domain-id/:domainId", async (req, res) => {
+  const domainId = req.params.domainId;
+  console.log(`/certificates/domain-id/${domainId}`);
   try {
-    const domainId = req.params.domainId;
     if (!domainId) {
       res.sendStatus(400);
       return;
@@ -175,17 +177,16 @@ certificateRouter.get("/domain-id/:domainId", async (req, res) => {
 
     res.status(200).send(certificates);
   } catch (e: any) {
-    console.log(
-      `Something went wrong trying to get the certificates for a domain: ${e}`
-    );
+    console.log(`Error at '/certificates/domain-id/${domainId}': ${e}`);
     res.sendStatus(500);
   }
 });
 
 // Endpoint for the client to request a CSR
 certificateRouter.get("/csr/:domain", async (req, res) => {
+  const domain = req.params.domain;
+  console.log(`/certificates/csr/${domain}`);
   try {
-    const domain = req.params.domain;
     if (!domain) {
       res.status(400).send("A domain name is required to request a CSR");
       return;
@@ -193,13 +194,14 @@ certificateRouter.get("/csr/:domain", async (req, res) => {
     // Get the CSR (function in the certificate controller)
     // csr = await getCSR(domain);
   } catch (e: any) {
-    console.log(e.message);
+    console.log(`Error at '/certificates/csr${domain}': ${e}`);
     res.sendStatus(500);
   }
 });
 
 certificateRouter.get("/id/:cerificateId", async (req, res) => {
   const certificateId = req.params.cerificateId;
+  console.log(`/certificates/id/${certificateId}`);
   if (!certificateId) {
     res.status(400).send("certificate ID is required");
     return;
@@ -212,7 +214,7 @@ certificateRouter.get("/id/:cerificateId", async (req, res) => {
       res.status(200).json(certificate);
     }
   } catch (e: any) {
-    console.error("Error getting the certificate:", e.message);
+    console.log(`Error at '/certificates/id/${certificateId}': ${e}`);
     res.sendStatus(500);
   }
 });

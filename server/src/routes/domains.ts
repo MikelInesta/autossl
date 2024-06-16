@@ -11,14 +11,13 @@ const domainRouter = express.Router();
   Returns the domains with the given parent web server id
 */
 domainRouter.get("/webserverid/:webServerId", async (req, res) => {
+  const webServerId = req.params.webServerId;
+  console.log(`/domains/webserverid/${webServerId}`);
   try {
-    const webServerId = req.params.webServerId;
     if (!webServerId) {
       res.sendStatus(404);
       return;
     }
-
-    console.log(`/webserverid/${webServerId}`);
 
     const domains = await Domain.find({ web_server_id: webServerId });
 
@@ -29,9 +28,7 @@ domainRouter.get("/webserverid/:webServerId", async (req, res) => {
 
     res.status(200).send(domains);
   } catch (e: any) {
-    console.log(
-      `Something went wrong trying to retrieve domains with the given web server id`
-    );
+    console.log(`Error at '/domains/webserverid/${webServerId}': ${e}`);
     res.sendStatus(500);
   }
 });
@@ -40,8 +37,9 @@ domainRouter.get("/webserverid/:webServerId", async (req, res) => {
   Returns the certificates associated to the domain with this domain_names
 */
 domainRouter.get("/certificates/:domainNames", async (req, res) => {
+  const domainNames = req.params.domainNames;
+  console.log(`/domains/certificates/${domainNames}`);
   try {
-    const domainNames = req.params.domainNames;
     if (!domainNames) {
       res.sendStatus(404);
       return;
@@ -62,9 +60,7 @@ domainRouter.get("/certificates/:domainNames", async (req, res) => {
     }
     res.status(200).send(certificates);
   } catch (e: any) {
-    console.log(
-      `Something went wrong retrieving the certificates: ${e.message}`
-    );
+    console.log(`Error at '/domains/certificates/${domainNames}': ${e}`);
     res.sendStatus(500);
   }
 });

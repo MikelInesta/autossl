@@ -8,8 +8,8 @@ const agentRouter = express.Router();
 
 agentRouter.post("/csr", async (req, res) => {
   try {
+    console.log("/agents/csr");
     const data = req.body;
-    console.log(data);
     const id = data["virtual_host_id"] || false;
     const csr = data["csr"] || false;
     if (await addCsr(id, csr)) {
@@ -18,13 +18,14 @@ agentRouter.post("/csr", async (req, res) => {
       throw new Error("Something went wrong adding the csr");
     }
   } catch (e: any) {
+    console.log(`Error at '/agents/csr' :${e}`);
     res.sendStatus(500);
   }
 });
 
-// maybe hide the agent id
-
 agentRouter.post("/validate", async (req, res) => {
+  console.log("/agents/validate");
+
   const body = req.body;
   const id = body.id;
 
@@ -33,7 +34,6 @@ agentRouter.post("/validate", async (req, res) => {
     return;
   }
 
-  console.log("validating with id: ", id);
   // I'm testing handling async without await here
   Agent.findOne({ _id: id })
     .then((result) => {
@@ -46,7 +46,7 @@ agentRouter.post("/validate", async (req, res) => {
       }
     })
     .catch((e) => {
-      console.log(e);
+      console.log(`Error at '/agents/validate' :${e}`);
       res.sendStatus(500);
     });
 });
@@ -54,6 +54,8 @@ agentRouter.post("/validate", async (req, res) => {
 agentRouter.get("/new/:ip", async (req, res) => {
   try {
     const ip = req.params.ip;
+    console.log(`/agents/new/${ip}`);
+
     const newResult = await createNewAgent(ip);
     if (!newResult) {
       throw new Error("Failed to create new agent");
@@ -61,7 +63,7 @@ agentRouter.get("/new/:ip", async (req, res) => {
       res.json(newResult).status(200);
     }
   } catch (e: any) {
-    console.log(e.message);
+    console.log(`Error at '/agents/new/${req.params.ip}' :${e}`);
     res.sendStatus(500);
   }
 });
@@ -74,10 +76,10 @@ agentRouter.post("/update", async (req, res) => {
   try {
     const data = req.body;
     console.log("/agents/update");
-    const updateResult = await update(data);
+    await update(data);
     res.sendStatus(200);
   } catch (e: any) {
-    console.error("Error receiving the agent update:", e);
+    console.log(`Error at '/agents/update' :${e}`);
     res.status(500).send({
       error: e.message,
       details: e,
