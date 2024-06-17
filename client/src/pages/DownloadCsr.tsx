@@ -1,60 +1,83 @@
-import { Alert, Box, CircularProgress, Paper } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Breadcrumbs,
+  CircularProgress,
+  Grid,
+  Link,
+  Paper,
+  Typography,
+} from "@mui/material";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { IDomain } from "../types/models";
+import { IDomain, IServer, IVirtualHost, IWebServer } from "../types/models";
+import {
+  fetchDomain,
+  fetchServer,
+  fetchSslVirtualHost,
+  fetchWebServer,
+} from "../requests/FetchFunctions";
 
 const DownloadCsr = () => {
-  const { domainId } = useParams();
+  const { domainId, serverId, webServerId } = useParams();
 
   const [domain, setDomain] = useState<IDomain | null>(null);
+  const [server, setServer] = useState<IServer | null>(null);
+  const [webServer, setWebServer] = useState<IWebServer | null>(null);
+  const [sslVirtualHost, setSslVirtualHost] = useState<IVirtualHost | null>(
+    null
+  );
+
+  const [sslVhErr, setSslVhErr] = useState<string>("");
+  const [loadingSsl, setLoadingSsl] = useState<boolean>(true);
+
   const [loading, setLoading] = useState<boolean>(true);
-  const [err, setErr] = useState<boolean>(false);
-  const [csrData, setCsrData] = useState(null);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    const fetchCsr = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/domains/getCsr/${domainId}`
-        );
-        if (response.status != 200) {
-          throw new Error(response.statusText);
-        }
-        const result = await response.json();
-        if (result["csr"]) {
-          console.log(result["csr"]);
-        } else {
-          throw new Error("Did not receive csr data");
-        }
-        setCsrData(result["csr"]);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setErr(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchDomain = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/domains/id/${domainId}`
-        );
-        if (response.status != 200) {
-          throw new Error(response.statusText);
-        }
-        const result = await response.json();
-        setDomain(result);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchDomain().then(fetchCsr);
-  }, [domainId]);
+    domainId && fetchDomain(setDomain, setLoading, setError, domainId);
+    domainId &&
+      fetchSslVirtualHost(
+        setSslVirtualHost,
+        setLoadingSsl,
+        setSslVhErr,
+        domainId
+      );
+    serverId && fetchServer(setServer, setLoading, setError, serverId);
+    webServerId &&
+      fetchWebServer(setWebServer, setLoading, setError, webServerId);
+  }, []);
 
   return (
     <>
+      <Grid item xs={12} margin={3}>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link underline="hover" color="inherit" href="/">
+            Home
+          </Link>
+          <Link underline="hover" color="inherit" href="/servers">
+            Servers
+          </Link>
+          <Link underline="hover" color="inherit" href={`/servers/${serverId}`}>
+            {server?.server_name || ""}
+          </Link>
+          <Link
+            underline="hover"
+            color="inherit"
+            href={`/servers/${serverId}/web-servers/${webServer?._id}`}
+          >
+            {webServer?.web_server_name || ""}
+          </Link>
+          <Link
+            underline="hover"
+            color="inherit"
+            href={`/servers/${serverId}/web-servers/${webServer?._id}/domains/${domain?._id}`}
+          >
+            {domain?.domain_names || ""}
+          </Link>
+          <Typography color="text.primary">CSR</Typography>
+        </Breadcrumbs>
+      </Grid>
       <Box
         sx={{
           display: "flex",
@@ -66,23 +89,15 @@ const DownloadCsr = () => {
           Certificate Signing Request for {domain && domain.domain_names}
         </h2>
       </Box>
-      <Paper
-        sx={{
-          padding: 2,
-          margin: 2,
-        }}
-      >
-        {loading && <CircularProgress />}
-        {err && (
-          <Alert severity="warning">
-            Couldn't retrieve the Certificate Server Request, this could mean
-            that the agent is still processing the request or a request for the
-            creation of one has not yet been submitted. Please try again later.
-            later.
-          </Alert>
-        )}
-        {!err && !loading && <pre>{csrData}</pre>}
-      </Paper>
+      <Grid container justifyContent={"center"}>
+        <Grid item xs={8} component={Paper} padding={3} elevation={5}>
+          {loading && <CircularProgress />}
+          {error && <Alert severity="warning">{error}</Alert>}
+          {!error && !loading && sslVirtualHost && (
+            <pre>{sslVirtualHost.csr}</pre>
+          )}
+        </Grid>
+      </Grid>
     </>
   );
 };

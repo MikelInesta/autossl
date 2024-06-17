@@ -4,7 +4,6 @@ import Home from "./pages/Home";
 import NoPage from "./pages/NoPage";
 import Servers from "./pages/Servers";
 import * as React from "react";
-import VirtualHosts from "./pages/VirtualHosts";
 import CreateCsr from "./pages/CreateCsr";
 import DownloadCsr from "./pages/DownloadCsr";
 import InstallCertificate from "./pages/InstallCertificate";
@@ -23,10 +22,6 @@ const App: React.FC = () => {
           <Route
             path="/servers/:serverId/web-servers/:webServerId"
             Component={WebServer}
-          />
-          <Route
-            path="/servers/:serverId/web-servers/:webServerId/domains"
-            Component={VirtualHosts}
           />
           <Route
             path="/servers/:serverId/web-servers/:webServerId/domains/:domainId/csr"

@@ -6,7 +6,6 @@ const DomainInfo = ({ domain }: { domain: IDomain | null }) => {
     <Box>
       {domain != null && (
         <>
-          <h1>{domain.domain_names}</h1>
           <p>
             <strong>Domain ID: </strong>
             {domain._id}

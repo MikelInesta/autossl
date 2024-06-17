@@ -9,7 +9,7 @@ const Certificate = () => {
   const [certificate, setCertificate] = useState<ICertificate | null>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [err, setErr] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     const fetchCertificate = async () => {
@@ -18,30 +18,28 @@ const Certificate = () => {
           `${import.meta.env.VITE_API_URL}/certificates/id/${certificateId}`
         );
         if (response.status != 200) {
-          throw new Error(response.statusText);
+          throw new Error(`Response: ${response}`);
         }
         const result = await response.json();
         setCertificate(result);
       } catch (error) {
-        console.error("Error fetching data:", error);
-        setErr(true);
+        console.error("Error fetching certificate data:", error);
+        setError(
+          "Something went wrong while trying to fetch the certificates data."
+        );
       } finally {
         setLoading(false);
       }
     };
 
     fetchCertificate();
-  }, [certificateId]);
+  }, []);
 
   return (
     <>
       {loading && <CircularProgress />}
-      {err && (
-        <Alert severity="warning">
-          Couldn't retrieve this certificates information from the backend.
-        </Alert>
-      )}
-      {!err && !loading && (
+      {error && <Alert severity="warning">{error}</Alert>}
+      {!error && !loading && (
         <Grid container spacing={2} padding={5}>
           {certificateId && serverId && webServerId && (
             <>

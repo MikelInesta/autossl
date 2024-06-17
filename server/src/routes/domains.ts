@@ -7,6 +7,45 @@ import { installCertificate } from "../controllers/virtual_host";
 
 const domainRouter = express.Router();
 
+/*
+  Returns the virtual host associated to this domain that has
+  a certificate (if it exists) otherwise it returns 404
+*/
+domainRouter.get("/ssl-virtual-host/:domainId", async (req, res) => {
+  const domainId = req.params.domainId;
+  console.log(`/domains/ssl-virtual-host/${domainId}`);
+  try {
+    if (!domainId) {
+      res.sendStatus(400);
+      return;
+    }
+
+    const domain = await Domain.findById(domainId);
+
+    if (!domain) {
+      res.sendStatus(400);
+      return;
+    }
+
+    const virtualHost = await VirtualHost.findOne({
+      _id: { $in: domain.virtual_host_ids },
+      certificate_id: { $exists: true, $ne: null },
+    });
+
+    if (virtualHost) {
+      res.status(200).send(virtualHost);
+      return;
+    } else {
+      res.sendStatus(404);
+      return;
+    }
+  } catch (e: any) {
+    console.log(`Error at '/domains/ssl-virtual-host/${domainId}': ${e}`);
+    res.sendStatus(500);
+    return;
+  }
+});
+
 /* 
   Returns the domains with the given parent web server id
 */
@@ -120,7 +159,11 @@ domainRouter.get("/:domainNames", async (req, res) => {
   }
   try {
     const domain = await Domain.findOne({ domain_names: domainNames });
-    res.status(200).json(domain);
+    if (domain) {
+      res.status(200).json(domain);
+    } else {
+      res.sendStatus(404);
+    }
   } catch (e: any) {
     res.sendStatus(500);
     return;

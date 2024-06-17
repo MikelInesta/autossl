@@ -13,57 +13,20 @@ import { useParams } from "react-router-dom";
 import { IServer, IWebServer } from "../types/models";
 import WebServerInfo from "../components/WebServerInfo";
 import DomainTable from "../components/DomainTable";
+import { fetchServer, fetchWebServer } from "../requests/FetchFunctions";
 
 const WebServer = () => {
   const { serverId, webServerId } = useParams();
-  const [webServer, setwebServer] = useState<IWebServer | null>(null);
+  const [webServer, setWebServer] = useState<IWebServer | null>(null);
   const [server, setServer] = useState<IServer | null>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [err, setErr] = useState<boolean>(false);
+  const [err, setErr] = useState<string>("");
 
   useEffect(() => {
-    const fetchWebServer = async () => {
-      console.log("Fetching web server data");
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/web-servers/${webServerId}`
-        );
-        if (response.status != 200) {
-          throw new Error(response.statusText);
-        } else {
-          const result = await response.json();
-          setwebServer(result);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setErr(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Fetch the server data too for the breadcrumb... wasting resources lol
-    const fetchServer = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/servers/${serverId}`
-        );
-        if (response.status != 200) {
-          throw new Error(response.statusText);
-        }
-        const result = await response.json();
-        setServer(result);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setErr(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWebServer();
-    fetchServer();
+    webServerId &&
+      fetchWebServer(setWebServer, setLoading, setErr, webServerId);
+    serverId && fetchServer(setServer, setLoading, setErr, serverId);
   }, []);
 
   return (
@@ -85,11 +48,7 @@ const WebServer = () => {
         </Breadcrumbs>
       </Grid>
       {loading && <CircularProgress />}
-      {err && (
-        <Alert severity="warning">
-          Couldn't retrieve this web server data from the backend.
-        </Alert>
-      )}
+      {err && <Alert severity="warning">{err}</Alert>}
       {!err && !loading && (
         <Grid container spacing={2}>
           {serverId && webServerId && (

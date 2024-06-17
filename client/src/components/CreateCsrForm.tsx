@@ -40,7 +40,7 @@ const CreateCsrForm = ({
     };
 
     fetchDomain();
-  }, [domainId]);
+  }, []);
 
   const sendFormData = async () => {
     try {

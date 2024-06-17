@@ -34,7 +34,7 @@ const WebServerTable = ({ serverId }: { serverId: string }) => {
     };
 
     fetchWebServers();
-  }, [serverId]);
+  }, []);
 
   return (
     <>

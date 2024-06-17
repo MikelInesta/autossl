@@ -13,35 +13,18 @@ import { useParams } from "react-router-dom";
 import { IServer } from "../types/models";
 import WebServerTable from "../components/WebServerTable";
 import ServerInfo from "../components/ServerInfo";
+import { fetchServer } from "../requests/FetchFunctions";
 
 const Server = () => {
   const { serverId } = useParams();
   const [server, setServer] = useState<IServer | null>(null);
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [err, setErr] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    const fetchServer = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/servers/${serverId}`
-        );
-        if (response.status != 200) {
-          throw new Error(response.statusText);
-        }
-        const result = await response.json();
-        setServer(result);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setErr(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchServer();
-  }, [serverId]);
+    serverId && fetchServer(setServer, setLoading, setError, serverId);
+  }, []);
 
   return (
     <>
@@ -59,12 +42,8 @@ const Server = () => {
         </Breadcrumbs>
       </Grid>
       {loading && <CircularProgress />}
-      {err && (
-        <Alert severity="warning">
-          Couldn't retrieve this domains information from the backend.
-        </Alert>
-      )}
-      {!err && !loading && (
+      {error && <Alert severity="warning">{error}</Alert>}
+      {!error && !loading && (
         <Grid container spacing={2}>
           {serverId && (
             <>

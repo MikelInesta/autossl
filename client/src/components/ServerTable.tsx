@@ -7,33 +7,26 @@ import {
   TableHead,
   TableRow,
   Alert,
+  CircularProgress,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { IServer } from "../types/models";
+import { fetchServers } from "../requests/FetchFunctions";
 
 const ServerTable: React.FC = () => {
   const [servers, setServers] = useState<IServer[]>([]);
-  const [errorAlert, setErrorAlert] = useState<String>("");
+  const [error, setError] = useState<String>("");
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const fetchServers = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/servers`);
-        const data = await response.json();
-        setServers(data);
-      } catch (error) {
-        console.error("Error fetching servers:", error);
-        setErrorAlert("Something went wrong fetching the servers.");
-      }
-    };
-
-    fetchServers();
+    fetchServers(setServers, setLoading, setError);
   }, []);
 
   return (
     <>
-      {errorAlert.length > 0 && <Alert severity="error">{errorAlert}</Alert>}
-      {servers.length > 0 && (
+      {loading && <CircularProgress />}
+      {error.length > 0 && <Alert severity="error">{error}</Alert>}
+      {!loading && !error && servers.length > 0 && (
         <TableContainer>
           <Table>
             <TableHead>

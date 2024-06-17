@@ -1,18 +1,22 @@
 import { Button, Grid } from "@mui/material";
 import { Link } from "react-router-dom";
+import { IVirtualHost } from "../types/models";
 
 const DomainOptions: React.FC<{
   serverId: string;
   webServerId: string;
   domainId: string;
+  sslVirtualHost: IVirtualHost | null;
 }> = ({
   serverId,
   webServerId,
   domainId,
+  sslVirtualHost,
 }: {
   serverId: string;
   webServerId: string;
   domainId: string;
+  sslVirtualHost: IVirtualHost | null;
 }) => {
   return (
     <Grid
@@ -33,17 +37,19 @@ const DomainOptions: React.FC<{
           Request a CSR
         </Button>
       </Grid>
-      <Grid item>
-        <Button
-          variant="contained"
-          color="primary"
-          component={Link}
-          to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domainId}/downloadCsr`}
-          sx={{ color: "white" }}
-        >
-          Show CSR
-        </Button>
-      </Grid>
+      {sslVirtualHost && sslVirtualHost.csr && (
+        <Grid item>
+          <Button
+            variant="contained"
+            color="primary"
+            component={Link}
+            to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domainId}/downloadCsr`}
+            sx={{ color: "white" }}
+          >
+            Show CSR
+          </Button>
+        </Grid>
+      )}
       <Grid item>
         <Button
           variant="contained"

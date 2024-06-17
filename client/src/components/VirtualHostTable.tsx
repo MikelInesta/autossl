@@ -50,7 +50,7 @@ const VirtualHostTable: React.FC<{
     };
 
     fetchVirtualHosts();
-  });
+  }, []);
 
   return (
     virtualHosts.length > 0 && (

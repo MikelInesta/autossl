@@ -37,7 +37,7 @@ const DomainTable: React.FC<{ serverId: string; webServerId: string }> = ({
     };
 
     fetchDomains();
-  });
+  }, []);
 
   return (
     domains.length > 0 && (
