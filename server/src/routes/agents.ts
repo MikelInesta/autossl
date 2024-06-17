@@ -27,7 +27,7 @@ agentRouter.post("/validate", async (req, res) => {
   console.log("/agents/validate");
 
   const body = req.body;
-  const agentId = body.agentId;
+  const agentId = body.id;
 
   if (!body || !agentId) {
     res.sendStatus(400);
