@@ -1,4 +1,13 @@
-import { Alert, CircularProgress, Grid } from "@mui/material";
+import {
+  Alert,
+  Breadcrumbs,
+  CircularProgress,
+  Divider,
+  Grid,
+  Link,
+  Paper,
+  Typography,
+} from "@mui/material";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { IServer } from "../types/models";
@@ -36,6 +45,19 @@ const Server = () => {
 
   return (
     <>
+      <Grid item xs={12} margin={3}>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link underline="hover" color="inherit" href="/">
+            Home
+          </Link>
+          <Link underline="hover" color="inherit" href="/servers">
+            Servers
+          </Link>
+          <Typography color="text.primary">
+            {server?.server_name || ""}
+          </Typography>
+        </Breadcrumbs>
+      </Grid>
       {loading && <CircularProgress />}
       {err && (
         <Alert severity="warning">
@@ -46,14 +68,42 @@ const Server = () => {
         <Grid container spacing={2}>
           {serverId && (
             <>
-              <Grid item md={12}>
-                <Grid container spacing={2} direction={"row"}>
-                  <Grid item xs={12}>
-                    <ServerInfo server={server} />
+              <Grid item container direction={"row"} md={12}>
+                <Grid
+                  item
+                  xs={12}
+                  sm={10}
+                  md={8}
+                  lg={6}
+                  justifySelf={"left"}
+                  component={Paper}
+                  margin={1}
+                  padding={1}
+                  elevation={3}
+                  square={true}
+                >
+                  <ServerInfo server={server} />
+                </Grid>
+
+                <Grid item container xs={12} margin={3}>
+                  <Divider sx={{ width: "100%" }} />
+                </Grid>
+
+                <Grid item container xs={12} justifyContent={"center"}>
+                  <Grid item sm={2}>
+                    <h2>Web Servers</h2>
                   </Grid>
-                  <Grid item xs={12}>
-                    <WebServerTable serverId={serverId} />
-                  </Grid>
+                </Grid>
+
+                <Grid
+                  item
+                  component={Paper}
+                  xs={12}
+                  margin={1}
+                  elevation={3}
+                  square={true}
+                >
+                  <WebServerTable serverId={serverId} />
                 </Grid>
               </Grid>
             </>

@@ -6,19 +6,10 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Alert,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-
-interface IServer {
-  _id: string;
-  server_name: string;
-  server_ip: string;
-  operating_system: string;
-  agent_id: string;
-  //old: boolean;
-}
+import { IServer } from "../types/models";
 
 const ServerTable: React.FC = () => {
   const [servers, setServers] = useState<IServer[]>([]);
@@ -36,14 +27,14 @@ const ServerTable: React.FC = () => {
       }
     };
 
-    fetchServers(); // It's fetching twice, probably due to parent re-render, should fix...
+    fetchServers();
   }, []);
 
   return (
     <>
       {errorAlert.length > 0 && <Alert severity="error">{errorAlert}</Alert>}
       {servers.length > 0 && (
-        <TableContainer component={Paper}>
+        <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
@@ -53,14 +44,23 @@ const ServerTable: React.FC = () => {
             </TableHead>
             <TableBody>
               {servers.map((server) => (
-                <TableRow
-                  key={server._id}
-                  component={Link}
-                  to={`/servers/${server._id}`}
-                  hover={true}
-                >
-                  <TableCell>{server.server_name}</TableCell>
-                  <TableCell>{server.server_ip}</TableCell>
+                <TableRow key={server._id} hover={true}>
+                  <TableCell>
+                    <Link
+                      to={`/servers/${server._id}`}
+                      style={{ textDecoration: "none", color: "inherit" }}
+                    >
+                      {server.server_name}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      to={`/servers/${server._id}`}
+                      style={{ textDecoration: "none", color: "inherit" }}
+                    >
+                      {server.server_ip}
+                    </Link>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

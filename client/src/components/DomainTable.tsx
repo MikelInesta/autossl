@@ -51,13 +51,15 @@ const DomainTable: React.FC<{ serverId: string; webServerId: string }> = ({
             </TableHead>
             <TableBody>
               {domains.map((domain) => (
-                <TableRow
-                  component={Link}
-                  to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domain._id}`}
-                  key={domain._id}
-                  hover={true}
-                >
-                  <TableCell>{domain.domain_names}</TableCell>
+                <TableRow key={domain._id}>
+                  <TableCell>
+                    <Link
+                      to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domain._id}`}
+                      style={{ textDecoration: "none", color: "inherit" }}
+                    >
+                      {domain.domain_names}
+                    </Link>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

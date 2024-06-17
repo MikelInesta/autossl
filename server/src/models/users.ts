@@ -1,13 +1,11 @@
 import { Schema, model, Types } from "mongoose";
-import { IServer, Server } from "./servers";
+import { Agent } from "./agents";
 
 interface IUser {
   _id: Types.ObjectId;
   user_name: string;
-  email: string;
   password: string;
-  servers?: Types.DocumentArray<IServer>;
-  //old: boolean;
+  agent_ids: Array<string>;
 }
 
 const schema = new Schema<IUser>({
@@ -16,25 +14,12 @@ const schema = new Schema<IUser>({
     required: true,
     max: 50,
   },
-  email: {
-    type: "string",
-    required: true,
-    max: 254,
-    unique: true,
-  },
   password: {
     type: "string",
     required: true,
     max: 43,
   },
-  servers: {
-    type: "array",
-    items: {
-      type: Schema.Types.ObjectId,
-      ref: Server,
-    },
-  },
-  //old: { type: Boolean, default: false },
+  agent_ids: [{ type: Schema.Types.ObjectId, ref: Agent }],
 });
 
 const User = model<IUser>("User", schema);

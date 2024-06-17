@@ -6,10 +6,10 @@ const ServerInfo = ({ server }: { server: IServer | null }) => {
     <Box>
       {server != null && (
         <>
-          <h1>Server {server._id}</h1>
+          <h1>{server.server_name}</h1>
           <p>
-            <strong>Name: </strong>
-            {server.server_name}
+            <strong>ID: </strong>
+            {server._id}
             <br />
             <strong>IP Address: </strong>
             {server.server_ip}

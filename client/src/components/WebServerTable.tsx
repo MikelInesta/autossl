@@ -7,10 +7,8 @@ import {
   TableHead,
   TableRow,
   Paper,
-  Box,
   Divider,
 } from "@mui/material";
-import WebServerOptionsMenu from "./WebServerOptionsMenu";
 import { IWebServer } from "../types/models";
 import { Link } from "react-router-dom";
 
@@ -51,13 +49,15 @@ const WebServerTable = ({ serverId }: { serverId: string }) => {
               </TableHead>
               <TableBody>
                 {webServers.map((webServer) => (
-                  <TableRow
-                    key={webServer._id}
-                    component={Link}
-                    to={`/servers/${serverId}/web-servers/${webServer._id}`}
-                    hover={true}
-                  >
-                    <TableCell>{webServer.web_server_name}</TableCell>
+                  <TableRow key={webServer._id} hover={true}>
+                    <TableCell>
+                      <Link
+                        to={`/servers/${serverId}/web-servers/${webServer._id}`}
+                        style={{ textDecoration: "none", color: "inherit" }}
+                      >
+                        {webServer.web_server_name}
+                      </Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

@@ -17,8 +17,7 @@ const Layout = () => {
   return (
     <ThemeProvider theme={theme}>
       <Grid container direction="row" justifyContent={"center"}>
-        <Grid item marginBottom={4} xs={12} sm={12} md={10} lg={8}>
-          {/*<OldNavBar />*/}
+        <Grid item xs={12} sm={12} md={12} lg={10}>
           <ResponsiveAppBar />
         </Grid>
         <Grid
@@ -28,13 +27,15 @@ const Layout = () => {
           square={true}
           xs={12}
           sm={12}
-          md={10}
-          lg={8}
+          md={12}
+          lg={10}
           sx={{
             ":hover": {
               boxShadow: 10,
             },
+            height: "100%",
           }}
+          paddingBottom={20}
         >
           <Outlet />
         </Grid>
