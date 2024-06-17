@@ -16,32 +16,27 @@ const theme = createTheme({
 const Layout = () => {
   return (
     <ThemeProvider theme={theme}>
-      <Grid
-        container
-        direction="row"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Grid item xs={12} sm={10} md={8} lg={8} xl={6}>
-          <Grid container spacing={2} direction={"column"}>
-            <Grid item marginBottom={4}>
-              {/*<OldNavBar />*/}
-              <ResponsiveAppBar />
-            </Grid>
-            <Grid item>
-              <Paper
-                elevation={3}
-                square={true}
-                sx={{
-                  ":hover": {
-                    boxShadow: 10,
-                  },
-                }}
-              >
-                <Outlet />
-              </Paper>
-            </Grid>
-          </Grid>
+      <Grid container direction="row" justifyContent={"center"}>
+        <Grid item marginBottom={4} xs={12} sm={12} md={10} lg={8}>
+          {/*<OldNavBar />*/}
+          <ResponsiveAppBar />
+        </Grid>
+        <Grid
+          item
+          component={Paper}
+          elevation={3}
+          square={true}
+          xs={12}
+          sm={12}
+          md={10}
+          lg={8}
+          sx={{
+            ":hover": {
+              boxShadow: 10,
+            },
+          }}
+        >
+          <Outlet />
         </Grid>
       </Grid>
     </ThemeProvider>
