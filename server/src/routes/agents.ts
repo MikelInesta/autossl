@@ -27,15 +27,15 @@ agentRouter.post("/validate", async (req, res) => {
   console.log("/agents/validate");
 
   const body = req.body;
-  const id = body.id;
+  const agentId = body.agentId;
 
-  if (!body || !id) {
+  if (!body || !agentId) {
     res.sendStatus(400);
     return;
   }
 
   // I'm testing handling async without await here
-  Agent.findOne({ _id: id })
+  Agent.findOne({ _id: agentId })
     .then((result) => {
       if (result) {
         console.log("Found an agent in the db with given id");

@@ -114,7 +114,9 @@ class Identification:
         try:
             jsonId = json.dumps({"id": agentId})
             response = requests.post(
-                self.apiEndpoint + "/agents/validate/" + agentId, json=jsonId
+                f"{self.apiEndpoint}/agents/validate",
+                data=jsonId,
+                headers={"Content-Type": "application/json"},
             )
             if response.status_code == 200:
                 logger.info(f"Agent with id {agentId} validated succesfully")
