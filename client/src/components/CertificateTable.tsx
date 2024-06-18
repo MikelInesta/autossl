@@ -6,12 +6,18 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   Button,
+  IconButton,
+  Collapse,
+  Box,
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import { ICertificate, IVirtualHost } from "../types/models";
 import { fetchSslVirtualHost } from "../requests/FetchFunctions";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import CertificateInfo from "./CertificateInfo";
+import { updateRollbackStatus } from "../requests/Status";
 
 const CertificateTable: React.FC<{
   serverId: string;
@@ -33,6 +39,8 @@ const CertificateTable: React.FC<{
 
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
+
+  const [open, setOpen] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const fetchCertificates = async () => {
@@ -56,6 +64,13 @@ const CertificateTable: React.FC<{
     fetchSslVirtualHost(setSslVirtualHost, setLoading, setError, domainId);
   }, []);
 
+  const handleClick = (id: string) => {
+    setOpen((prevOpen) => ({
+      ...prevOpen,
+      [id]: !prevOpen[id],
+    }));
+  };
+
   const handleCertificateEnabling = async (certificateId: string) => {
     try {
       const response = await fetch(
@@ -69,16 +84,20 @@ const CertificateTable: React.FC<{
       console.log(
         `Something went wrong trying to enable this certificate: ${e}`
       );
+    } finally {
+      domainId &&
+        updateRollbackStatus(domainId, "Rollback has been requested...");
     }
   };
 
   return (
     certificates.length > 0 && (
       <>
-        <TableContainer component={Paper}>
+        <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
+                <TableCell />
                 <TableCell>Issuer</TableCell>
                 <TableCell>Expiration date</TableCell>
                 <TableCell></TableCell>
@@ -86,29 +105,55 @@ const CertificateTable: React.FC<{
             </TableHead>
             <TableBody>
               {certificates.map((certificate) => (
-                <TableRow
-                  component={Link}
-                  to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domainId}/certificates/${certificate._id}`}
-                  key={certificate._id}
-                  hover={true}
-                >
-                  <TableCell>{certificate.issuer.common_name}</TableCell>
-                  <TableCell>{certificate.not_after.toString()}</TableCell>
-                  <TableCell>
-                    {!certificate.has_expired &&
-                      sslVirtualHost?.certificate_id != certificate._id && (
-                        <Button
-                          onClick={() =>
-                            handleCertificateEnabling(certificate._id)
-                          }
-                          variant="contained"
-                          sx={{ color: "white" }}
-                        >
-                          Enable
-                        </Button>
-                      )}
-                  </TableCell>
-                </TableRow>
+                <React.Fragment key={certificate._id}>
+                  <TableRow
+                    hover={true}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleClick(certificate._id)}
+                  >
+                    <TableCell>
+                      <IconButton size="small">
+                        {open[certificate._id] ? (
+                          <KeyboardArrowUpIcon />
+                        ) : (
+                          <KeyboardArrowDownIcon />
+                        )}
+                      </IconButton>
+                    </TableCell>
+                    <TableCell>{certificate.issuer.common_name}</TableCell>
+                    <TableCell>{certificate.not_after.toString()}</TableCell>
+                    <TableCell>
+                      {!certificate.has_expired &&
+                        sslVirtualHost?.certificate_id != certificate._id && (
+                          <Button
+                            onClick={() =>
+                              handleCertificateEnabling(certificate._id)
+                            }
+                            variant="contained"
+                            sx={{ color: "white" }}
+                          >
+                            Enable
+                          </Button>
+                        )}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell
+                      style={{ paddingBottom: 0, paddingTop: 0 }}
+                      colSpan={6}
+                    >
+                      <Collapse
+                        in={open[certificate._id]}
+                        timeout="auto"
+                        unmountOnExit
+                      >
+                        <Box margin={1}>
+                          <CertificateInfo certificate={certificate} />
+                        </Box>
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                </React.Fragment>
               ))}
             </TableBody>
           </Table>

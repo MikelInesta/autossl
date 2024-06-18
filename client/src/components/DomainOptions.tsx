@@ -1,23 +1,35 @@
 import { Button, Grid } from "@mui/material";
 import { Link } from "react-router-dom";
-import { IVirtualHost } from "../types/models";
+import { useEffect, useState } from "react";
 
 const DomainOptions: React.FC<{
   serverId: string;
   webServerId: string;
   domainId: string;
-  sslVirtualHost: IVirtualHost | null;
 }> = ({
   serverId,
   webServerId,
   domainId,
-  sslVirtualHost,
 }: {
   serverId: string;
   webServerId: string;
   domainId: string;
-  sslVirtualHost: IVirtualHost | null;
 }) => {
+  const [hasCsr, setHasCsr] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchHasCsr = async () => {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/domains/has-csr/${domainId}`
+      );
+      if (response.status == 200) {
+        setHasCsr(true);
+      }
+    };
+
+    fetchHasCsr();
+  });
+
   return (
     <Grid
       container
@@ -37,7 +49,7 @@ const DomainOptions: React.FC<{
           Request a CSR
         </Button>
       </Grid>
-      {sslVirtualHost && sslVirtualHost.csr && (
+      {hasCsr && (
         <Grid item>
           <Button
             variant="contained"

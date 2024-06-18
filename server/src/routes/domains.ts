@@ -1,11 +1,169 @@
 import express from "express";
 import { Domain } from "../models/domains";
 import { VirtualHost } from "../models/virtual_hosts";
-import { updateCertificates } from "../controllers/domain";
+import {
+  updateCertificates,
+  updateCsrStatus,
+  updateInstallStatus,
+  updateRollBackStatus,
+} from "../controllers/domain";
 import { Certificate } from "../models/certificates";
 import { installCertificate } from "../controllers/virtual_host";
 
 const domainRouter = express.Router();
+
+domainRouter.get("/update-csr-status/dn/:dn", async (req, res) => {
+  const domainName = req.params.dn;
+  console.log(`/domains/update-csr-status/dn/${domainName}`);
+  try {
+    const domain = await Domain.findOne({ domain_names: domainName });
+
+    if (!domain) {
+      res.sendStatus(404);
+      return;
+    }
+
+    const newStatus = req.body.newStatus;
+    updateCsrStatus(domain._id.toString(), newStatus);
+    res.sendStatus(200);
+    return;
+  } catch (e: any) {
+    console.log(`Error at '/domains/update-csr-status/${domainName}': ${e}`);
+    res.sendStatus(500);
+    return;
+  }
+});
+
+domainRouter.get("/update-csr-status/:domainId", async (req, res) => {
+  const domainId = req.params.domainId;
+  console.log(`/domains/update-csr-status/${domainId}`);
+  try {
+    const newStatus = req.body.newStatus;
+    updateCsrStatus(domainId, newStatus);
+    res.sendStatus(200);
+    return;
+  } catch (e: any) {
+    console.log(`Error at '/domains/update-csr-status/${domainId}': ${e}`);
+    res.sendStatus(500);
+    return;
+  }
+});
+
+domainRouter.get("/update-install-status/dn/:dn", async (req, res) => {
+  const domainName = req.params.dn;
+  console.log(`/domains/update-install-status/dn/${domainName}`);
+  try {
+    const domain = await Domain.findOne({ domain_names: domainName });
+
+    if (!domain) {
+      res.sendStatus(404);
+      return;
+    }
+
+    const newStatus = req.body.newStatus;
+    updateInstallStatus(domain._id.toString(), newStatus);
+    res.sendStatus(200);
+    return;
+  } catch (e: any) {
+    console.log(
+      `Error at '/domains/update-install-status/${domainName}': ${e}`
+    );
+    res.sendStatus(500);
+    return;
+  }
+});
+
+domainRouter.get("/update-install-status/:domainId", async (req, res) => {
+  const domainId = req.params.domainId;
+  console.log(`/domains/update-install-status/${domainId}`);
+  try {
+    const newStatus = req.body.newStatus;
+    updateInstallStatus(domainId, newStatus);
+    res.sendStatus(200);
+    return;
+  } catch (e: any) {
+    console.log(`Error at '/domains/update-install-status/${domainId}': ${e}`);
+    res.sendStatus(500);
+    return;
+  }
+});
+
+domainRouter.get("/update-rollback-status/cert/:certId", async (req, res) => {
+  const certificateId = req.params.certId;
+  console.log(`/domains/update-rollback-status/cert/${certificateId}`);
+  try {
+    const domain = await Domain.findOne({
+      certificate_ids: certificateId,
+    });
+
+    if (!domain) {
+      res.sendStatus(404);
+      return;
+    }
+
+    const newStatus = req.body.newStatus;
+    updateRollBackStatus(domain._id.toString(), newStatus);
+    res.sendStatus(200);
+    return;
+  } catch (e: any) {
+    console.log(
+      `Error at '/domains/update-rollback-status/cert/${certificateId}': ${e}`
+    );
+    res.sendStatus(500);
+    return;
+  }
+});
+
+domainRouter.get("/update-rollback-status/:domainId", async (req, res) => {
+  const domainId = req.params.domainId;
+  console.log(`/domains/update-rollback-status/${domainId}`);
+  try {
+    const newStatus = req.body.newStatus;
+    updateRollBackStatus(domainId, newStatus);
+    res.sendStatus(200);
+    return;
+  } catch (e: any) {
+    console.log(`Error at '/domains/update-rollback-status/${domainId}': ${e}`);
+    res.sendStatus(500);
+    return;
+  }
+});
+
+/*
+  Returns 200 if the given domain id has a csr in any of its virtual hosts
+*/
+domainRouter.get("/has-csr/:id", async (req, res) => {
+  const domainId = req.params.id;
+  try {
+    console.log(`/domains/has-csr/${domainId}`);
+    if (!domainId) {
+      res.sendStatus(404);
+      return;
+    }
+
+    const domain = await Domain.findById(domainId);
+
+    if (!domain) {
+      res.sendStatus(404);
+      return;
+    }
+
+    for (const vhId of domain.virtual_host_ids) {
+      const vh = await VirtualHost.findById(vhId);
+      if (vh && vh.csr) {
+        res.sendStatus(200);
+        return;
+      }
+    }
+
+    res.sendStatus(404);
+    return;
+  } catch (e: any) {
+    console.log(`Error at '/domains/has-csr/${domainId}': ${e}`);
+    res.sendStatus(500);
+    return;
+  }
+});
 
 /*
   Returns the virtual host associated to this domain that has
@@ -239,7 +397,7 @@ domainRouter.get("/getCsr/:domainId", async (req, res) => {
       return;
     }
 
-    for (const vhId in domain.virtual_host_ids) {
+    for (const vhId of domain.virtual_host_ids) {
       const vh = await VirtualHost.findById(vhId);
       if (vh && vh.csr) {
         const csrJson = JSON.stringify({

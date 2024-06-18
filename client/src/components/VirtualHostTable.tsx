@@ -6,33 +6,22 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
+  Collapse,
+  Box,
+  IconButton,
 } from "@mui/material";
-import { Link } from "react-router-dom";
-
-interface IVirtualHost {
-  _id: string;
-  vh_ips: Array<string>;
-  domain_names: string;
-  enabled: boolean;
-  web_server_id: string;
-  certificate_id: string;
-}
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import VirtualHostInfo from "./VirtualHostInfo";
+import { IVirtualHost } from "../types/models";
 
 const VirtualHostTable: React.FC<{
   serverId: string;
   webServerId: string;
   domainId: string;
-}> = ({
-  serverId,
-  webServerId,
-  domainId,
-}: {
-  serverId: string;
-  webServerId: string;
-  domainId: string;
-}) => {
+}> = ({ webServerId }) => {
   const [virtualHosts, setVirtualHosts] = useState<IVirtualHost[]>([]);
+  const [open, setOpen] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     const fetchVirtualHosts = async () => {
@@ -50,29 +39,47 @@ const VirtualHostTable: React.FC<{
     };
 
     fetchVirtualHosts();
-  }, []);
+  }, [webServerId]);
+
+  const handleClick = (id: string) => {
+    setOpen((prevOpen) => ({
+      ...prevOpen,
+      [id]: !prevOpen[id],
+    }));
+  };
 
   return (
     virtualHosts.length > 0 && (
-      <>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Domain Names</TableCell>
-                <TableCell>IP Addresses</TableCell>
-                <TableCell>Is Enabled</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {virtualHosts.map((virtualHost) => (
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell />
+              <TableCell>Domain Names</TableCell>
+              <TableCell>IP Addresses</TableCell>
+              <TableCell>Is Enabled</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {virtualHosts.map((virtualHost) => (
+              <React.Fragment key={virtualHost._id}>
                 <TableRow
-                  component={Link}
-                  to={`/servers/${serverId}/web-servers/${webServerId}/domains/${domainId}/virtualHosts/${virtualHost._id}`}
-                  key={virtualHost._id}
                   hover={true}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleClick(virtualHost._id)}
                 >
-                  <TableCell>{virtualHost.domain_names}</TableCell>
+                  <TableCell>
+                    <IconButton size="small">
+                      {open[virtualHost._id] ? (
+                        <KeyboardArrowUpIcon />
+                      ) : (
+                        <KeyboardArrowDownIcon />
+                      )}
+                    </IconButton>
+                  </TableCell>
+                  <TableCell component="th" scope="row">
+                    {virtualHost.domain_names}
+                  </TableCell>
                   <TableCell>
                     <ul>
                       {virtualHost.vh_ips.map((ip) => (
@@ -82,11 +89,27 @@ const VirtualHostTable: React.FC<{
                   </TableCell>
                   <TableCell>{virtualHost.enabled ? "Yes" : "No"}</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </>
+                <TableRow>
+                  <TableCell
+                    style={{ paddingBottom: 0, paddingTop: 0 }}
+                    colSpan={6}
+                  >
+                    <Collapse
+                      in={open[virtualHost._id]}
+                      timeout="auto"
+                      unmountOnExit
+                    >
+                      <Box margin={1}>
+                        <VirtualHostInfo virtualHost={virtualHost} />
+                      </Box>
+                    </Collapse>
+                  </TableCell>
+                </TableRow>
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     )
   );
 };

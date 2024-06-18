@@ -1,8 +1,9 @@
 import os
 import shutil
+import requests
 
 from agent import Agent
-from config import logger
+from config import logger, config
 
 
 """
@@ -10,6 +11,11 @@ from config import logger
     In reality only the certificate path and ids are needed,
     the server blocks are in case some specific configuration was saved.
 """
+
+try:
+    apiEndpoint = config["SERVER_ADDRESS"]
+except KeyError as e:
+    logger.error(f"Something went wrong trying to access the SERVER_ADDRESS: {e}")
 
 
 class Rollback:
@@ -46,6 +52,19 @@ class Rollback:
         # This update should relate the new certificate to virtual host
         a = Agent()
         a.update()
+
+        try:
+            res = requests.post(
+                f"{apiEndpoint}/domain/update-rollback-status/cert/{wantedCertificateId}",
+                data={
+                    "newStatus": "Successfully rolled back to the requested certificate!"
+                },
+                headers={"Content-Type": "application/json"},
+            )
+        except Exception as e:
+            logger.error(
+                f"Something went wrong trying to update the csr request status: {e}"
+            )
 
     """
         Places the wanted cert path as the current cert path

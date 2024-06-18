@@ -25,9 +25,6 @@ interface IVirtualHost {
   certificate_key_path: string;
   root: string;
   configuration_file: string;
-  csr_request_status?: string;
-  certificate_install_status?: string;
-  rollback_status?: string;
 }
 
 interface IDomain {
@@ -36,6 +33,9 @@ interface IDomain {
   domain_names: string;
   certificate_ids: Array<string>;
   virtual_host_ids: Array<string>;
+  csr_request_status?: string;
+  certificate_install_status?: string;
+  rollback_status?: string;
 }
 
 interface ICertificate extends Document {

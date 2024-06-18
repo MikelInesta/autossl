@@ -78,6 +78,17 @@ class CertificateSigningRequest:
             if res.status_code != 200:
                 raise Exception(f"Error: {res.status_code}")
             else:
+                # Update the csr request status
+                try:
+                    res = requests.post(
+                        f"{apiEndpoint}/domain/update-csr-status/dn/{domainNames}",
+                        data={"newStatus": "The CSR has been succesfully created!"},
+                        headers={"Content-Type": "application/json"},
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Something went wrong trying to update the csr request status: {e}"
+                    )
                 logger.info("CSR sent succesfully")
         except Exception as e:
             logger.error(f"Something went wrong trying to send the CSR: {e}")

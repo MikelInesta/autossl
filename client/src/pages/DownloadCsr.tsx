@@ -28,6 +28,8 @@ const DownloadCsr = () => {
     null
   );
 
+  const [csr, setCsr] = useState<string>("");
+
   const [sslVhErr, setSslVhErr] = useState<string>("");
   const [loadingSsl, setLoadingSsl] = useState<boolean>(true);
 
@@ -35,6 +37,27 @@ const DownloadCsr = () => {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
+    const fetchCsr = async () => {
+      console.log("Fetching csr data");
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/domains/getCsr/${domainId}`
+        );
+        if (response.status != 200) {
+          throw new Error(response.statusText);
+        } else {
+          const result = await response.json();
+          setCsr(result.csr || "");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        setError("Couldn't get the csr from the backend.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCsr();
     domainId && fetchDomain(setDomain, setLoading, setError, domainId);
     domainId &&
       fetchSslVirtualHost(
@@ -93,9 +116,7 @@ const DownloadCsr = () => {
         <Grid item xs={8} component={Paper} padding={3} elevation={5}>
           {loading && <CircularProgress />}
           {error && <Alert severity="warning">{error}</Alert>}
-          {!error && !loading && sslVirtualHost && (
-            <pre>{sslVirtualHost.csr}</pre>
-          )}
+          {!error && !loading && <pre>{csr}</pre>}
         </Grid>
       </Grid>
     </>

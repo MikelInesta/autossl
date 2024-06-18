@@ -3,6 +3,72 @@ import { VirtualHost } from "../models/virtual_hosts";
 import { Certificate } from "../models/certificates";
 import { Domain } from "../models/domains";
 
+/*
+
+Status update controllers
+
+*/
+
+const updateRollBackStatus = async (
+  domainId: string,
+  rollBackStatus: string
+) => {
+  if (!domainId || !rollBackStatus) {
+    return false;
+  }
+
+  const updateRes = await Domain.findOneAndUpdate(
+    { _id: domainId },
+    {
+      rollback_status: rollBackStatus,
+    },
+    {
+      new: true,
+    }
+  );
+
+  const result = updateRes ? true : false;
+  return result;
+};
+
+const updateInstallStatus = async (domainId: string, installStatus: string) => {
+  if (!domainId || !installStatus) {
+    return false;
+  }
+
+  const updateRes = await Domain.findOneAndUpdate(
+    { _id: domainId },
+    {
+      certificate_install_status: installStatus,
+    },
+    {
+      new: true,
+    }
+  );
+
+  const result = updateRes ? true : false;
+  return result;
+};
+
+const updateCsrStatus = async (domainId: string, csrStatus: string) => {
+  if (!domainId || !csrStatus) {
+    return false;
+  }
+
+  const updateRes = await Domain.findOneAndUpdate(
+    { _id: domainId },
+    {
+      csr_request_status: csrStatus,
+    },
+    {
+      new: true,
+    }
+  );
+
+  const result = updateRes ? true : false;
+  return result;
+};
+
 const updateCertificates = async (data: [string]) => {
   for (const cert in data) {
     if (isValidObjectId(cert)) {
@@ -47,4 +113,9 @@ const updateCertificates = async (data: [string]) => {
   }
 };
 
-export { updateCertificates };
+export {
+  updateCertificates,
+  updateCsrStatus,
+  updateInstallStatus,
+  updateRollBackStatus,
+};

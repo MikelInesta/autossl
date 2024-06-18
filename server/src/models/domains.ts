@@ -9,6 +9,9 @@ interface IDomain {
   domain_names: string;
   certificate_ids: Array<string>;
   virtual_host_ids: Array<string>;
+  csr_request_status?: string;
+  certificate_install_status?: string;
+  rollback_status?: string;
 }
 
 const schema = new Schema<IDomain>({
@@ -19,6 +22,9 @@ const schema = new Schema<IDomain>({
   domain_names: { type: String },
   certificate_ids: [{ type: Schema.Types.ObjectId, ref: Certificate }],
   virtual_host_ids: [{ type: Schema.Types.ObjectId, ref: VirtualHost }],
+  csr_request_status: { type: "string" },
+  certificate_install_status: { type: "string" },
+  rollback_status: { type: "string" },
 });
 
 const Domain = model<IDomain>("Domain", schema);

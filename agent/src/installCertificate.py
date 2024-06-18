@@ -122,6 +122,17 @@ class InstallCertificate:
         # Force an update
         a = Agent()
         a.update()
+        
+        try:
+            res = requests.post(
+                f"{apiEndpoint}/domain/update-install-status/dn/{domainNames}",
+                data={"newStatus": "Successfully installed the new certificate!"},
+                headers={"Content-Type": "application/json"},
+            )
+        except Exception as e:
+            logger.error(
+                f"Something went wrong trying to update the install request status: {e}"
+            )
 
         return True
             

@@ -4,9 +4,6 @@ import {
   associateCsrToCert,
   hasCertificate,
   requestCsr,
-  updateCsrStatus,
-  updateInstallStatus,
-  updateRollBackStatus,
 } from "../controllers/virtual_host";
 import { publishMessage } from "../config/rabbit";
 import { getCsr } from "../controllers/virtual_host";
@@ -22,54 +19,6 @@ virtualHostRouter.get("/associate-csr-cert/:vhId", async (req, res) => {
   } catch (e: any) {
     console.log(`Something went wrong trying to associate csr to cert`);
     res.sendStatus(500);
-  }
-});
-
-virtualHostRouter.post("/update/rollback-status", async (req, res) => {
-  try {
-    const { vhId, rollBackStatus } = req.body;
-    const result = await updateRollBackStatus(vhId, rollBackStatus);
-    if (!result) res.sendStatus(400);
-    else res.sendStatus(200);
-  } catch (e: any) {
-    res.sendStatus(500);
-  }
-  const requestBody = req.body;
-  if (!requestBody) {
-    res.sendStatus(400);
-    return;
-  }
-});
-
-virtualHostRouter.post("/update/csr-status", async (req, res) => {
-  try {
-    const { vhId, csrStatus } = req.body;
-    const result = await updateCsrStatus(vhId, csrStatus);
-    if (!result) res.sendStatus(400);
-    else res.sendStatus(200);
-  } catch (e: any) {
-    res.sendStatus(500);
-  }
-  const requestBody = req.body;
-  if (!requestBody) {
-    res.sendStatus(400);
-    return;
-  }
-});
-
-virtualHostRouter.post("/update/install-status", async (req, res) => {
-  try {
-    const { vhId, installStatus } = req.body;
-    const result = await updateInstallStatus(vhId, installStatus);
-    if (!result) res.sendStatus(400);
-    else res.sendStatus(200);
-  } catch (e: any) {
-    res.sendStatus(500);
-  }
-  const requestBody = req.body;
-  if (!requestBody) {
-    res.sendStatus(400);
-    return;
   }
 });
 

@@ -103,7 +103,7 @@ const Domain = () => {
                 >
                   <h1>{domain?.domain_names}</h1>
                 </Grid>
-                <Grid>
+                <Grid item>
                   <Accordion>
                     <AccordionSummary
                       expandIcon={<ArrowDropDownIcon />}
@@ -131,7 +131,6 @@ const Domain = () => {
                   serverId={serverId}
                   webServerId={webServerId}
                   domainId={domainId}
-                  sslVirtualHost={sslVirtualHost}
                 />
               </Grid>
               <Grid item container direction={"row"} md={12}>
@@ -158,7 +157,7 @@ const Domain = () => {
                       CSR Status:
                       <br />
                       <br />
-                      Status...
+                      {domain && domain?.csr_request_status}
                     </p>
                   </Grid>
                   <Grid
@@ -173,7 +172,7 @@ const Domain = () => {
                       Installation Status:
                       <br />
                       <br />
-                      Status...
+                      {domain && domain?.certificate_install_status}
                     </p>
                   </Grid>
                   <Grid
@@ -188,7 +187,7 @@ const Domain = () => {
                       Rollback Status:
                       <br />
                       <br />
-                      Status...
+                      {domain && domain?.rollback_status}
                     </p>
                   </Grid>
                 </Grid>

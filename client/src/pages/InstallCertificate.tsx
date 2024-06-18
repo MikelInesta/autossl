@@ -15,6 +15,7 @@ import {
   fetchServer,
   fetchWebServer,
 } from "../requests/FetchFunctions";
+import { updateInstallStatus } from "../requests/Status";
 
 async function getBase64(file: File) {
   return new Promise((resolve, reject) => {
@@ -38,6 +39,8 @@ const InstallCertificate = () => {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [requested, setRequested] = useState<boolean>(false);
 
   useEffect(() => {
     domainId && fetchDomain(setDomain, setLoading, setError, domainId);
@@ -76,6 +79,14 @@ const InstallCertificate = () => {
       } catch (error) {
         console.error(error);
         setError("An error occurred while uploading the certificate.");
+      } finally {
+        // Update status and indicate use can check status on domain page
+        domainId &&
+          (await updateInstallStatus(
+            domainId,
+            "Certificate install has been requested..."
+          ));
+        setRequested(true);
       }
     }
   };
@@ -167,6 +178,12 @@ const InstallCertificate = () => {
               <Button variant="contained" onClick={handleUpload}>
                 Upload
               </Button>
+            )}
+            {requested && (
+              <p>
+                Installation has been requested, you can check its status in the
+                domain page.
+              </p>
             )}
           </Grid>
         </Grid>
