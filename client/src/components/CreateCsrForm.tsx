@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import { IDomain } from "../types/models";
+import { updateCsrStatus } from "../requests/Status";
 
 const CreateCsrForm = ({
   serverId,
@@ -22,6 +23,21 @@ const CreateCsrForm = ({
   const [download, setDownload] = useState(false);
 
   const [domain, setDomain] = useState<IDomain | null>(null);
+
+  const [validationError, setValidationError] = useState("");
+
+  const validateCountryInput = (input: string) => {
+    const isValid = /^[A-Z]{2}$/.test(input);
+    setValidationError(
+      isValid ? "" : "Country must be a two letter country code."
+    );
+  };
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target.value;
+    setCountry(input);
+    validateCountryInput(input);
+  };
 
   useEffect(() => {
     const fetchDomain = async () => {
@@ -71,6 +87,8 @@ const CreateCsrForm = ({
       setDownload(true);
     } catch (error) {
       console.error("Error requesting csr from the backend:", error);
+    } finally {
+      updateCsrStatus(domainId, "CSR has been requested...");
     }
   };
 
@@ -91,7 +109,7 @@ const CreateCsrForm = ({
               maxWidth: "500px",
             }}
           >
-            <h3>
+            <h3 style={{ marginBottom: "20px" }}>
               Please fill the following form to solicit a CSR for{" "}
               {domain && domain.domain_names}:
             </h3>
@@ -99,7 +117,9 @@ const CreateCsrForm = ({
               label="Country"
               variant="outlined"
               value={country}
-              onChange={(e) => setCountry(e.target.value)}
+              onChange={handleCountryChange}
+              error={!!validationError}
+              helperText={validationError}
               sx={{ width: "100%", marginBottom: 2 }}
             />
             <TextField
@@ -132,9 +152,11 @@ const CreateCsrForm = ({
               sx={{ width: "100%", marginBottom: 2 }}
             />
           </form>
-          <Button variant="contained" sx={{ m: 3 }} onClick={sendFormData}>
-            Submit
-          </Button>
+          {!validationError && (
+            <Button variant="contained" sx={{ m: 3 }} onClick={sendFormData}>
+              Submit
+            </Button>
+          )}
         </>
       )}
       {download && (
