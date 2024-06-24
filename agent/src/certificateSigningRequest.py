@@ -80,9 +80,12 @@ class CertificateSigningRequest:
             else:
                 # Update the csr request status
                 try:
+                    msgJson = json.dumps(
+                        {"newStatus": "The CSR has been succesfully created!"}
+                    )
                     res = requests.post(
-                        f"{apiEndpoint}/domain/update-csr-status/dn/{domainNames}",
-                        data={"newStatus": "The CSR has been succesfully created!"},
+                        f"{apiEndpoint}/domains/update-csr-status/dn/{domainNames}",
+                        data=msgJson,
                         headers={"Content-Type": "application/json"},
                     )
                 except Exception as e:

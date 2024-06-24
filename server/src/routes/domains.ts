@@ -12,7 +12,7 @@ import { installCertificate } from "../controllers/virtual_host";
 
 const domainRouter = express.Router();
 
-domainRouter.get("/update-csr-status/dn/:dn", async (req, res) => {
+domainRouter.post("/update-csr-status/dn/:dn", async (req, res) => {
   const domainName = req.params.dn;
   console.log(`/domains/update-csr-status/dn/${domainName}`);
   try {
@@ -28,13 +28,13 @@ domainRouter.get("/update-csr-status/dn/:dn", async (req, res) => {
     res.sendStatus(200);
     return;
   } catch (e: any) {
-    console.log(`Error at '/domains/update-csr-status/${domainName}': ${e}`);
+    console.log(`Error at '/domains/update-csr-status/dn': ${e}`);
     res.sendStatus(500);
     return;
   }
 });
 
-domainRouter.get("/update-csr-status/:domainId", async (req, res) => {
+domainRouter.post("/update-csr-status/:domainId", async (req, res) => {
   const domainId = req.params.domainId;
   console.log(`/domains/update-csr-status/${domainId}`);
   try {
@@ -49,7 +49,7 @@ domainRouter.get("/update-csr-status/:domainId", async (req, res) => {
   }
 });
 
-domainRouter.get("/update-install-status/dn/:dn", async (req, res) => {
+domainRouter.post("/update-install-status/dn/:dn", async (req, res) => {
   const domainName = req.params.dn;
   console.log(`/domains/update-install-status/dn/${domainName}`);
   try {
@@ -73,7 +73,7 @@ domainRouter.get("/update-install-status/dn/:dn", async (req, res) => {
   }
 });
 
-domainRouter.get("/update-install-status/:domainId", async (req, res) => {
+domainRouter.post("/update-install-status/:domainId", async (req, res) => {
   const domainId = req.params.domainId;
   console.log(`/domains/update-install-status/${domainId}`);
   try {
@@ -88,7 +88,7 @@ domainRouter.get("/update-install-status/:domainId", async (req, res) => {
   }
 });
 
-domainRouter.get("/update-rollback-status/cert/:certId", async (req, res) => {
+domainRouter.post("/update-rollback-status/cert/:certId", async (req, res) => {
   const certificateId = req.params.certId;
   console.log(`/domains/update-rollback-status/cert/${certificateId}`);
   try {
@@ -114,7 +114,7 @@ domainRouter.get("/update-rollback-status/cert/:certId", async (req, res) => {
   }
 });
 
-domainRouter.get("/update-rollback-status/:domainId", async (req, res) => {
+domainRouter.post("/update-rollback-status/:domainId", async (req, res) => {
   const domainId = req.params.domainId;
   console.log(`/domains/update-rollback-status/${domainId}`);
   try {

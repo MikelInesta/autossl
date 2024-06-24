@@ -59,7 +59,7 @@ const publishMessage = async (
     console.log(
       `Message published to exchange:${exchangeName} key:${routingKey}`
     );
-    console.log(`Message: ${message}`);
+    //console.log(`Message: ${message}`);
   } catch (error) {
     console.log("Something went wrong:", error);
     throw error;

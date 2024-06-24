@@ -1,5 +1,6 @@
 import base64
 import binascii
+import json
 import requests
 import shutil
 import os
@@ -124,9 +125,10 @@ class InstallCertificate:
         a.update()
         
         try:
+            msgJson = json.dumps({"newStatus": "Successfully installed the new certificate!"})
             res = requests.post(
-                f"{apiEndpoint}/domain/update-install-status/dn/{domainNames}",
-                data={"newStatus": "Successfully installed the new certificate!"},
+                f"{apiEndpoint}/domains/update-install-status/dn/{domainNames}",
+                data=msgJson,
                 headers={"Content-Type": "application/json"},
             )
         except Exception as e:

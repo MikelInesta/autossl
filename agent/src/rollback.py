@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import requests
@@ -54,11 +55,12 @@ class Rollback:
         a.update()
 
         try:
+            msgJson = json.dumps(
+                {"newStatus": "Successfully rolled back to the requested certificate!"}
+            )
             res = requests.post(
-                f"{apiEndpoint}/domain/update-rollback-status/cert/{wantedCertificateId}",
-                data={
-                    "newStatus": "Successfully rolled back to the requested certificate!"
-                },
+                f"{apiEndpoint}/domains/update-rollback-status/cert/{wantedCertificateId}",
+                data=msgJson,
                 headers={"Content-Type": "application/json"},
             )
         except Exception as e:
